@@ -3,7 +3,6 @@ import axios from 'axios';
 import axiosInstance from '../../services/axiosConfig';
 
 interface CourseCategory {
-    [x: string]: CourseCategory;
     image: any;
     subCategories: any;
     subCategoryCount: number;

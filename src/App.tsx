@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import { ScrollToTop } from "./components/common/ScrollToTop";
+import AddFilter from "./components/filters/AddFilter";
+import FilterList from "./components/filters/FilterList";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -43,6 +45,11 @@ export default function App() {
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/add-category" element={<AddCategory />} />
               <Route path="/categories" element={<CategoryList />} />
+              {/* Add more protected routes here if needed */}
+              <Route path="/filters/add" element={<AddFilter />} />
+              <Route path="/filters/all" element={<FilterList />} />
+
+              {/* Dashboard */}
 
               {/* Forms */}
               <Route path="/form-elements" element={<FormElements />} />

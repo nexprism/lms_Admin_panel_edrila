@@ -70,6 +70,14 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    icon: <PageIcon />,
+    name: "Filters",
+    subItems: [
+      { name: "Filters List", path: "/filters/all" },
+      { name: "Add Filter", path: "/filters/add" },
+    ],
+  },
+  {
     icon: <BoxCubeIcon />,
     name: "Course Bundle",
     subItems: [
