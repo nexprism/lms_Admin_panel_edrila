@@ -4,6 +4,10 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import AddFilter from "./components/filters/AddFilter";
 import FilterList from "./components/filters/FilterList";
+import AddCourse from "./pages/courses/AddCourse";
+import CourseList from "./pages/courses/CourseList";
+import { Edit } from "lucide-react";
+import EditCourse from "./pages/courses/EditCourse";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -48,6 +52,12 @@ export default function App() {
               {/* Add more protected routes here if needed */}
               <Route path="/filters/add" element={<AddFilter />} />
               <Route path="/filters/all" element={<FilterList />} />
+              <Route path="/courses/add" element={<AddCourse/>} />
+              <Route path="/courses/all/courses" element={<CourseList />} />
+                <Route path="/courses/edit/:courseId" element={<EditCourse/>} />
+
+
+              {/* Nested Routes */}
 
               {/* Dashboard */}
 

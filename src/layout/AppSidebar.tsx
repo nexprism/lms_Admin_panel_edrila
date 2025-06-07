@@ -50,15 +50,15 @@ const navItems: NavItem[] = [
         name: "All Courses",
         path: "/courses/all",
         subItems: [
+          { name: "Courses", path: "/courses/all/courses" },
           { name: "Live Classes", path: "/courses/all/live-classes" },
           { name: "Text Courses", path: "/courses/all/text-courses" },
           { name: "In-App Live History", path: "/courses/all/in-app-live-history" },
-          { name: "New Course", path: "/courses/all/new-course" },
           { name: "Course Notes", path: "/courses/all/course-notes" },
         ],
       },
       { name: "Add Course", path: "/courses/add" },
-      { name: "Categories", path: "/courses/categories" },
+      { name: "Courses List", path: "/courses/list" },
     ],
   },
    {

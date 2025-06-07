@@ -1,0 +1,73 @@
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+import axiosInstance from '../../services/axiosConfig';
+
+interface Question {
+    question: string;
+    options: string[];
+    correctAnswer: string;
+}
+
+interface QuizPayload {
+    course: string;
+    lesson: string;
+    questions: Question[];
+    passMark: number;
+}
+
+interface QuizState {
+    loading: boolean;
+    error: string | null;
+    data: any;
+}
+
+const initialState: QuizState = {
+    loading: false,
+    error: null,
+    data: null,
+};
+
+export const createQuiz = createAsyncThunk(
+    'quiz/createQuiz',
+    async (payload: QuizPayload, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post(
+                'http://localhost:5000/quiz',
+                payload,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Add Authorization header if needed
+                        // 'Authorization': `Bearer ${token}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (err: any) {
+            return rejectWithValue(err.response?.data?.message || err.message);
+        }
+    }
+);
+
+const quizSlice = createSlice({
+    name: 'quiz',
+    initialState,
+    reducers: {},
+    extraReducers: (builder) => {
+        builder
+            .addCase(createQuiz.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createQuiz.fulfilled, (state, action) => {
+                state.loading = false;
+                state.data = action.payload;
+            })
+            .addCase(createQuiz.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            });
+    },
+});
+
+export default quizSlice.reducer;
