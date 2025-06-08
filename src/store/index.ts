@@ -8,6 +8,7 @@ import lesson from './slices/lesson';
 import module from './slices/module';
 import assignment from './slices/assignment';
 import textLesson from './slices/textLesson';
+import CourseBundle from './slices/courseBundle';
 
 
 
@@ -21,6 +22,7 @@ export const store = configureStore({
     module: module,
     assignment: assignment,
     textLesson: textLesson,
+    courseBundle: CourseBundle,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

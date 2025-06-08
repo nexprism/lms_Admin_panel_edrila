@@ -83,7 +83,6 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "All Bundles", path: "/bundles/all" },
       { name: "Create Bundle", path: "/bundles/create" },
-      { name: "Bundle Categories", path: "/bundles/categories" },
     ],
   },
   {
