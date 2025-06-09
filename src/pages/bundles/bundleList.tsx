@@ -12,7 +12,12 @@ import {
   Eye,
   Users,
   BookOpen,
-  DollarSign
+  DollarSign,
+  Pencil,
+  Trash,
+  Trash2
+
+
 } from "lucide-react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
@@ -305,12 +310,20 @@ const BundleList: React.FC = () => {
                       {new Date(bundle.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
-                      <button 
+                        <button 
                         className="text-blue-500 hover:text-blue-700 transition-colors"
                         title="View Details"
-                      >
-                        <Eye className="h-5 w-5" />
-                      </button>
+                        onClick={() => window.location.href = `/bundles/${bundle._id}`}
+                        >
+                        <Pencil className="h-5 w-5" />
+                        </button>
+                       
+                    <button 
+                      // onClick={() => openDeleteModal(cat)}
+                      className="text-red-500 hover:text-red-700 transition-colors"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
                     </td>
                   </tr>
                 ))}

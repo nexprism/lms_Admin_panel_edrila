@@ -1,14 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { 
     BookOpen, FileText, Clock, CheckCircle, Plus, Edit2, Trash2, 
     X, Save, HelpCircle, AlertCircle, Eye, Settings 
 } from 'lucide-react';
-
-// Dummy API call function
-const saveQuiz = async (quizData) => {
-    // Replace with your API logic
-    return new Promise((resolve) => setTimeout(() => resolve({ success: true }), 1200));
-};
+import { createQuiz } from '../../../store/slices/quiz'; // Adjust the import path as needed
 
 type QuestionType = {
     question: string;
@@ -28,9 +24,24 @@ type LessonType = {
 type QuizProps = {
     lesson?: LessonType;
     onChange?: (data: LessonType) => void;
+    courseId: string; // Required for API call
+    lessonId: string; // Required for API call
 };
 
-const Quiz: React.FC<QuizProps> = ({ lesson = {}, onChange }) => {
+// Redux state type (adjust according to your store structure)
+interface RootState {
+    quiz: {
+        loading: boolean;
+        error: string | null;
+        data: any;
+    };
+}
+
+const Quiz = ({ section, lesson, onChange, courseId, lessonId }) => {
+    
+        const dispatch = useDispatch();
+    const { loading: saving, error: saveError, data: saveData } = useSelector((state: RootState) => state.quiz);
+    
     const [showQuestionBuilder, setShowQuestionBuilder] = useState(false);
     const [questions, setQuestions] = useState<QuestionType[]>(lesson.questions || []);
     const [editingQuestion, setEditingQuestion] = useState<number | null>(null);
@@ -41,33 +52,76 @@ const Quiz: React.FC<QuizProps> = ({ lesson = {}, onChange }) => {
         passMark: lesson.passMark || 70,
         quizDescription: lesson.quizDescription || '',
     });
-    const [saving, setSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
-    const handleChange = (field:any, value:any) => {
+    // Handle save success
+    useEffect(() => {
+        if (saveData && !saving && !saveError) {
+            setSaveSuccess(true);
+            // Auto-hide success message after 3 seconds
+            const timer = setTimeout(() => setSaveSuccess(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [saveData, saving, saveError]);
+
+    const handleChange = (field: any, value: any) => {
         setQuizData(prev => ({ ...prev, [field]: value }));
         if (onChange) onChange({ ...lesson, ...quizData, [field]: value, questions });
     };
 
-    const handleQuestionsUpdate = (updatedQuestions:any) => {
+    const handleQuestionsUpdate = (updatedQuestions: any) => {
         setQuestions(updatedQuestions);
         if (onChange) onChange({ ...lesson, ...quizData, questions: updatedQuestions });
     };
 
     const handleSaveQuiz = async () => {
-        setSaving(true);
+        // Validate required fields
+        if (!quizData.quizTitle.trim()) {
+            alert('Please enter a quiz title');
+            return;
+        }
+        
+        if (questions.length === 0) {
+            alert('Please add at least one question');
+            return;
+        }
+
+        // Reset previous success state
         setSaveSuccess(false);
-        const payload = { ...quizData, questions };
+        
+        // Prepare payload for API
+        const payload = {
+            course: courseId,
+            lesson: lessonId,
+            questions: questions,
+            passMark: quizData.passMark,
+            // Include other quiz data if your API supports it
+            title: quizData.quizTitle,
+            duration: quizData.quizDuration,
+            difficulty: quizData.quizDifficulty,
+            description: quizData.quizDescription,
+        };
+
         try {
-            const res = await saveQuiz(payload);
-            if (res.success) setSaveSuccess(true);
-        } finally {
-            setSaving(false);
+            await dispatch(createQuiz(payload) as any);
+        } catch (error) {
+            console.error('Failed to save quiz:', error);
         }
     };
 
     return (
         <div className="space-y-8">
+            {/* Error Display */}
+            {saveError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                        <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
+                        <span className="text-red-700 font-medium">Error saving quiz:</span>
+                    </div>
+                    <p className="text-red-600 mt-1">{saveError}</p>
+                </div>
+            )}
+
             {/* Basic Quiz Information */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -78,7 +132,7 @@ const Quiz: React.FC<QuizProps> = ({ lesson = {}, onChange }) => {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             <BookOpen className="w-4 h-4 inline mr-2" />
-                            Quiz Title
+                            Quiz Title *
                         </label>
                         <input
                             type="text"
@@ -86,6 +140,7 @@ const Quiz: React.FC<QuizProps> = ({ lesson = {}, onChange }) => {
                             onChange={e => handleChange('quizTitle', e.target.value)}
                             placeholder="Enter quiz title"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            required
                         />
                     </div>
                     <div>
@@ -122,7 +177,7 @@ const Quiz: React.FC<QuizProps> = ({ lesson = {}, onChange }) => {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             <AlertCircle className="w-4 h-4 inline mr-2" />
-                            Pass Mark (%)
+                            Pass Mark (%) *
                         </label>
                         <input
                             type="number"
@@ -132,6 +187,7 @@ const Quiz: React.FC<QuizProps> = ({ lesson = {}, onChange }) => {
                             onChange={e => handleChange('passMark', parseInt(e.target.value) || 70)}
                             placeholder="70"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            required
                         />
                     </div>
                 </div>
@@ -212,22 +268,23 @@ const Quiz: React.FC<QuizProps> = ({ lesson = {}, onChange }) => {
             </div>
 
             {/* Save Quiz Button */}
-            <div className="flex justify-end">
+            <div className="flex justify-end items-center gap-4">
                 <button
                     onClick={handleSaveQuiz}
-                    disabled={saving}
+                    disabled={saving || questions.length === 0 || !quizData.quizTitle.trim()}
                     className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors shadow ${
-                        saving
+                        saving || questions.length === 0 || !quizData.quizTitle.trim()
                             ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
                             : 'bg-blue-600 hover:bg-blue-700 text-white'
                     }`}
                 >
                     <Save className="w-5 h-5" />
-                    {saving ? 'Saving...' : 'Save Quiz'}
+                    {saving ? 'Saving Quiz...' : 'Save Quiz'}
                 </button>
                 {saveSuccess && (
-                    <span className="ml-4 text-green-600 font-medium flex items-center">
-                        <CheckCircle className="w-5 h-5 mr-1" /> Saved!
+                    <span className="text-green-600 font-medium flex items-center animate-fade-in">
+                        <CheckCircle className="w-5 h-5 mr-1" /> 
+                        Quiz saved successfully!
                     </span>
                 )}
             </div>
@@ -236,7 +293,7 @@ const Quiz: React.FC<QuizProps> = ({ lesson = {}, onChange }) => {
             {showQuestionBuilder && (
                 <QuestionBuilder
                     question={editingQuestion !== null ? questions[editingQuestion] : null}
-                    onSave={(questionData:any) => {
+                    onSave={(questionData: any) => {
                         let updatedQuestions;
                         if (editingQuestion !== null) {
                             updatedQuestions = [...questions];
@@ -374,8 +431,8 @@ const QuestionBuilder = ({ question, onSave, onClose }) => {
             alert('Please provide at least 2 options');
             return;
         }
-        if (!formData.correctAnswer) {
-            alert('Please select the correct answer');
+        if (!formData.correctAnswer || !filledOptions.includes(formData.correctAnswer)) {
+            alert('Please select a valid correct answer');
             return;
         }
         onSave({
@@ -436,9 +493,10 @@ const QuestionBuilder = ({ question, onSave, onClose }) => {
                                         <input
                                             type="radio"
                                             name="correctAnswer"
-                                            checked={formData.correctAnswer === option}
-                                            onChange={() => setFormData({ ...formData, correctAnswer: option })}
+                                            checked={formData.correctAnswer === option && option.trim() !== ''}
+                                            onChange={() => option.trim() && setFormData({ ...formData, correctAnswer: option })}
                                             className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                                            disabled={!option.trim()}
                                         />
                                     </div>
                                     <div className="flex-1 flex items-center gap-2">

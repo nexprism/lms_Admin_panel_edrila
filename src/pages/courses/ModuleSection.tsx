@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createModule } from '../../store/slices/module';
 import { createLesson } from '../../store/slices/lesson';
@@ -289,12 +289,13 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
     );
 };
 
-// Lesson Editor Component (only shows when module exists)
-const LessonEditor = ({ lesson, moduleId, onChange, onRemove, onSave }) => {
+// Updated LessonEditor Component with proper lesson ID handling
+const LessonEditor = ({ lesson, moduleId, section, onChange, onRemove, onSave }) => {
     const dispatch = useDispatch();
     const { loading: lessonLoading } = useSelector((state) => state.lesson);
     const [isSaving, setIsSaving] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [savedLessonId, setSavedLessonId] = useState(lesson._id || lesson.id || null);
 
     const lessonTypeConfig = {
         video: { icon: Play, label: 'File', color: 'text-red-500 bg-red-50 border-red-200' },
@@ -314,6 +315,7 @@ const LessonEditor = ({ lesson, moduleId, onChange, onRemove, onSave }) => {
         setIsSaving(true);
         try {
             const lessonData = {
+                section,
                 moduleId,
                 title: lesson.title,
                 description: lesson.content || '',
@@ -321,17 +323,26 @@ const LessonEditor = ({ lesson, moduleId, onChange, onRemove, onSave }) => {
                 order: lesson.order || 1,
                 isRequired: lesson.isRequired || true,
                 language: 'en',
-                section: 'main',
-                ...(lesson.type === 'quiz' && {
-                    quizTitle: lesson.quizTitle,
-                    quizDescription: lesson.quizDescription,
-                    quizDuration: lesson.quizDuration,
-                    quizDifficulty: lesson.quizDifficulty
-                })
             };
 
-            await dispatch(createLesson(lessonData)).unwrap();
-            onSave && onSave(lesson);
+            console.log('Saving lesson data:', lessonData);
+
+            const result = await dispatch(createLesson(lessonData)).unwrap();
+            
+            
+            // Extract lesson ID from the response
+            const newLessonId = result?.data?._id || result?._id || result?.id;
+            
+            if (newLessonId) {
+                setSavedLessonId(newLessonId);
+                // Update the lesson object with the new ID
+                const updatedLesson = { ...lesson, _id: newLessonId, id: newLessonId };
+                onChange(updatedLesson);
+            }
+
+            alert('Lesson saved successfully!');
+            console.log('Lesson saved:', result);
+            onSave && onSave(result);
         } catch (error) {
             console.error('Error saving lesson:', error);
             alert('Failed to save lesson');
@@ -341,17 +352,35 @@ const LessonEditor = ({ lesson, moduleId, onChange, onRemove, onSave }) => {
     };
 
     const renderLessonForm = () => {
+        const commonProps = {
+            section,
+            lesson: { ...lesson, _id: savedLessonId }, // Ensure lesson has the saved ID
+            onChange
+        };
+
         switch (lesson.type) {
             case 'video':
-                return <Files/>;
+                return <Files {...commonProps} />;
             case 'text':
-                return <TextLesson/>;
+                return <TextLesson {...commonProps} />;
             case 'quiz':
-                return <Quiz lesson={lesson} onChange={onChange} />;
+                return (
+                    <Quiz
+                        {...commonProps}
+                        courseId={moduleId}
+                        lessonId={savedLessonId} // Pass the saved lesson ID
+                        moduleId={moduleId} // Also pass moduleId if needed
+                    />
+                );
             case 'assignment':
-                return <Assignment />;
+                return (
+                    <Assignment
+                        {...commonProps}
+                        lessonId={savedLessonId} // Pass lesson ID to assignment too
+                    />
+                );
             default:
-                return <Files/>;
+                return <Files {...commonProps} />;
         }
     };
 
@@ -364,7 +393,14 @@ const LessonEditor = ({ lesson, moduleId, onChange, onRemove, onSave }) => {
                     </div>
                     <div>
                         <h4 className="font-medium text-gray-900">{currentConfig.label}</h4>
-                        <p className="text-sm text-gray-500">Lesson {lesson.order || 1}</p>
+                        <p className="text-sm text-gray-500">
+                            Lesson {lesson.order || 1}
+                            {savedLessonId && (
+                                <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                    Saved
+                                </span>
+                            )}
+                        </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -386,7 +422,7 @@ const LessonEditor = ({ lesson, moduleId, onChange, onRemove, onSave }) => {
                         ) : (
                             <Save className="w-4 h-4" />
                         )}
-                        {isSaving ? 'Saving...' : 'Save'}
+                        {isSaving ? 'Saving...' : savedLessonId ? 'Update' : 'Save'}
                     </button>
                     <button 
                         type="button" 
@@ -406,6 +442,7 @@ const LessonEditor = ({ lesson, moduleId, onChange, onRemove, onSave }) => {
                     placeholder="Lesson Title"
                     className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-lg font-medium"
                 />
+                {/* {console.log('Lesson Type:', type)} */}
                 <select
                     value={lesson.type || 'video'}
                     onChange={e => onChange({ ...lesson, type: e.target.value })}
@@ -417,6 +454,18 @@ const LessonEditor = ({ lesson, moduleId, onChange, onRemove, onSave }) => {
                     <option value="assignment">📋 Assignment</option>
                 </select>
             </div>
+
+            {/* Show message for Quiz/Assignment types if lesson isn't saved yet */}
+            {(lesson.type === 'quiz' || lesson.type === 'assignment') && !savedLessonId && (
+                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5 text-yellow-600" />
+                        <p className="text-yellow-800 font-medium">
+                            Please save the lesson first to access {lesson.type} content creation.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {isExpanded && (
                 <div className="space-y-6">
@@ -449,7 +498,7 @@ const LessonEditor = ({ lesson, moduleId, onChange, onRemove, onSave }) => {
     );
 };
 
-// Module Display Component (shows saved module with lessons)
+// Also update the SavedModuleDisplay to handle lesson IDs properly
 const SavedModuleDisplay = ({ module, onAddLesson, onLessonChange, onLessonRemove }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const totalLessons = module.lessons?.length || 0;
@@ -460,7 +509,8 @@ const SavedModuleDisplay = ({ module, onAddLesson, onLessonChange, onLessonRemov
             content: '',
             type: 'video',
             order: totalLessons + 1,
-            isRequired: true
+            isRequired: true,
+            _id: null, // Initially null, will be set after saving
         };
         onAddLesson(newLesson);
     };
@@ -503,9 +553,9 @@ const SavedModuleDisplay = ({ module, onAddLesson, onLessonChange, onLessonRemov
                     </button>
                 </div>
 
-                {module.description && (
+                {/* {module.description && (
                     <p className="text-gray-700 bg-white/50 p-3 rounded-lg">{module.description}</p>
-                )}
+                )} */}
             </div>
 
             {isExpanded && (
@@ -528,12 +578,16 @@ const SavedModuleDisplay = ({ module, onAddLesson, onLessonChange, onLessonRemov
                     <div className="space-y-4">
                         {module.lessons?.map((lesson, idx) => (
                             <LessonEditor
-                                key={idx}
+                                key={lesson._id || lesson.id || idx}
                                 lesson={lesson}
-                                moduleId={module._id}
+                                moduleId={module?.module?._id || module?._id}
+                                section={module?.module?.courseId || module?.courseId}
                                 onChange={l => onLessonChange(idx, l)}
                                 onRemove={() => onLessonRemove(idx)}
-                                onSave={() => console.log('Lesson saved')}
+                                onSave={(savedLesson) => {
+                                    // Update the lesson with the saved data
+                                    onLessonChange(idx, savedLesson);
+                                }}
                             />
                         ))}
                         
@@ -560,16 +614,29 @@ const SavedModuleDisplay = ({ module, onAddLesson, onLessonChange, onLessonRemov
 };
 
 // Main Enhanced Module Section Component
-const ModuleSection = ({ courseId }) => {
+const ModuleSection = ({ courseId, modules = [], onModulesChange, courseData, isEditing = false }) => {
     const { loading: moduleLoading, error: moduleError } = useSelector((state) => state.module);
     const { loading: lessonLoading, error: lessonError } = useSelector((state) => state.lesson);
     
     const [savedModules, setSavedModules] = useState([]);
     const [showCreateForm, setShowCreateForm] = useState(false);
 
+    // Initialize modules from props when component mounts or modules prop changes
+    useEffect(() => {
+        if (modules && modules.length > 0) {
+            setSavedModules(modules);
+        }
+    }, [modules]);
+
     const handleModuleCreated = (newModule) => {
-        setSavedModules([...savedModules, { ...newModule, lessons: [] }]);
+        const updatedModules = [...savedModules, { ...newModule, lessons: [] }];
+        setSavedModules(updatedModules);
         setShowCreateForm(false);
+        
+        // Call parent callback if provided
+        if (onModulesChange) {
+            onModulesChange(updatedModules);
+        }
     };
 
     const addLessonToModule = (moduleIndex, newLesson) => {
@@ -579,6 +646,10 @@ const ModuleSection = ({ courseId }) => {
                 : module
         );
         setSavedModules(updatedModules);
+        
+        if (onModulesChange) {
+            onModulesChange(updatedModules);
+        }
     };
 
     const updateLessonInModule = (moduleIndex, lessonIndex, updatedLesson) => {
@@ -593,6 +664,10 @@ const ModuleSection = ({ courseId }) => {
                 : module
         );
         setSavedModules(updatedModules);
+        
+        if (onModulesChange) {
+            onModulesChange(updatedModules);
+        }
     };
 
     const removeLessonFromModule = (moduleIndex, lessonIndex) => {
@@ -603,6 +678,10 @@ const ModuleSection = ({ courseId }) => {
                     : module
             );
             setSavedModules(updatedModules);
+            
+            if (onModulesChange) {
+                onModulesChange(updatedModules);
+            }
         }
     };
 
@@ -671,13 +750,17 @@ const ModuleSection = ({ courseId }) => {
                         </div>
                     </div>
                 </div>
+
                 {/* Module Creation Form */}
                 {showCreateForm && (
-                    <ModuleCreationForm
-                        onModuleCreated={handleModuleCreated}
-                        courseId={courseId}
-                    />
+                    <div className="mb-6">
+                        <ModuleCreationForm
+                            onModuleCreated={handleModuleCreated}
+                            courseId={courseId}
+                        />
+                    </div>
                 )}
+
                 {/* Saved Modules Display */}
                 <div className="space-y-6">
                     {savedModules.map((module, index) => (
@@ -689,19 +772,21 @@ const ModuleSection = ({ courseId }) => {
                             onLessonRemove={(lessonIndex) => removeLessonFromModule(index, lessonIndex)}
                         />
                     ))}
+
                     {moduleLoading && (
                         <div className="text-center py-8">
                             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
                             <p className="mt-4 text-gray-600">Loading modules...</p>
                         </div>
                     )}
+
                     {moduleError && (
                         <div className="text-red-600 text-center py-8">
                             <p>Error loading modules: {moduleError.message}</p>
                         </div>
                     )}
 
-                    {savedModules.length === 0 && !moduleLoading && !moduleError && (
+                    {savedModules.length === 0 && !moduleLoading && !moduleError && !showCreateForm && (
                         <div className="text-center py-8">
                             <BookOpen className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                             <h4 className="text-lg font-medium text-gray-900 mb-2">No modules created yet!</h4>
@@ -720,5 +805,5 @@ const ModuleSection = ({ courseId }) => {
             </div>
         </div>
     );
-}
+};
 export default ModuleSection;

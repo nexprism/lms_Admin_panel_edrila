@@ -10,6 +10,7 @@ import { Edit } from "lucide-react";
 import EditCourse from "./pages/courses/EditCourse";
 import AddBundle from "./pages/bundles/AddBundle";
 import BundleList from "./pages/bundles/bundleList";
+import EditBundleForm from "./pages/bundles/EditBundle";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -59,6 +60,7 @@ export default function App() {
                 <Route path="/courses/edit/:courseId" element={<EditCourse/>} />
                 <Route path="/bundles/create" element={<AddBundle/>} />
               <Route path="/bundles/all" element={<BundleList />} />
+              <Route path="/bundles/:bundleId" element={<EditBundleForm/>} />
 
 
               {/* Nested Routes */}

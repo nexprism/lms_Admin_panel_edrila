@@ -14,7 +14,7 @@ Search
 } from 'lucide-react';
 import ModuleSection from './ModuleSection';
 
-// Rich Text Editor Component (same as before)
+// Rich Text Editor Component
 type RichTextEditorProps = {
     value: string;
     onChange: (value: string) => void;
@@ -130,7 +130,7 @@ return (
 );
 };
 
-// File Upload Component (same as before)
+// File Upload Component
 type FileUploadProps = {
     label: any;
     accept: any;
@@ -197,74 +197,6 @@ return (
 );
 };
 
-// Module & Lesson Management Components
-type Lesson = {
-    title: string;
-    content: string;
-};
-
-type LessonEditorProps = {
-    lesson: Lesson;
-    onChange: (lesson: Lesson) => void;
-    onRemove: () => void;
-};
-
-const LessonEditor: React.FC<LessonEditorProps> = ({ lesson, onChange, onRemove }) => (
-<div className="border rounded-lg p-4 mb-2 bg-gray-50">
-    <div className="flex gap-2 items-center mb-2">
-        <input
-            type="text"
-            value={lesson.title}
-            onChange={e => onChange({ ...lesson, title: e.target.value })}
-            placeholder="Lesson Title"
-            className="flex-1 border border-gray-300 rounded px-2 py-1"
-        />
-        <button type="button" onClick={onRemove} className="text-red-500 hover:bg-red-100 rounded p-1">
-            <Trash2 className="w-4 h-4" />
-        </button>
-    </div>
-    <RichTextEditor
-        value={lesson.content}
-        onChange={content => onChange({ ...lesson, content })}
-        placeholder="Lesson Content"
-    />
-</div>
-);
-
-// const ModuleEditor = ({ module, onChange, onRemove, onAddLesson, onLessonChange, onLessonRemove }) => (
-// <div className="border rounded-lg p-4 mb-4 bg-white">
-//     <div className="flex gap-2 items-center mb-2">
-//         <input
-//             type="text"
-//             value={module.title}
-//             onChange={e => onChange({ ...module, title: e.target.value })}
-//             placeholder="Module Title"
-//             className="flex-1 border border-gray-300 rounded px-2 py-1"
-//         />
-//         <button type="button" onClick={onRemove} className="text-red-500 hover:bg-red-100 rounded p-1">
-//             <Trash2 className="w-4 h-4" />
-//         </button>
-//     </div>
-//     <div className="space-y-2">
-//         {module.lessons.map((lesson, idx) => (
-//             <LessonEditor
-//                 key={idx}
-//                 lesson={lesson}
-//                 onChange={l => onLessonChange(idx, l)}
-//                 onRemove={() => onLessonRemove(idx)}
-//             />
-//         ))}
-//         <button
-//             type="button"
-//             onClick={onAddLesson}
-//             className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-//         >
-//             <Plus className="w-4 h-4" /> Add Lesson
-//         </button>
-//     </div>
-// </div>
-// );
-
 const EditCourse = () => {
 const dispatch = useDispatch<AppDispatch>();
 
@@ -272,7 +204,8 @@ const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
   
   // Fallback extraction from pathname
-  const courseId = id || location.pathname.split('/').pop();const { loading, error, data: courseData } = useSelector((state: RootState) => state.course);
+  const courseId = id || location.pathname.split('/').pop();
+  const { loading, error, data: courseData } = useSelector((state: RootState) => state.course);
 
 // Course state
 const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -313,33 +246,35 @@ const predefinedTags = [
     'Data Science', 'Mobile Development', 'AI/ML', 'Web Development'
 ];
 
-// Fetch course data for editing - Fixed useEffect
+// Fetch course data for editing
 useEffect(() => {
     console.log('Fetching course data for ID:', courseId);
    
-    // Check if course data is already loaded
-   console.log('Current dataLoaded state:', dataLoaded);
-    if (courseId ) {
+    if (courseId && !dataLoaded) {
         const token = localStorage.getItem('token') || '';
         dispatch(fetchCourseById({ courseId, token }));
-    }
-}, [id, dispatch, dataLoaded]);
 
-// Separate useEffect to handle course data when it's loaded
+    }
+}, [courseId, dispatch, dataLoaded]);
+
+// Handle course data when it's loaded
 useEffect(() => {
     if (courseData && !dataLoaded) {
         // Handle different response structures
         const course = courseData.data || courseData;
         
         console.log('Setting course data:', course);
+        console.log('Course modules:', course.modules);
+        console.log('Course tags:', course.tags);
+        console.log('Saving hghghh data:', courseData.data);
         
         setFormData((prev: any) => ({
             ...prev,
             title: course.title || '',
             subtitle: course.subtitle || '',
             seoMetaDescription: course.seoMetaDescription || '',
-            categoryId: course.categoryId || course.category?._id || course.categoryId?._id||'',
-            subCategoryId: course.subCategoryId || course.subCategory?._id || course.subCategoryId?._id||'',
+            categoryId: course.categoryId || course.category?._id || course.categoryId?._id || '',
+            subCategoryId: course.subCategoryId || course.subCategory?._id || course.subCategoryId?._id || '',
             level: course.level || 'beginner',
             price: course.price || '',
             currency: course.currency || 'INR',
@@ -359,8 +294,32 @@ useEffect(() => {
         setDescription(course.description || '');
         setSeoContent(course.seoContent || '');
         setSelectedTags(course.tags || []);
-        setModules(course.modules || []);
+        
+        // Ensure modules structure is correct
+        const courseModules = course.modules || [];
+        console.log('Setting modules:', courseModules);
+        
+        // Process modules to ensure they have the correct structure
+        const processedModules = courseModules.map((module: any) => ({
+            _id: module._id || undefined,
+            title: module.title || '',
+            description: module.description || '',
+            lessons: (module.lessons || []).map((lesson: any) => ({
+                _id: lesson._id || undefined,
+                title: lesson.title || '',
+                type: lesson.type || 'video',
+                content: lesson.content || '',
+                videoUrl: lesson.videoUrl || '',
+                duration: lesson.duration || '',
+                order: lesson.order || 0
+            })),
+            order: module.order || 0
+        }));
+        
+        setModules(processedModules);
         setDataLoaded(true);
+        
+        console.log('Processed modules set:', processedModules);
     }
 }, [courseData, dataLoaded]);
 
@@ -405,44 +364,10 @@ const addCustomTag = () => {
     }
 };
 
-// Module/Lesson handlers
-const addModule = () => {
-    setModules([...modules, { title: '', lessons: [] }]);
-};
-
-const removeModule = (idx: number) => {
-    setModules(modules.filter((_, i) => i !== idx));
-};
-
-const updateModule = (idx: number, updated: any) => {
-    setModules(modules.map((m, i) => (i === idx ? updated : m)));
-};
-
-const addLesson = (moduleIdx: number) => {
-    setModules(modules.map((m, i) =>
-        i === moduleIdx
-            ? { ...m, lessons: [...m.lessons, { title: '', content: '' }] }
-            : m
-    ));
-};
-
-const updateLesson = (moduleIdx: number, lessonIdx: number, updated: any) => {
-    setModules(modules.map((m, i) =>
-        i === moduleIdx
-            ? {
-                    ...m,
-                    lessons: m.lessons.map((l, j) => (j === lessonIdx ? updated : l))
-                }
-            : m
-    ));
-};
-
-const removeLesson = (moduleIdx: number, lessonIdx: number) => {
-    setModules(modules.map((m, i) =>
-        i === moduleIdx
-            ? { ...m, lessons: m.lessons.filter((_, j) => j !== lessonIdx) }
-            : m
-    ));
+// Handle modules change from ModuleSection
+const handleModulesChange = (updatedModules: any[]) => {
+    console.log('Modules updated from ModuleSection:', updatedModules);
+    setModules(updatedModules);
 };
 
 const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
@@ -466,6 +391,7 @@ const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
     try {
         // await dispatch(updateCourse({ id, data: submitFormData })).unwrap();
         console.log('Form submitted with data:', Object.fromEntries(submitFormData));
+        console.log('Modules being submitted:', modules);
         // Handle success (redirect, show message, etc.)
     } catch (error: any) {
         console.log('Error updating course:', error?.message);
@@ -766,6 +692,7 @@ return (
                             </div>
                         </div>
                     </div>
+
                     {/* SEO Content */}
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
@@ -793,38 +720,40 @@ return (
                                 <RichTextEditor
                                     value={seoContent}
                                     onChange={setSeoContent}
-                                    placeholder="SEO content for search engines..."
+                                    placeholder="Enter SEO content for better search visibility..."
                                 />
                             </div>
                         </div>
                     </div>
-                    {/* Modules and Lessons */}
-                   <ModuleSection 
-    courseId={courseId || ''} 
-    modules={modules} 
-    onModulesChange={setModules} 
-/>
-                    {/* Submit Buttons */}
-                    <div className="flex justify-end gap-4">
-                        <button
-                            type="button"
-                            onClick={() => handleSubmit(new Event('submit'), true)}
-                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                        >
-                            Save as Draft
-                        </button>
-                        <button
-                            type="submit"
-                            onClick={(e) => handleSubmit(e, false)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            Update Course
-                        </button>
-                    </div>
+                    {/* Modules Section */}
+                    <ModuleSection
+                        modules={modules}
+                        onModulesChange={handleModulesChange}
+                        courseId={courseId || ''}
+                        courseData={courseData}
+                        isEditing={true}
+                    />
                 </div>
-            </form>
+                <div className="mt-8 flex justify-end gap-4">
+                    <button
+                        type="button"
+                        onClick={() => handleSubmit(new Event('submit'), true)}
+                        className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                        Save as Draft
+                    </button>
+                    <button
+                        type="submit"
+                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        Update Course
+                    </button>
+                </div>
+            </form> 
         </div>
     </div>
 );
 }
+
+
 export default EditCourse;
