@@ -298,6 +298,7 @@ const LessonEditor = ({ lesson, moduleId, section, courseId, onChange, onRemove,
     const [isExpanded, setIsExpanded] = useState(false);
     const [savedLessonId, setSavedLessonId] = useState(lesson._id || lesson.id || null);
 
+
     const lessonTypeConfig = {
         video: { icon: Play, label: 'File', color: 'text-red-500 bg-red-50 border-red-200' },
         text: { icon: FileText, label: 'Text Lesson', color: 'text-blue-500 bg-blue-50 border-blue-200' },
@@ -355,6 +356,7 @@ const LessonEditor = ({ lesson, moduleId, section, courseId, onChange, onRemove,
             }
 
             alert('Lesson saved successfully!');
+            window.location.reload(); // Reload the page to reflect changes
             console.log('Lesson saved:', result);
             onSave && onSave(result);
         } catch (error) {
