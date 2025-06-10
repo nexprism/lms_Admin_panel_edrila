@@ -49,6 +49,29 @@ export const createQuiz = createAsyncThunk(
     }
 );
 
+
+export const fetchQuiz = createAsyncThunk(
+    'quiz/fetchQuiz',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get(
+                'http://localhost:5000/quiz',
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Add Authorization header if needed
+                        // 'Authorization': `Bearer ${token}`,
+                    },
+                    // withCredentials: true, // Uncomment if cookies are needed
+                }
+            );
+            return response.data;
+        } catch (err: any) {
+            return rejectWithValue(err.response?.data?.message || err.message);
+        }
+    }
+);
+
 const quizSlice = createSlice({
     name: 'quiz',
     initialState,
@@ -64,6 +87,18 @@ const quizSlice = createSlice({
                 state.data = action.payload;
             })
             .addCase(createQuiz.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(fetchQuiz.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchQuiz.fulfilled, (state, action) => {
+                state.loading = false;
+                state.data = action.payload;
+            })
+            .addCase(fetchQuiz.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });

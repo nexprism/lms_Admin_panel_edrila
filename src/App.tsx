@@ -11,6 +11,9 @@ import EditCourse from "./pages/courses/EditCourse";
 import AddBundle from "./pages/bundles/AddBundle";
 import BundleList from "./pages/bundles/bundleList";
 import EditBundleForm from "./pages/bundles/EditBundle";
+import QuizList from "./pages/Quiz/QuizList";
+import AssignmentList from "./pages/Assignmets/AssignmentList";
+import TextLessonPage from "./pages/courses/TextLesson";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -61,6 +64,9 @@ export default function App() {
                 <Route path="/bundles/create" element={<AddBundle/>} />
               <Route path="/bundles/all" element={<BundleList />} />
               <Route path="/bundles/:bundleId" element={<EditBundleForm/>} />
+              <Route path="/quiz/all" element={<QuizList/>} />
+              <Route path="/assignments/all" element={<AssignmentList/>} />
+              <Route path="/courses/all/text-courses" element={<TextLessonPage/>} />
 
 
               {/* Nested Routes */}

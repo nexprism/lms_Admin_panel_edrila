@@ -29,6 +29,25 @@ export const createTextLesson = createAsyncThunk(
     }
 );
 
+export const fetchTextLessons = createAsyncThunk(
+    'textLesson/fetchAll',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axios.get('http://localhost:5000/text-lesson', {
+    
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Add Authorization header if needed
+                    // 'Authorization': `Bearer ${token}`,
+                },
+                });
+            return response.data;
+        } catch (err: any) {
+            return rejectWithValue(err.response?.data || err.message);
+        }
+    }
+);
+
 const textLessonSlice = createSlice({
     name: 'textLesson',
     initialState,
