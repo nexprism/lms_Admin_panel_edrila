@@ -17,6 +17,7 @@ import {
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
+import { Files } from "lucide-react";
 
 type NavSubItem = {
   name: string;
@@ -32,9 +33,6 @@ type NavItem = {
   path?: string;
   subItems?: NavSubItem[];
 };
-
-
-
 
 const navItems: NavItem[] = [
   {
@@ -61,7 +59,7 @@ const navItems: NavItem[] = [
       { name: "Courses List", path: "/courses/all/courses" },
     ],
   },
-   {
+  {
     icon: <BoxCubeIcon />,
     name: "Categories",
     subItems: [
@@ -121,6 +119,14 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    icon: <Files />,
+    name: "Files",
+    subItems: [
+      { name: "All Files", path: "/files/all" },
+      { name: "Add File", path: "/files/add" },
+    ],
+  },
+  {
     icon: <PieChartIcon />,
     name: "Certifications",
     subItems: [
@@ -148,7 +154,6 @@ const navItems: NavItem[] = [
 ];
 
 const othersItems: NavItem[] = [
-  
   {
     icon: <PlugInIcon />,
     name: "Settings",
@@ -159,14 +164,14 @@ const othersItems: NavItem[] = [
   },
 ];
 
-
-
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
 
   const [openSubmenu, setOpenSubmenu] = useState<string[]>([]);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
+  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
+    {}
+  );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const isActive = useCallback(
@@ -175,24 +180,27 @@ const AppSidebar: React.FC = () => {
   );
 
   // Function to check if any subitem is active recursively
-  const hasActiveSubItem = useCallback((subItems: NavSubItem[]): boolean => {
-    return subItems.some(subItem => {
-      if (isActive(subItem.path)) return true;
-      if (subItem.subItems) return hasActiveSubItem(subItem.subItems);
-      return false;
-    });
-  }, [isActive]);
+  const hasActiveSubItem = useCallback(
+    (subItems: NavSubItem[]): boolean => {
+      return subItems.some((subItem) => {
+        if (isActive(subItem.path)) return true;
+        if (subItem.subItems) return hasActiveSubItem(subItem.subItems);
+        return false;
+      });
+    },
+    [isActive]
+  );
 
   // Auto-expand menus based on active route
   useEffect(() => {
     const activeMenus: string[] = [];
-    
+
     const checkMenuItems = (items: NavItem[], prefix: string) => {
       items.forEach((nav, index) => {
         const menuKey = `${prefix}-${index}`;
         if (nav.subItems && hasActiveSubItem(nav.subItems)) {
           activeMenus.push(menuKey);
-          
+
           // Check for nested submenus
           nav.subItems.forEach((subItem, subIndex) => {
             const subMenuKey = `${menuKey}-${subIndex}`;
@@ -206,13 +214,13 @@ const AppSidebar: React.FC = () => {
 
     checkMenuItems(navItems, "main");
     checkMenuItems(othersItems, "others");
-    
+
     setOpenSubmenu(activeMenus);
   }, [location, hasActiveSubItem]);
 
   // Update submenu heights when they open
   useEffect(() => {
-    openSubmenu.forEach(key => {
+    openSubmenu.forEach((key) => {
       if (subMenuRefs.current[key]) {
         setSubMenuHeight((prevHeights) => ({
           ...prevHeights,
@@ -225,18 +233,22 @@ const AppSidebar: React.FC = () => {
   const handleSubmenuToggle = (menuKey: string) => {
     setOpenSubmenu((prevOpenSubmenu) => {
       if (prevOpenSubmenu.includes(menuKey)) {
-        return prevOpenSubmenu.filter(key => key !== menuKey);
+        return prevOpenSubmenu.filter((key) => key !== menuKey);
       }
       return [...prevOpenSubmenu, menuKey];
     });
   };
 
   // Recursive function to render subitems
-  const renderSubItems = (subItems: NavSubItem[], parentKey: string, level: number = 1) => {
+  const renderSubItems = (
+    subItems: NavSubItem[],
+    parentKey: string,
+    level: number = 1
+  ) => {
     return subItems.map((subItem, index) => {
       const subMenuKey = `${parentKey}-${index}`;
       const marginLeft = level === 1 ? "ml-9" : `ml-${9 + (level - 1) * 4}`;
-      
+
       return (
         <li key={subItem.name}>
           {subItem.subItems ? (
@@ -244,7 +256,8 @@ const AppSidebar: React.FC = () => {
               <button
                 onClick={() => handleSubmenuToggle(subMenuKey)}
                 className={`menu-dropdown-item cursor-pointer w-full text-left ${
-                  openSubmenu.includes(subMenuKey) || hasActiveSubItem(subItem.subItems || [])
+                  openSubmenu.includes(subMenuKey) ||
+                  hasActiveSubItem(subItem.subItems || [])
                     ? "menu-dropdown-item-active"
                     : "menu-dropdown-item-inactive"
                 }`}
@@ -253,20 +266,26 @@ const AppSidebar: React.FC = () => {
                   <span>{subItem.name}</span>
                   <span className="flex items-center gap-1">
                     {subItem.new && (
-                      <span className={`menu-dropdown-badge ${
-                        openSubmenu.includes(subMenuKey) || hasActiveSubItem(subItem.subItems || [])
-                          ? "menu-dropdown-badge-active"
-                          : "menu-dropdown-badge-inactive"
-                      }`}>
+                      <span
+                        className={`menu-dropdown-badge ${
+                          openSubmenu.includes(subMenuKey) ||
+                          hasActiveSubItem(subItem.subItems || [])
+                            ? "menu-dropdown-badge-active"
+                            : "menu-dropdown-badge-inactive"
+                        }`}
+                      >
                         new
                       </span>
                     )}
                     {subItem.pro && (
-                      <span className={`menu-dropdown-badge ${
-                        openSubmenu.includes(subMenuKey) || hasActiveSubItem(subItem.subItems || [])
-                          ? "menu-dropdown-badge-active"
-                          : "menu-dropdown-badge-inactive"
-                      }`}>
+                      <span
+                        className={`menu-dropdown-badge ${
+                          openSubmenu.includes(subMenuKey) ||
+                          hasActiveSubItem(subItem.subItems || [])
+                            ? "menu-dropdown-badge-active"
+                            : "menu-dropdown-badge-inactive"
+                        }`}
+                      >
                         pro
                       </span>
                     )}
@@ -306,20 +325,24 @@ const AppSidebar: React.FC = () => {
               {subItem.name}
               <span className="flex items-center gap-1 ml-auto">
                 {subItem.new && (
-                  <span className={`menu-dropdown-badge ${
-                    isActive(subItem.path)
-                      ? "menu-dropdown-badge-active"
-                      : "menu-dropdown-badge-inactive"
-                  }`}>
+                  <span
+                    className={`menu-dropdown-badge ${
+                      isActive(subItem.path)
+                        ? "menu-dropdown-badge-active"
+                        : "menu-dropdown-badge-inactive"
+                    }`}
+                  >
                     new
                   </span>
                 )}
                 {subItem.pro && (
-                  <span className={`menu-dropdown-badge ${
-                    isActive(subItem.path)
-                      ? "menu-dropdown-badge-active"
-                      : "menu-dropdown-badge-inactive"
-                  }`}>
+                  <span
+                    className={`menu-dropdown-badge ${
+                      isActive(subItem.path)
+                        ? "menu-dropdown-badge-active"
+                        : "menu-dropdown-badge-inactive"
+                    }`}
+                  >
                     pro
                   </span>
                 )}
@@ -335,14 +358,15 @@ const AppSidebar: React.FC = () => {
     <ul className="flex flex-col gap-4">
       {items.map((nav, index) => {
         const menuKey = `${menuType}-${index}`;
-        
+
         return (
           <li key={nav.name}>
             {nav.subItems ? (
               <button
                 onClick={() => handleSubmenuToggle(menuKey)}
                 className={`menu-item group ${
-                  openSubmenu.includes(menuKey) || hasActiveSubItem(nav.subItems)
+                  openSubmenu.includes(menuKey) ||
+                  hasActiveSubItem(nav.subItems)
                     ? "menu-item-active"
                     : "menu-item-inactive"
                 } cursor-pointer ${
@@ -353,7 +377,8 @@ const AppSidebar: React.FC = () => {
               >
                 <span
                   className={`menu-item-icon-size ${
-                    openSubmenu.includes(menuKey) || hasActiveSubItem(nav.subItems)
+                    openSubmenu.includes(menuKey) ||
+                    hasActiveSubItem(nav.subItems)
                       ? "menu-item-icon-active"
                       : "menu-item-icon-inactive"
                   }`}
@@ -378,7 +403,9 @@ const AppSidebar: React.FC = () => {
                 <Link
                   to={nav.path}
                   className={`menu-item group ${
-                    isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
+                    isActive(nav.path)
+                      ? "menu-item-active"
+                      : "menu-item-inactive"
                   }`}
                 >
                   <span

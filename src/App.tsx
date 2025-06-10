@@ -17,6 +17,8 @@ import TextLessonPage from "./pages/courses/TextLesson";
 import EditQuiz from "./pages/courses/components/EditQuiz";
 import EditAssignmentForm from "./pages/courses/components/EditAssignment";
 import EditTextLessonEditor from "./pages/courses/components/EditTextLesson";
+import FileList from "./pages/Files/FileList";
+import AddFile from "./pages/courses/components/AddFile";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -82,6 +84,9 @@ export default function App() {
                 path="/courses/text-courses/:lessonId"
                 element={<EditTextLessonEditor />}
               />
+
+              <Route path="/files/all" element={<FileList />} />
+              <Route path="/files/add" element={<AddFile />} />
 
               {/* Nested Routes */}
 

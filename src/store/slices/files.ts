@@ -1,81 +1,120 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import axios from 'axios';
-import axiosInstance from '../../services/axiosConfig';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
+import axiosInstance from "../../services/axiosConfig";
 
 interface FileUploadPayload {
-    language: string;
-    fileType: string;
-    downloadable: boolean;
-    active: boolean;
-    isPublic: boolean;
-    file: File;
-    lessonId: string;
-    courseId: string;
+  language: string;
+  fileType: string;
+  downloadable: boolean;
+  active: boolean;
+  isPublic: boolean;
+  file: File;
+  lessonId: string;
+  courseId: string;
 }
 
 interface FilesState {
-    uploading: boolean;
-    error: string | null;
-    success: boolean;
+  uploading: boolean;
+  error: string | null;
+  success: boolean;
+  data: any | null;
 }
 
 const initialState: FilesState = {
-    uploading: false,
-    error: null,
-    success: false,
+  uploading: false,
+  error: null,
+  success: false,
+  data: null,
 };
 
 export const uploadFile = createAsyncThunk(
-    'files/uploadFile',
-    async (payload: FileUploadPayload, { rejectWithValue }) => {
-        try {
-            const formData = new FormData();
-            formData.append('language', payload.language);
-            formData.append('fileType', payload.fileType);
-            formData.append('downloadable', String(payload.downloadable));
-            formData.append('active', String(payload.active));
-            formData.append('isPublic', String(payload.isPublic));
-            formData.append('file', payload.file);
-            formData.append('lessonId', payload.lessonId);
-            formData.append('courseId', payload.courseId);
+  "files/uploadFile",
+  async (payload: FileUploadPayload, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append("language", payload.language);
+      formData.append("fileType", payload.fileType);
+      formData.append("downloadable", String(payload.downloadable));
+      formData.append("active", String(payload.active));
+      formData.append("isPublic", String(payload.isPublic));
+      formData.append("file", payload.file);
+      formData.append("lessonId", payload.lessonId);
+      formData.append("courseId", payload.courseId);
 
-            console.log('Uploading file with payload:', payload);
+      console.log("Uploading file with payload:", payload);
 
-            const response = await axiosInstance.post('http://localhost:5000/files', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
-            return response.data;
-        } catch (error: any) {
-            console.log('File upload error:', error);
-            return rejectWithValue(error.response?.data?.message || 'File upload failed');
+      const response = await axiosInstance.post(
+        "http://localhost:5000/files",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.log("File upload error:", error);
+      return rejectWithValue(
+        error.response?.data?.message || "File upload failed"
+      );
     }
+  }
+);
+
+export const fetchFiles = createAsyncThunk(
+  "files/fetchFiles",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get("/files");
+      console.log("Fetched files:", response.data?.data);
+      return response.data?.data;
+    } catch (error: any) {
+      console.log("File fetch error:", error);
+      return rejectWithValue(
+        error.response?.data?.message || "File fetch failed"
+      );
+    }
+  }
 );
 
 const filesSlice = createSlice({
-    name: 'files',
-    initialState,
-    reducers: {},
-    extraReducers: (builder) => {
-        builder
-            .addCase(uploadFile.pending, (state) => {
-                state.uploading = true;
-                state.error = null;
-                state.success = false;
-            })
-            .addCase(uploadFile.fulfilled, (state) => {
-                state.uploading = false;
-                state.success = true;
-            })
-            .addCase(uploadFile.rejected, (state, action) => {
-                state.uploading = false;
-                state.error = action.payload as string;
-                state.success = false;
-            });
-    },
+  name: "files",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(uploadFile.pending, (state) => {
+        state.uploading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(uploadFile.fulfilled, (state) => {
+        state.uploading = false;
+        state.success = true;
+      })
+      .addCase(uploadFile.rejected, (state, action) => {
+        state.uploading = false;
+        state.error = action.payload as string;
+        state.success = false;
+      })
+      .addCase(fetchFiles.pending, (state) => {
+        state.uploading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(fetchFiles.fulfilled, (state, action) => {
+        state.uploading = false;
+        state.success = true;
+        state.data = action.payload;
+      })
+      .addCase(fetchFiles.rejected, (state, action) => {
+        state.uploading = false;
+        state.error = action.payload as string;
+        state.success = false;
+      });
+  },
 });
 
 export default filesSlice.reducer;
