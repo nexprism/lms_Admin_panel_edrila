@@ -290,7 +290,8 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
 };
 
 // Updated LessonEditor Component with proper lesson ID handling
-const LessonEditor = ({ lesson, moduleId, section, onChange, onRemove, onSave }) => {
+// Updated LessonEditor Component with proper section handling
+const LessonEditor = ({ lesson, moduleId, section, courseId, onChange, onRemove, onSave }) => {
     const dispatch = useDispatch();
     const { loading: lessonLoading } = useSelector((state) => state.lesson);
     const [isSaving, setIsSaving] = useState(false);
@@ -312,10 +313,24 @@ const LessonEditor = ({ lesson, moduleId, section, onChange, onRemove, onSave })
             return;
         }
 
+        // Debug logging
+        console.log('Section value:', section);
+        console.log('CourseId value:', courseId);
+        console.log('ModuleId value:', moduleId);
+
+        // Determine the correct section/courseId to use
+        const sectionToUse = section || courseId || moduleId;
+        
+        if (!sectionToUse) {
+            console.error('No section/courseId found. Available values:', { section, courseId, moduleId });
+            alert('Error: Missing course/section information. Please try again.');
+            return;
+        }
+
         setIsSaving(true);
         try {
             const lessonData = {
-                section,
+                section: sectionToUse, // Use the determined section value
                 moduleId,
                 title: lesson.title,
                 description: lesson.content || '',
@@ -328,7 +343,6 @@ const LessonEditor = ({ lesson, moduleId, section, onChange, onRemove, onSave })
             console.log('Saving lesson data:', lessonData);
 
             const result = await dispatch(createLesson(lessonData)).unwrap();
-            
             
             // Extract lesson ID from the response
             const newLessonId = result?.data?._id || result?._id || result?.id;
@@ -353,30 +367,38 @@ const LessonEditor = ({ lesson, moduleId, section, onChange, onRemove, onSave })
 
     const renderLessonForm = () => {
         const commonProps = {
-            section,
-            lesson: { ...lesson, _id: savedLessonId }, // Ensure lesson has the saved ID
+            section: section || courseId, // Ensure section is available
+            lesson: { ...lesson, _id: savedLessonId },
             onChange
         };
 
         switch (lesson.type) {
             case 'video':
-                return <Files {...commonProps} />;
+                return <Files  {...commonProps}
+                        courseId={courseId || section}
+                        lessonId={savedLessonId}
+                        moduleId={moduleId} />;
             case 'text':
-                return <TextLesson {...commonProps} />;
+                return <TextLesson {...commonProps}
+                courseId={courseId || section}
+                        lessonId={savedLessonId}
+                        moduleId={moduleId} />;
             case 'quiz':
                 return (
                     <Quiz
                         {...commonProps}
-                        courseId={moduleId}
-                        lessonId={savedLessonId} // Pass the saved lesson ID
-                        moduleId={moduleId} // Also pass moduleId if needed
+                        courseId={courseId || section}
+                        lessonId={savedLessonId}
+                        moduleId={moduleId}
                     />
                 );
             case 'assignment':
                 return (
                     <Assignment
                         {...commonProps}
-                        lessonId={savedLessonId} // Pass lesson ID to assignment too
+                        courseId={courseId || section}
+                        lessonId={savedLessonId}
+                        moduleId={moduleId}
                     />
                 );
             default:
@@ -442,7 +464,6 @@ const LessonEditor = ({ lesson, moduleId, section, onChange, onRemove, onSave })
                     placeholder="Lesson Title"
                     className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-lg font-medium"
                 />
-                {/* {console.log('Lesson Type:', type)} */}
                 <select
                     value={lesson.type || 'video'}
                     onChange={e => onChange({ ...lesson, type: e.target.value })}
@@ -499,7 +520,8 @@ const LessonEditor = ({ lesson, moduleId, section, onChange, onRemove, onSave })
 };
 
 // Also update the SavedModuleDisplay to handle lesson IDs properly
-const SavedModuleDisplay = ({ module, onAddLesson, onLessonChange, onLessonRemove }) => {
+// Updated SavedModuleDisplay with proper courseId passing
+const SavedModuleDisplay = ({ module, courseId, onAddLesson, onLessonChange, onLessonRemove }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const totalLessons = module.lessons?.length || 0;
 
@@ -514,6 +536,22 @@ const SavedModuleDisplay = ({ module, onAddLesson, onLessonChange, onLessonRemov
         };
         onAddLesson(newLesson);
     };
+
+    // Extract courseId from multiple possible sources
+    const extractedCourseId = courseId || 
+                             module?.courseId || 
+                             module?.module?.courseId || 
+                             module?.course?.id || 
+                             module?.course?._id;
+
+    console.log('SavedModuleDisplay - Available IDs:', {
+        courseId,
+        'module.courseId': module?.courseId,
+        'module.module.courseId': module?.module?.courseId,
+        'module._id': module?._id,
+        'module.id': module?.id,
+        extractedCourseId
+    });
 
     return (
         <div className="bg-white border-2 border-green-200 rounded-2xl overflow-hidden shadow-lg">
@@ -552,10 +590,6 @@ const SavedModuleDisplay = ({ module, onAddLesson, onLessonChange, onLessonRemov
                         {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                     </button>
                 </div>
-
-                {/* {module.description && (
-                    <p className="text-gray-700 bg-white/50 p-3 rounded-lg">{module.description}</p>
-                )} */}
             </div>
 
             {isExpanded && (
@@ -581,7 +615,8 @@ const SavedModuleDisplay = ({ module, onAddLesson, onLessonChange, onLessonRemov
                                 key={lesson._id || lesson.id || idx}
                                 lesson={lesson}
                                 moduleId={module?.module?._id || module?._id}
-                                section={module?.module?.courseId || module?.courseId}
+                                section={extractedCourseId}
+                                courseId={extractedCourseId}
                                 onChange={l => onLessonChange(idx, l)}
                                 onRemove={() => onLessonRemove(idx)}
                                 onSave={(savedLesson) => {
@@ -762,46 +797,47 @@ const ModuleSection = ({ courseId, modules = [], onModulesChange, courseData, is
                 )}
 
                 {/* Saved Modules Display */}
-                <div className="space-y-6">
-                    {savedModules.map((module, index) => (
-                        <SavedModuleDisplay
-                            key={module._id || index}
-                            module={module}
-                            onAddLesson={(newLesson) => addLessonToModule(index, newLesson)}
-                            onLessonChange={(lessonIndex, updatedLesson) => updateLessonInModule(index, lessonIndex, updatedLesson)}
-                            onLessonRemove={(lessonIndex) => removeLessonFromModule(index, lessonIndex)}
-                        />
-                    ))}
+               <div className="space-y-6">
+    {savedModules.map((module, index) => (
+        <SavedModuleDisplay
+            key={module._id || index}
+            module={module}
+            courseId={courseId} // Pass courseId explicitly
+            onAddLesson={(newLesson) => addLessonToModule(index, newLesson)}
+            onLessonChange={(lessonIndex, updatedLesson) => updateLessonInModule(index, lessonIndex, updatedLesson)}
+            onLessonRemove={(lessonIndex) => removeLessonFromModule(index, lessonIndex)}
+        />
+    ))}
 
-                    {moduleLoading && (
-                        <div className="text-center py-8">
-                            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                            <p className="mt-4 text-gray-600">Loading modules...</p>
-                        </div>
-                    )}
+    {moduleLoading && (
+        <div className="text-center py-8">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <p className="mt-4 text-gray-600">Loading modules...</p>
+        </div>
+    )}
 
-                    {moduleError && (
-                        <div className="text-red-600 text-center py-8">
-                            <p>Error loading modules: {moduleError.message}</p>
-                        </div>
-                    )}
+    {moduleError && (
+        <div className="text-red-600 text-center py-8">
+            <p>Error loading modules: {moduleError.message}</p>
+        </div>
+    )}
 
-                    {savedModules.length === 0 && !moduleLoading && !moduleError && !showCreateForm && (
-                        <div className="text-center py-8">
-                            <BookOpen className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                            <h4 className="text-lg font-medium text-gray-900 mb-2">No modules created yet!</h4>
-                            <p className="text-gray-600 mb-4">Start by creating your first module.</p>
-                            <button
-                                type="button"
-                                onClick={() => setShowCreateForm(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 mx-auto"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Create First Module
-                            </button>
-                        </div>
-                    )}
-                </div>
+    {savedModules.length === 0 && !moduleLoading && !moduleError && !showCreateForm && (
+        <div className="text-center py-8">
+            <BookOpen className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <h4 className="text-lg font-medium text-gray-900 mb-2">No modules created yet!</h4>
+            <p className="text-gray-600 mb-4">Start by creating your first module.</p>
+            <button
+                type="button"
+                onClick={() => setShowCreateForm(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 mx-auto"
+            >
+                <Plus className="w-4 h-4" />
+                Create First Module
+            </button>
+        </div>
+    )}
+</div>
             </div>
         </div>
     );

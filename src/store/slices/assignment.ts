@@ -21,10 +21,10 @@ export const createAssignment = createAsyncThunk(
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
-                withCredentials: true,
             });
             return response.data;
         } catch (err: any) {
+            console.log('Error creating assignment:', err?.message);
             return rejectWithValue(err.response?.data?.message || err.message);
         }
     }

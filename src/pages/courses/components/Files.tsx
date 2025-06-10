@@ -1,7 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { Upload, File, X, ChevronDown } from 'lucide-react';
-
-export default function FileUploadForm() {
+import { useDispatch, useSelector } from 'react-redux';
+import { uploadFile } from '../../../store/slices/files'; 
+import PopupAlert from '../../../components/popUpAlert';
+ // Adjust the import path as necessary  
+// Adjust the import path as necessary
+export default function FileUploadForm({section, lesson, onChange, courseId, lessonId}) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('English');
@@ -11,10 +15,23 @@ export default function FileUploadForm() {
   const [downloadable, setDownloadable] = useState(true);
   const [active, setActive] = useState(true);
   const [publicContent, setPublicContent] = useState(false);
+  const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
+
+
+  // const [lessonId, setLessonId] = useState('');
+  // const [courseId, setCourseId] = useState('');
   const fileInputRef = useRef(null);
 
+  // Redux hooks - uncomment and use your actual Redux setup
+  const dispatch = useDispatch();
+  const { uploading, error, success } = useSelector((state: any) => state.file);
+  
+  // Mock for demonstration - remove these when using actual Redux
+  // const dispatch = mockDispatch;
+  // const { uploading, error, success } = mockSelector();
+
   const languages = ['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese'];
-  const fileTypes = ['PDF', 'DOCX', 'TXT', 'CSV', 'XLSX', 'Images', 'Videos'];
+  const fileTypes = ['PDF', 'DOCX', 'VIDEO', 'IMAGE'];
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -42,13 +59,65 @@ export default function FileUploadForm() {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
+    // Validation
     if (selectedFiles.length === 0) {
       alert('Please select files to upload');
       return;
     }
-    console.log('Uploading files:', selectedFiles);
-    alert(`Uploading ${selectedFiles.length} file(s)...`);
+
+    if (selectedFileType === 'Select file type') {
+      alert('Please select a file type');
+      return;
+    }
+
+    // if (!lessonId.trim()) {
+    //   alert('Please enter a lesson ID');
+    //   return;
+    // }
+
+    // if (!courseId.trim()) {
+    //   alert('Please enter a course ID');
+    //   return;
+    // }
+
+    try {
+      // Upload each file individually
+      const uploadPromises = selectedFiles.map(file => {
+        const payload = {
+          language: selectedLanguage,
+          fileType: selectedFileType,
+          downloadable: downloadable,
+          active: active,
+          isPublic: publicContent,
+          file: file,
+          lessonId: lessonId,
+          courseId: courseId
+        };
+
+        // Dispatch the uploadFile action
+        return dispatch(uploadFile(payload));
+      });
+
+      // Wait for all uploads to complete
+      await Promise.all(uploadPromises);
+      
+   // Show success popup
+  setPopup({
+    isVisible: true,
+    message: 'Files Uploaded successfully!',
+    type: 'success'
+  });     
+      // Reset form on successful upload
+      handleReset();
+      
+    } catch (error) {
+      console.error('Upload failed:', error);
+  setPopup({
+    isVisible: true,
+    message: 'Failed to upload Files. Please try again.',
+    type: 'error'
+  });          }
   };
 
   const handleReset = () => {
@@ -58,17 +127,19 @@ export default function FileUploadForm() {
     setDownloadable(true);
     setActive(true);
     setPublicContent(false);
+
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
   return (
-    <div className=" mx-auto p-6 bg-white">
+    <div className="mx-auto p-6 bg-white">
       <div className="space-y-6">
         {/* Add New File Section */}
         <div className="border-b border-gray-200 pb-4">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Add New File</h2>
+          
           
           {/* Language Dropdown */}
           <div className="mb-4">
@@ -105,7 +176,7 @@ export default function FileUploadForm() {
           {/* File Type Dropdown */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              File Type
+              File Type *
             </label>
             <div className="relative">
               <button
@@ -157,6 +228,7 @@ export default function FileUploadForm() {
             <button
               onClick={() => fileInputRef.current?.click()}
               className="text-blue-600 hover:text-blue-700 font-medium"
+              disabled={uploading}
             >
               Upload files from your PC
             </button>
@@ -166,6 +238,7 @@ export default function FileUploadForm() {
               multiple
               onChange={handleFileSelect}
               className="hidden"
+              disabled={uploading}
             />
           </div>
 
@@ -186,6 +259,7 @@ export default function FileUploadForm() {
                     <button
                       onClick={() => removeFile(index)}
                       className="text-red-500 hover:text-red-700"
+                      disabled={uploading}
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -196,15 +270,30 @@ export default function FileUploadForm() {
           )}
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
+
+        {/* Success Display */}
+        {success && (
+          <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-sm text-green-600">Files uploaded successfully!</p>
+          </div>
+        )}
+
         {/* Options */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-gray-700">Downloadable</label>
             <button
               onClick={() => setDownloadable(!downloadable)}
+              disabled={uploading}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 downloadable ? 'bg-blue-600' : 'bg-gray-200'
-              }`}
+              } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -218,9 +307,10 @@ export default function FileUploadForm() {
             <label className="text-sm font-medium text-gray-700">Active</label>
             <button
               onClick={() => setActive(!active)}
+              disabled={uploading}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 active ? 'bg-blue-600' : 'bg-gray-200'
-              }`}
+              } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -234,9 +324,10 @@ export default function FileUploadForm() {
             <label className="text-sm font-medium text-gray-700">Public content</label>
             <button
               onClick={() => setPublicContent(!publicContent)}
+              disabled={uploading}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 publicContent ? 'bg-blue-600' : 'bg-gray-200'
-              }`}
+              } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -251,18 +342,33 @@ export default function FileUploadForm() {
         <div className="flex space-x-3 pt-4">
           <button
             onClick={handleReset}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            disabled={uploading}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Reset
           </button>
           <button
             onClick={handleUpload}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            disabled={uploading || selectedFiles.length === 0}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
           >
-            Upload
+            {uploading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Uploading...
+              </>
+            ) : (
+              'Upload'
+            )}
           </button>
         </div>
       </div>
+        <PopupAlert 
+  message={popup.message}
+  type={popup.type}
+  isVisible={popup.isVisible}
+  onClose={() => setPopup({ ...popup, isVisible: false })}
+/>
     </div>
   );
 }

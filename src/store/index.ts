@@ -10,6 +10,7 @@ import assignment from './slices/assignment';
 import textLesson from './slices/textLesson';
 import CourseBundle from './slices/courseBundle';
 import quiz from './slices/quiz';
+import file from './slices/files';
 
 
 
@@ -25,6 +26,7 @@ export const store = configureStore({
     textLesson: textLesson,
     courseBundle: CourseBundle,
     quiz: quiz,
+    file: file,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

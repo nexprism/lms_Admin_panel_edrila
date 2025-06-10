@@ -18,7 +18,6 @@ export const createTextLesson = createAsyncThunk(
     async (formData: FormData, { rejectWithValue }) => {
         try {
             const response = await axios.post('http://localhost:5000/text-lesson', formData, {
-                withCredentials: true,
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

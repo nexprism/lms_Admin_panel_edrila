@@ -1,7 +1,23 @@
-import React, { useState } from 'react';
-import { BookOpen, Calendar, Clock, User, FileText, Upload, X } from 'lucide-react';
 
-export default function AddAssignmentForm() {
+
+
+
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { BookOpen, FileText, Upload, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { createAssignment } from '../../../store/slices/assignment'; // Adjust path as needed
+import PopupAlert from '../../../components/popUpAlert';
+
+interface AddAssignmentFormProps {
+  onChange?: () => void;
+  courseId: string;
+  lessonId: string;
+}
+
+export default function AddAssignmentForm({ courseId, lessonId}: AddAssignmentFormProps) {
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state: any) => state.assignment);
+
   const [formData, setFormData] = useState({
     title: '',
     subject: '',
@@ -11,11 +27,15 @@ export default function AddAssignmentForm() {
     maxScore: '',
     duration: '',
     materials: '',
-    file: null,
-    document: null
+    file: null as File | null,
+    document: null as File | null,
   });
 
-  const handleInputChange = (e) => {
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
+
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -23,31 +43,86 @@ export default function AddAssignmentForm() {
     }));
   };
 
-  const handleFileChange = (e, type) => {
-    const file = e.target.files[0];
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'file' | 'document') => {
+    const file = e.target.files?.[0] || null;
     setFormData(prev => ({
       ...prev,
       [type]: file
     }));
   };
 
-  const removeFile = (type) => {
+  const removeFile = (type: 'file' | 'document') => {
     setFormData(prev => ({
       ...prev,
       [type]: null
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Assignment Data:', formData);
-    // Handle form submission here
+
+    const apiFormData = new FormData();
+    apiFormData.append('courseId', courseId);
+    apiFormData.append('lessonId', lessonId);
+    apiFormData.append('title', formData.title);
+    apiFormData.append('subject', formData.subject);
+    apiFormData.append('language', formData.language);
+    apiFormData.append('description', formData.description);
+    if (formData.score) apiFormData.append('score', formData.score);
+    if (formData.maxScore) apiFormData.append('maxScore', formData.maxScore);
+    if (formData.duration) apiFormData.append('duration', formData.duration);
+    if (formData.materials) apiFormData.append('materials', formData.materials);
+    if (formData.file) apiFormData.append('attachmentFile', formData.file);
+    if (formData.document) apiFormData.append('documentFile', formData.document);
+
+    try {
+      const result = await dispatch(createAssignment(apiFormData) as any);
+      if (createAssignment.fulfilled.match(result)) {
+          // Show success popup
+  setPopup({
+    isVisible: true,
+    message: 'Assignment created successfully!',
+    type: 'success'
+  });
+// setShowSuccess(true);
+setFormData({
+  title: '',
+  subject: '',
+  language: 'English',
+  description: '',
+  score: '',
+  maxScore: '',
+  duration: '',
+  materials: '',
+  file: null,
+  document: null
+});
+setTimeout(() => setShowSuccess(false), 3000);
+      }
+    } catch (err) {
+  setPopup({
+    isVisible: true,
+    message: 'Failed to create Assignment. Please try again.',
+    type: 'error'
+  });    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
-      <div className=" mx-auto">
-        {/* Header */}
+      <div className="max-w-4xl mx-auto">
+        {showSuccess && (
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <p className="text-green-800 font-medium">Assignment created successfully!</p>
+          </div>
+        )}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <p className="text-red-800 font-medium">{error}</p>
+          </div>
+        )}
+ {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-600 text-white p-6 rounded-t-lg">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
@@ -76,6 +151,7 @@ export default function AddAssignmentForm() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Enter assignment title"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -91,6 +167,7 @@ export default function AddAssignmentForm() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   required
+                  disabled={loading}
                 >
                   <option value="">Select Subject</option>
                   <option value="Mathematics">Mathematics</option>
@@ -113,6 +190,7 @@ export default function AddAssignmentForm() {
                   value={formData.language}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  disabled={loading}
                 >
                   <option value="English">English</option>
                   <option value="Spanish">Spanish</option>
@@ -137,6 +215,7 @@ export default function AddAssignmentForm() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                 placeholder="A homework is to be completed on your course of CSS and research yourself that you've got this! Please send your homework as soon as possible. Regards."
                 required
+                disabled={loading}
               />
             </div>
 
@@ -153,6 +232,7 @@ export default function AddAssignmentForm() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="100"
+                  disabled={loading}
                 />
               </div>
 
@@ -167,6 +247,7 @@ export default function AddAssignmentForm() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="250"
+                  disabled={loading}
                 />
               </div>
 
@@ -181,6 +262,7 @@ export default function AddAssignmentForm() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="60"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -198,6 +280,7 @@ export default function AddAssignmentForm() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Maximum 255 characters"
                 maxLength={255}
+                disabled={loading}
               />
             </div>
 
@@ -221,6 +304,7 @@ export default function AddAssignmentForm() {
                         type="button"
                         onClick={() => removeFile('file')}
                         className="text-red-500 hover:text-red-700"
+                        disabled={loading}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -234,10 +318,11 @@ export default function AddAssignmentForm() {
                         onChange={(e) => handleFileChange(e, 'file')}
                         className="hidden"
                         id="file-upload"
+                        disabled={loading}
                       />
                       <label
                         htmlFor="file-upload"
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors"
+                        className={`inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         Browse Files
                       </label>
@@ -264,6 +349,7 @@ export default function AddAssignmentForm() {
                         type="button"
                         onClick={() => removeFile('document')}
                         className="text-red-500 hover:text-red-700"
+                        disabled={loading}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -278,10 +364,11 @@ export default function AddAssignmentForm() {
                         className="hidden"
                         id="document-upload"
                         accept=".pdf,.doc,.docx,.txt"
+                        disabled={loading}
                       />
                       <label
                         htmlFor="document-upload"
-                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer transition-colors"
+                        className={`inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         Browse Documents
                       </label>
@@ -293,16 +380,25 @@ export default function AddAssignmentForm() {
 
             <div className="flex justify-end pt-6 border-t">
               <button
-                type="button"
+                type="submit"
                 onClick={handleSubmit}
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all font-medium"
+                disabled={loading}
+                className={`px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all font-medium flex items-center gap-2 ${
+                  loading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
-                Save Assignment
+                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {loading ? 'Saving...' : 'Save Assignment'}
               </button>
             </div>
           </div>
-        </div>
-      </div>
+        </div>      </div>
+          <PopupAlert 
+  message={popup.message}
+  type={popup.type}
+  isVisible={popup.isVisible}
+  onClose={() => setPopup({ ...popup, isVisible: false })}
+/>
     </div>
   );
 }

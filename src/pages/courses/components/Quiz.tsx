@@ -5,7 +5,7 @@ import {
     X, Save, HelpCircle, AlertCircle, Eye, Settings 
 } from 'lucide-react';
 import { createQuiz } from '../../../store/slices/quiz'; // Adjust the import path as needed
-
+import PopupAlert from '../../../components/popUpAlert';
 type QuestionType = {
     question: string;
     options: string[];
@@ -41,6 +41,8 @@ const Quiz = ({ section, lesson, onChange, courseId, lessonId }) => {
     
         const dispatch = useDispatch();
     const { loading: saving, error: saveError, data: saveData } = useSelector((state: RootState) => state.quiz);
+
+
     
     const [showQuestionBuilder, setShowQuestionBuilder] = useState(false);
     const [questions, setQuestions] = useState<QuestionType[]>(lesson.questions || []);
@@ -53,6 +55,8 @@ const Quiz = ({ section, lesson, onChange, courseId, lessonId }) => {
         quizDescription: lesson.quizDescription || '',
     });
     const [saveSuccess, setSaveSuccess] = useState(false);
+        const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
+
 
     // Handle save success
     useEffect(() => {
@@ -104,7 +108,18 @@ const Quiz = ({ section, lesson, onChange, courseId, lessonId }) => {
 
         try {
             await dispatch(createQuiz(payload) as any);
+              // Show success popup
+  setPopup({
+    isVisible: true,
+    message: 'Quiz created successfully!',
+    type: 'success'
+  });
         } catch (error) {
+              setPopup({
+    isVisible: true,
+    message: 'Failed to create Quiz. Please try again.',
+    type: 'error'
+  });      
             console.error('Failed to save quiz:', error);
         }
     };
@@ -394,6 +409,7 @@ const QuestionBuilder = ({ question, onSave, onClose }) => {
         options: question?.options || ['', '', '', ''],
         correctAnswer: question?.correctAnswer || ''
     });
+    const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
 
     const handleOptionChange = (index, value) => {
         const newOptions = [...formData.options];
@@ -443,7 +459,7 @@ const QuestionBuilder = ({ question, onSave, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4 transition-all">
+        <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all">
             <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-blue-200">
                 <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
                     <div className="flex justify-between items-center">
@@ -544,7 +560,15 @@ const QuestionBuilder = ({ question, onSave, onClose }) => {
                         </button>
                     </div>
                 </div>
+              
+                
             </div>
+               <PopupAlert 
+  message={popup.message}
+  type={popup.type}
+  isVisible={popup.isVisible}
+  onClose={() => setPopup({ ...popup, isVisible: false })}
+/>
         </div>
     );
 };
