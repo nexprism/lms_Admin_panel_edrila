@@ -14,6 +14,9 @@ import EditBundleForm from "./pages/bundles/EditBundle";
 import QuizList from "./pages/Quiz/QuizList";
 import AssignmentList from "./pages/Assignmets/AssignmentList";
 import TextLessonPage from "./pages/courses/TextLesson";
+import EditQuiz from "./pages/courses/components/EditQuiz";
+import EditAssignmentForm from "./pages/courses/components/EditAssignment";
+import EditTextLessonEditor from "./pages/courses/components/EditTextLesson";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -58,16 +61,27 @@ export default function App() {
               {/* Add more protected routes here if needed */}
               <Route path="/filters/add" element={<AddFilter />} />
               <Route path="/filters/all" element={<FilterList />} />
-              <Route path="/courses/add" element={<AddCourse/>} />
+              <Route path="/courses/add" element={<AddCourse />} />
               <Route path="/courses/all/courses" element={<CourseList />} />
-                <Route path="/courses/edit/:courseId" element={<EditCourse/>} />
-                <Route path="/bundles/create" element={<AddBundle/>} />
+              <Route path="/courses/edit/:courseId" element={<EditCourse />} />
+              <Route path="/bundles/create" element={<AddBundle />} />
               <Route path="/bundles/all" element={<BundleList />} />
-              <Route path="/bundles/:bundleId" element={<EditBundleForm/>} />
-              <Route path="/quiz/all" element={<QuizList/>} />
-              <Route path="/assignments/all" element={<AssignmentList/>} />
-              <Route path="/courses/all/text-courses" element={<TextLessonPage/>} />
-
+              <Route path="/bundles/:bundleId" element={<EditBundleForm />} />
+              <Route path="/quiz/all" element={<QuizList />} />
+              <Route path="/quiz/edit/:quizId" element={<EditQuiz />} />
+              <Route path="/assignments/all" element={<AssignmentList />} />
+              <Route
+                path="/assignments/edit/:assignmentId"
+                element={<EditAssignmentForm />}
+              />
+              <Route
+                path="/courses/all/text-courses"
+                element={<TextLessonPage />}
+              />
+              <Route
+                path="/courses/text-courses/:lessonId"
+                element={<EditTextLessonEditor />}
+              />
 
               {/* Nested Routes */}
 

@@ -15,8 +15,9 @@ import {
   ChevronRight,
   RotateCcw,
   X,
-  AlertTriangle
+  AlertTriangle,
 } from "lucide-react";
+import { useNavigate } from "react-router";
 
 interface Course {
   _id: string;
@@ -52,12 +53,15 @@ const DeleteModal: React.FC<{
   isDeleting: boolean;
 }> = ({ isOpen, onClose, onConfirm, quiz, isDeleting }) => {
   if (!isOpen || !quiz) return null;
-  
+
   const courseName = quiz.course?.title || "No Course";
-  
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-transparent backdrop-blur-xs transition-opacity" onClick={onClose}></div>
+      <div
+        className="fixed inset-0 bg-transparent backdrop-blur-xs transition-opacity"
+        onClick={onClose}
+      ></div>
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
@@ -78,7 +82,11 @@ const DeleteModal: React.FC<{
           </div>
           <div className="p-6">
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Are you sure you want to delete this quiz for course <strong className="text-gray-900 dark:text-white">"{courseName}"</strong>?
+              Are you sure you want to delete this quiz for course{" "}
+              <strong className="text-gray-900 dark:text-white">
+                "{courseName}"
+              </strong>
+              ?
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               This action cannot be undone.
@@ -118,7 +126,11 @@ const DeleteModal: React.FC<{
 
 const QuizList: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { data: quizzes, loading, error } = useAppSelector((state) => state.quiz);
+  const {
+    data: quizzes,
+    loading,
+    error,
+  } = useAppSelector((state) => state.quiz);
   console.log("Quizzes:", quizzes);
 
   const [searchInput, setSearchInput] = useState("");
@@ -127,6 +139,7 @@ const QuizList: React.FC = () => {
   const [quizToDelete, setQuizToDelete] = useState<Quiz | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const navigate = useNavigate();
   // Pagination
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -202,14 +215,21 @@ const QuizList: React.FC = () => {
 
   return (
     <div>
-      <PageMeta title="Quiz List | LMS Admin" description="List of all quizzes" />
+      <PageMeta
+        title="Quiz List | LMS Admin"
+        description="List of all quizzes"
+      />
       <PageBreadcrumb pageTitle="Quiz List" />
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">Quizzes</h1>
-          <span className="text-gray-500 text-sm dark:text-gray-400">Total: {filteredQuizzes.length}</span>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
+            Quizzes
+          </h1>
+          <span className="text-gray-500 text-sm dark:text-gray-400">
+            Total: {filteredQuizzes.length}
+          </span>
         </div>
-        
+
         <div className="bg-white shadow p-4 rounded-md mb-6 dark:bg-gray-900">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
@@ -248,21 +268,40 @@ const QuizList: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">#</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Course</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Lesson</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Questions</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Pass Mark</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Created</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  #
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Course
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Lesson
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Questions
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Pass Mark
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Created
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
               {filteredQuizzes
                 .slice((page - 1) * limit, page * limit)
                 .map((quiz, idx) => (
-                  <tr key={quiz._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <tr
+                    key={quiz._id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
                     <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                       {(page - 1) * limit + idx + 1}
                     </td>
@@ -286,12 +325,16 @@ const QuizList: React.FC = () => {
                       {quiz.status === "active" ? (
                         <div className="flex items-center gap-2">
                           <CheckCircle className="text-green-500 h-5 w-5" />
-                          <span className="text-green-600 dark:text-green-400">Active</span>
+                          <span className="text-green-600 dark:text-green-400">
+                            Active
+                          </span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
                           <XCircle className="text-red-500 h-5 w-5" />
-                          <span className="text-red-600 dark:text-red-400">Inactive</span>
+                          <span className="text-red-600 dark:text-red-400">
+                            Inactive
+                          </span>
                         </div>
                       )}
                     </td>
@@ -300,9 +343,8 @@ const QuizList: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <button
-                        // onClick={() => openEditModal(quiz)}
                         className="text-blue-500 hover:text-blue-700 transition-colors"
-                        disabled
+                        onClick={() => navigate(`/quiz/edit/${quiz._id}`)}
                         title="Edit Quiz"
                       >
                         <Pencil className="h-5 w-5" />
@@ -319,11 +361,13 @@ const QuizList: React.FC = () => {
                 ))}
             </tbody>
           </table>
-          
+
           {filteredQuizzes.length === 0 && !loading && (
             <div className="text-center py-8">
               <p className="text-gray-500 dark:text-gray-400">
-                {searchInput ? "No quizzes found matching your search." : "No quizzes available."}
+                {searchInput
+                  ? "No quizzes found matching your search."
+                  : "No quizzes available."}
               </p>
             </div>
           )}
@@ -333,8 +377,9 @@ const QuizList: React.FC = () => {
         {filteredQuizzes.length > 0 && (
           <div className="flex justify-between items-center mt-6">
             <div className="text-sm text-gray-700 dark:text-gray-300">
-              Showing {Math.min((page - 1) * limit + 1, filteredQuizzes.length)} to{" "}
-              {Math.min(page * limit, filteredQuizzes.length)} of {filteredQuizzes.length} results
+              Showing {Math.min((page - 1) * limit + 1, filteredQuizzes.length)}{" "}
+              to {Math.min(page * limit, filteredQuizzes.length)} of{" "}
+              {filteredQuizzes.length} results
             </div>
             <div className="flex gap-2">
               <button
@@ -358,7 +403,10 @@ const QuizList: React.FC = () => {
                     {p}
                   </button>
                 ) : (
-                  <span key={idx} className="px-2 text-gray-400 dark:text-gray-500">
+                  <span
+                    key={idx}
+                    className="px-2 text-gray-400 dark:text-gray-500"
+                  >
                     {p}
                   </span>
                 )

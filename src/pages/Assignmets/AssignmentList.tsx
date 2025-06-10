@@ -14,8 +14,9 @@ import {
   ChevronRight,
   RotateCcw,
   X,
-  AlertTriangle
+  AlertTriangle,
 } from "lucide-react";
+import { useNavigate } from "react-router";
 
 interface Course {
   _id: string;
@@ -32,7 +33,7 @@ interface Assignment {
   _id: string;
   courseId?: Course | null; // Some assignments have courseId
   course?: string; // Some have course as string ID
-  lessonId?: Lesson | null; // Some assignments have lessonId  
+  lessonId?: Lesson | null; // Some assignments have lessonId
   sectionId?: string; // Some have sectionId
   title: string;
   description: string;
@@ -71,13 +72,16 @@ const DeleteModal: React.FC<{
   isDeleting: boolean;
 }> = ({ isOpen, onClose, onConfirm, assignment, isDeleting }) => {
   if (!isOpen || !assignment) return null;
-  
+
   // Handle different course name structures
   const courseName = assignment.courseId?.title || "No Course";
-  
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-transparent backdrop-blur-xs transition-opacity" onClick={onClose}></div>
+      <div
+        className="fixed inset-0 bg-transparent backdrop-blur-xs transition-opacity"
+        onClick={onClose}
+      ></div>
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
@@ -98,10 +102,20 @@ const DeleteModal: React.FC<{
           </div>
           <div className="p-6">
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Are you sure you want to delete the assignment <strong className="text-gray-900 dark:text-white">"{assignment.title}"</strong>
+              Are you sure you want to delete the assignment{" "}
+              <strong className="text-gray-900 dark:text-white">
+                "{assignment.title}"
+              </strong>
               {courseName !== "No Course" && (
-                <> for course <strong className="text-gray-900 dark:text-white">"{courseName}"</strong></>
-              )}?
+                <>
+                  {" "}
+                  for course{" "}
+                  <strong className="text-gray-900 dark:text-white">
+                    "{courseName}"
+                  </strong>
+                </>
+              )}
+              ?
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               This action cannot be undone.
@@ -141,13 +155,21 @@ const DeleteModal: React.FC<{
 
 const AssignmentList: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { data: assignments, loading, error } = useAppSelector((state) => state.assignment);
+  const {
+    data: assignments,
+    loading,
+    error,
+  } = useAppSelector((state) => state.assignment);
 
   const [searchInput, setSearchInput] = useState("");
-  const [filteredAssignments, setFilteredAssignments] = useState<Assignment[]>([]);
+  const [filteredAssignments, setFilteredAssignments] = useState<Assignment[]>(
+    []
+  );
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [assignmentToDelete, setAssignmentToDelete] = useState<Assignment | null>(null);
+  const [assignmentToDelete, setAssignmentToDelete] =
+    useState<Assignment | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const navigate = useNavigate();
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -180,7 +202,10 @@ const AssignmentList: React.FC = () => {
   }, [assignments, searchInput]);
 
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= Math.ceil(filteredAssignments.length / limit)) {
+    if (
+      newPage >= 1 &&
+      newPage <= Math.ceil(filteredAssignments.length / limit)
+    ) {
       setPage(newPage);
     }
   };
@@ -232,20 +257,28 @@ const AssignmentList: React.FC = () => {
   // Helper function to determine status
   const getStatus = (assignment: Assignment) => {
     if (assignment.status) return assignment.status;
-    if (assignment.active !== undefined) return assignment.active ? "active" : "inactive";
+    if (assignment.active !== undefined)
+      return assignment.active ? "active" : "inactive";
     return "active"; // default
   };
 
   return (
     <div>
-      <PageMeta title="Assignment List | LMS Admin" description="List of all assignments" />
+      <PageMeta
+        title="Assignment List | LMS Admin"
+        description="List of all assignments"
+      />
       <PageBreadcrumb pageTitle="Assignment List" />
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">Assignments</h1>
-          <span className="text-gray-500 text-sm dark:text-gray-400">Total: {filteredAssignments.length}</span>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
+            Assignments
+          </h1>
+          <span className="text-gray-500 text-sm dark:text-gray-400">
+            Total: {filteredAssignments.length}
+          </span>
         </div>
-        
+
         <div className="bg-white shadow p-4 rounded-md mb-6 dark:bg-gray-900">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
@@ -284,23 +317,46 @@ const AssignmentList: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">#</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Course</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Lesson</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Subject</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Score</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Due Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Created</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  #
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Course
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Lesson
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Title
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Subject
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Score
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Due Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Created
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
               {filteredAssignments
                 .slice((page - 1) * limit, page * limit)
                 .map((assignment, idx) => (
-                  <tr key={assignment._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <tr
+                    key={assignment._id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
                     <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                       {(page - 1) * limit + idx + 1}
                     </td>
@@ -322,25 +378,35 @@ const AssignmentList: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                       <div className="flex flex-col">
-                        <span>{assignment.score}/{assignment.maxScore}</span>
+                        <span>
+                          {assignment.score}/{assignment.maxScore}
+                        </span>
                         {assignment.grade && (
-                          <span className="text-xs text-gray-500">Grade: {assignment.grade}</span>
+                          <span className="text-xs text-gray-500">
+                            Grade: {assignment.grade}
+                          </span>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                      {getDueDate(assignment) ? new Date(getDueDate(assignment)!).toLocaleDateString() : "-"}
+                      {getDueDate(assignment)
+                        ? new Date(getDueDate(assignment)!).toLocaleDateString()
+                        : "-"}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       {getStatus(assignment) === "active" ? (
                         <div className="flex items-center gap-2">
                           <CheckCircle className="text-green-500 h-5 w-5" />
-                          <span className="text-green-600 dark:text-green-400">Active</span>
+                          <span className="text-green-600 dark:text-green-400">
+                            Active
+                          </span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
                           <XCircle className="text-red-500 h-5 w-5" />
-                          <span className="text-red-600 dark:text-red-400">Inactive</span>
+                          <span className="text-red-600 dark:text-red-400">
+                            Inactive
+                          </span>
                         </div>
                       )}
                     </td>
@@ -349,12 +415,14 @@ const AssignmentList: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <button
-                        // onClick={() => openEditModal(assignment)}
+                        onClick={() =>
+                          navigate(`/assignments/edit/${assignment._id}`)
+                        }
                         className="text-blue-500 hover:text-blue-700 transition-colors"
-                        disabled
                         title="Edit Assignment"
                       >
                         <Pencil className="h-5 w-5" />
+                        {}
                       </button>
                       <button
                         onClick={() => openDeleteModal(assignment)}
@@ -371,7 +439,9 @@ const AssignmentList: React.FC = () => {
           {filteredAssignments.length === 0 && !loading && (
             <div className="text-center py-8">
               <p className="text-gray-500 dark:text-gray-400">
-                {searchInput ? "No assignments found matching your search." : "No assignments available."}
+                {searchInput
+                  ? "No assignments found matching your search."
+                  : "No assignments available."}
               </p>
             </div>
           )}
@@ -381,8 +451,10 @@ const AssignmentList: React.FC = () => {
         {filteredAssignments.length > 0 && (
           <div className="flex justify-between items-center mt-6">
             <div className="text-sm text-gray-700 dark:text-gray-300">
-              Showing {Math.min((page - 1) * limit + 1, filteredAssignments.length)} to{" "}
-              {Math.min(page * limit, filteredAssignments.length)} of {filteredAssignments.length} results
+              Showing{" "}
+              {Math.min((page - 1) * limit + 1, filteredAssignments.length)} to{" "}
+              {Math.min(page * limit, filteredAssignments.length)} of{" "}
+              {filteredAssignments.length} results
             </div>
             <div className="flex gap-2">
               <button
@@ -406,14 +478,19 @@ const AssignmentList: React.FC = () => {
                     {p}
                   </button>
                 ) : (
-                  <span key={idx} className="px-2 text-gray-400 dark:text-gray-500">
+                  <span
+                    key={idx}
+                    className="px-2 text-gray-400 dark:text-gray-500"
+                  >
                     {p}
                   </span>
                 )
               )}
               <button
                 onClick={() => handlePageChange(page + 1)}
-                disabled={page === Math.ceil(filteredAssignments.length / limit)}
+                disabled={
+                  page === Math.ceil(filteredAssignments.length / limit)
+                }
                 className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 <ChevronRight className="w-5 h-5" />
