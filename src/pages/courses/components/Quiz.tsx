@@ -199,8 +199,8 @@ const Quiz = ({ section, lesson, onChange, courseId, lessonId }) => {
                             min="0"
                             max="100"
                             value={quizData.passMark}
-                            onChange={e => handleChange('passMark', parseInt(e.target.value) || 70)}
-                            placeholder="70"
+                            onChange={e => handleChange('passMark', parseInt(e.target.value) )}
+                            // placeholder="70"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             required
                         />
