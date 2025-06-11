@@ -3,10 +3,13 @@ import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { postFilter } from "../../store/slices/filter";
 import toast, { Toaster } from "react-hot-toast";
 import CategorySubcategoryDropdowns from "../CategorySubcategoryDropdowns"; // Adjust import path as needed
+import PopupAlert from "../popUpAlert";
 
 export default function AddFilter() {
     const dispatch = useAppDispatch();
     const { loading, error } = useAppSelector((state) => state.filter);
+      const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
+
 
     const [form, setForm] = useState({
         language: "",
@@ -71,7 +74,11 @@ export default function AddFilter() {
                     filterOptions,
                 })
             ).unwrap();
-            toast.success("Filter added successfully!", { duration: 5000, position: "top-right" });
+            setPopup({
+    isVisible: true,
+    message: 'Filter added successfully!',
+    type: 'success'
+  });
             setForm({ 
                 language: "", 
                 categoryId: "",
@@ -82,8 +89,11 @@ export default function AddFilter() {
             setFilterOptions([]);
             setOptionInput("");
         } catch (err: any) {
-            toast.error(err?.message || "Failed to add filter.", { duration: 5000, position: "top-right" });
-        }
+ setPopup({
+    isVisible: true,
+    message: 'Failed to add Filter . Please try again.',
+    type: 'error'
+  });        }
     };
 
     return (
@@ -179,6 +189,12 @@ export default function AddFilter() {
                     </form>
                 </div>
             </div>
+             <PopupAlert 
+  message={popup.message}
+  type={popup.type}
+  isVisible={popup.isVisible}
+  onClose={() => setPopup({ ...popup, isVisible: false })}
+/>
         </div>
     );
 }

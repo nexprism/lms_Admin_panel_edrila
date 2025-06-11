@@ -5,21 +5,22 @@ import { useDispatch, useSelector } from "react-redux";
 import { createCourseCategory ,createSubCategory} from "../store/slices/courseCategorySlice";
 import type { AppDispatch, RootState } from "../store";
 import toast, { Toaster } from "react-hot-toast";
+import PopupAlert from "../components/popUpAlert";
 
 interface SubCategoryInput {
   name: string;
-  slug: string;
 }
 
 export default function AddCategory() {
   const [category, setCategory] = useState({
     name: "",
-    slug: "",
     status: "active",
     image: null as File | null,
   });
   const [addSubcategory, setAddSubcategory] = useState(false);
   const [subcategories, setSubcategories] = useState<SubCategoryInput[]>([]);
+    const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
+  
  
 
   const dispatch = useDispatch<AppDispatch>();
@@ -42,7 +43,7 @@ export default function AddCategory() {
   const handleAddSubcategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAddSubcategory(e.target.checked);
     if (e.target.checked) {
-      setSubcategories([{ name: "", slug: "" }]);
+      setSubcategories([{ name: "" }]);
     } else {
       setSubcategories([]);
     }
@@ -59,7 +60,7 @@ export default function AddCategory() {
   };
 
   const addSubcategoryField = () => {
-    setSubcategories([...subcategories, { name: "", slug: "" }]);
+    setSubcategories([...subcategories, { name: "" }]);
   };
 
   const removeSubcategoryField = (index: number) => {
@@ -67,7 +68,7 @@ export default function AddCategory() {
     setSubcategories(newSubcategories);
   };
 
- const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   if (!category.name) {
     toast.error("Category name is required.", {
@@ -76,45 +77,53 @@ export default function AddCategory() {
     });
     return;
   }
-  if (!category.slug) {
-    toast.error("Slug is required.", {
-      duration: 8000,
-      position: 'top-right',
-    });
-    return;
-  }
 
   const formData = new FormData();
   formData.append("name", category.name);
-  formData.append("slug", category.slug);
   formData.append("status", category.status);
   if (category.image) {
     formData.append("image", category.image);
   }
 
-  // Append subcategories as JSON string if needed
-  if (addSubcategory && subcategories.length > 0) {
-    formData.append("subcategories", JSON.stringify(subcategories));
-  }
-
   try {
-    // Now just dispatch createCourseCategory with formData
-    await dispatch(createCourseCategory(formData) as any).unwrap();
+    // Create the main category and get the result (should include the new category's ID)
+    const createdCategory = await dispatch(createCourseCategory(formData) as any).unwrap();
 
-    toast.success('Category created successfully! 🎉', {
-      duration: 8000,
-      position: 'top-right',
-    });
-    setCategory({ name: "", slug: "", status: "active", image: null });
+    console.log("Created Category:", addSubcategory,subcategories, createdCategory);
+
+    // If subcategories are to be added, dispatch createSubCategory for each
+    if (addSubcategory && subcategories.length > 0 && createdCategory?._id) {
+      await Promise.all(
+        subcategories.map((sub) =>
+          dispatch(
+            createSubCategory({
+              name: sub.name,
+              categoryId: createdCategory._id,
+              slug: "",
+              status: "active"
+            }) as any
+          ).unwrap()
+        )
+      );
+    }
+
+     setPopup({
+    isVisible: true,
+    message: 'Category created successfully!',
+    type: 'success'
+  });
+    setCategory({ name: "", status: "active", image: null });
     setSubcategories([]);
     setAddSubcategory(false);
   } catch (err: any) {
-    toast.error(err?.message || "Failed to create category.", {
-      duration: 8000,
-      position: 'top-right',
-    });
+    setPopup({
+    isVisible: true,
+    message: 'Failed to create Category. Please try again.',
+    type: 'error'
+  });
   }
 };
+
 
 
   return (
@@ -146,23 +155,7 @@ export default function AddCategory() {
                 required
               />
             </div>
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Slug <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="slug"
-                value={category.slug}
-                onChange={handleChange}
-                className="w-full rounded border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                placeholder="Enter category slug"
-                required
-              />
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                A unique identifier for the category (e.g., 'electronics').
-              </p>
-            </div>
+            
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Status
@@ -251,20 +244,7 @@ export default function AddCategory() {
                         required
                       />
                     </div>
-                    <div>
-                      <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Subcategory Slug <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="slug"
-                        value={subcategory.slug}
-                        onChange={(e) => handleSubcategoryChange(index, e)}
-                        className="w-full rounded border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                        placeholder="Enter subcategory slug"
-                        required
-                      />
-                    </div>
+                 
                   </div>
                 ))}
                 {addSubcategory && (
@@ -283,6 +263,7 @@ export default function AddCategory() {
             {/* Submit Button */}
             <button
               type="submit"
+            
               className="rounded bg-blue-600 px-6 py-2 text-white font-semibold hover:bg-blue-700 transition"
               disabled={loading}
             >
@@ -291,6 +272,12 @@ export default function AddCategory() {
           </form>
         </div>
       </div>
+       <PopupAlert 
+  message={popup.message}
+  type={popup.type}
+  isVisible={popup.isVisible}
+  onClose={() => setPopup({ ...popup, isVisible: false })}
+/>
     </div>
   );
 }

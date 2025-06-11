@@ -220,9 +220,9 @@ const AddCourse = () => {
     isPublished: false,
     enrollmentType: 'open',
     maxStudents: '',
-    certificateTemplate: true,
-    isDownloadable: true,
-    courseForum: true,
+    certificateTemplate: false,
+    isDownloadable: false,
+    courseForum: false,
     isSubscription: false,
     isPrivate: false,
     enableWaitlist: false,
@@ -344,12 +344,6 @@ const AddCourse = () => {
           </div>
         )}
 
-        {data && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-green-500" />
-            <span className="text-green-700">Course created successfully!</span>
-          </div>
-        )}
 
         <div className="space-y-6">
           {/* Basic Information */}

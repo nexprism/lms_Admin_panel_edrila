@@ -289,15 +289,26 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
     );
 };
 
-// Updated LessonEditor Component with proper lesson ID handling
-// Updated LessonEditor Component with proper section handling
 const LessonEditor = ({ lesson, moduleId, section, courseId, onChange, onRemove, onSave }) => {
     const dispatch = useDispatch();
     const { loading: lessonLoading } = useSelector((state) => state.lesson);
     const [isSaving, setIsSaving] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [savedLessonId, setSavedLessonId] = useState(lesson._id || lesson.id || null);
+    console.log('LessonEditor - Available IDs:', {
+        lessonId: lesson._id || lesson.id,
+        savedLessonId,
+        moduleId,
+        section,
+        courseId,
+        lesson
+    });
 
+    // Determine if this is a new lesson (not saved yet)
+    const isNewLesson = !savedLessonId;
+
+    // Auto-expand for new lessons, allow manual control for saved lessons
+    const shouldShowExpanded = isNewLesson ? true : isExpanded;
 
     const lessonTypeConfig = {
         video: { icon: Play, label: 'File', color: 'text-red-500 bg-red-50 border-red-200' },
@@ -331,7 +342,7 @@ const LessonEditor = ({ lesson, moduleId, section, courseId, onChange, onRemove,
         setIsSaving(true);
         try {
             const lessonData = {
-                section: sectionToUse, // Use the determined section value
+                section: sectionToUse,
                 moduleId,
                 title: lesson.title,
                 description: lesson.content || '',
@@ -356,7 +367,7 @@ const LessonEditor = ({ lesson, moduleId, section, courseId, onChange, onRemove,
             }
 
             alert('Lesson saved successfully!');
-            window.location.reload(); // Reload the page to reflect changes
+            window.location.reload();
             console.log('Lesson saved:', result);
             onSave && onSave(result);
         } catch (error) {
@@ -369,7 +380,7 @@ const LessonEditor = ({ lesson, moduleId, section, courseId, onChange, onRemove,
 
     const renderLessonForm = () => {
         const commonProps = {
-            section: section || courseId, // Ensure section is available
+            section: section || courseId,
             lesson: { ...lesson, _id: savedLessonId },
             onChange
         };
@@ -409,120 +420,182 @@ const LessonEditor = ({ lesson, moduleId, section, courseId, onChange, onRemove,
     };
 
     return (
-        <div className="bg-white border-2 border-gray-200 rounded-xl p-6 mb-4 shadow-sm hover:shadow-md transition-all duration-300">
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg border ${currentConfig.color}`}>
-                        <currentConfig.icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <h4 className="font-medium text-gray-900">{currentConfig.label}</h4>
-                        <p className="text-sm text-gray-500">
-                            Lesson {lesson.order || 1}
-                            {savedLessonId && (
-                                <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                                    Saved
-                                </span>
+        <div className="group relative">
+            {/* Main Card */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+                {/* Header Section */}
+                <div className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 p-5">
+                    <div className="flex items-center justify-between">
+                        {/* Left Side - Lesson Info */}
+                        <div className="flex items-center space-x-4">
+                            <div className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 ${currentConfig.color} transition-all duration-200`}>
+                                <currentConfig.icon className="w-6 h-6" />
+                            </div>
+                            
+                            <div className="flex-1">
+                                <div className="flex items-center space-x-3 mb-1">
+                                    <h4 className="text-lg font-semibold text-gray-900">{currentConfig.label}</h4>
+                                    {savedLessonId && (
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></div>
+                                            Saved
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-sm text-gray-500 font-medium">
+                                    Lesson #{lesson.order || 1}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Right Side - Actions */}
+                        <div className="flex items-center space-x-2">
+                            {/* Expand/Collapse Button - Only for saved lessons */}
+                            {isNewLesson && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-all duration-200"
+                                    title={isExpanded ? "Collapse lesson" : "Expand lesson"}
+                                >
+                                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                </button>
                             )}
-                        </p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                    >
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </button>
-                    <button 
-                        type="button" 
-                        onClick={handleSaveLesson}
-                        disabled={isSaving}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 disabled:opacity-50 flex items-center gap-2 shadow-sm"
-                    >
-                        {isSaving ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <Save className="w-4 h-4" />
-                        )}
-                        {isSaving ? 'Saving...' : savedLessonId ? 'Update' : 'Save'}
-                    </button>
-                    <button 
-                        type="button" 
-                        onClick={onRemove} 
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <input
-                    type="text"
-                    value={lesson.title}
-                    onChange={e => onChange({ ...lesson, title: e.target.value })}
-                    placeholder="Lesson Title"
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-lg font-medium"
-                />
-                <select
-                    value={lesson.type || 'video'}
-                    onChange={e => onChange({ ...lesson, type: e.target.value })}
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                >
-                    <option value="video">📹 File</option>
-                    <option value="text">📄 Text Lesson</option>
-                    <option value="quiz">❓ Quiz</option>
-                    <option value="assignment">📋 Assignment</option>
-                </select>
-            </div>
-
-            {/* Show message for Quiz/Assignment types if lesson isn't saved yet */}
-            {(lesson.type === 'quiz' || lesson.type === 'assignment') && !savedLessonId && (
-                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5 text-yellow-600" />
-                        <p className="text-yellow-800 font-medium">
-                            Please save the lesson first to access {lesson.type} content creation.
-                        </p>
-                    </div>
-                </div>
-            )}
-
-            {isExpanded && (
-                <div className="space-y-6">
-                    {renderLessonForm()}
-                    
-                    <div className="flex items-center gap-6 pt-4 border-t border-gray-200">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={lesson.isRequired || true}
-                                onChange={e => onChange({ ...lesson, isRequired: e.target.checked })}
-                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <span className="text-gray-700 font-medium">Required Lesson</span>
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <label className="text-gray-700 font-medium">Order:</label>
-                            <input
-                                type="number"
-                                value={lesson.order || 1}
-                                onChange={e => onChange({ ...lesson, order: parseInt(e.target.value) || 1 })}
-                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                min="1"
-                            />
+                            {/* {!isNewLesson && (
+                                <a
+                                    href={
+                                        lesson.type === 'quiz'
+                                            ? `/quizzes/${savedLessonId}`
+                                            : lesson.type === 'assignment'
+                                            ? `/assignments/${savedLessonId}`
+                                            : lesson.type === 'text'
+                                            ? `/text-lessons/${savedLessonId}`
+                                            : `/files/${savedLessonId}`
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 text-blue-600 hover:text-blue-800 transition-all duration-200"
+                                    title="Go to lesson details"
+                                >
+                                    <ArrowRight className="w-5 h-5" />
+                                </a>
+                            )} */}
+                            
+                            {/* Save Button */}
+                            <button 
+                                type="button" 
+                                onClick={handleSaveLesson}
+                                disabled={isSaving}
+                                className="flex items-center space-x-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                            >
+                                {isSaving ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Save className="w-4 h-4" />
+                                )}
+                                <span>{isSaving ? 'Saving...' : savedLessonId ? 'Update' : 'Save'}</span>
+                            </button>
+                            
+                            {/* Remove Button */}
+                            <button 
+                                type="button" 
+                                onClick={onRemove} 
+                                className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 transition-all duration-200"
+                                title="Remove lesson"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
                         </div>
                     </div>
                 </div>
-            )}
+
+                {/* Basic Form Section */}
+                <div className="p-5 bg-white">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Lesson Title</label>
+                            <input
+                                type="text"
+                                value={lesson.title}
+                                onChange={e => onChange({ ...lesson, title: e.target.value })}
+                                placeholder="Enter lesson title..."
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
+                            />
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Lesson Type</label>
+                            <select
+                                value={lesson.type || 'video'}
+                                onChange={e => onChange({ ...lesson, type: e.target.value })}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
+                            >
+                                <option value="video">📹 File</option>
+                                <option value="text">📄 Text Lesson</option>
+                                <option value="quiz">❓ Quiz</option>
+                                <option value="assignment">📋 Assignment</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Warning Message for Quiz/Assignment */}
+                    {(lesson.type === 'quiz' || lesson.type === 'assignment') && !savedLessonId && (
+                        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                            <div className="flex items-start space-x-3">
+                                <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <h5 className="font-medium text-amber-800">Save Required</h5>
+                                    <p className="text-sm text-amber-700 mt-1">
+                                        Please save the lesson first to access {lesson.type} content creation tools.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Expanded Content */}
+                {shouldShowExpanded && (
+                    <div className="border-t border-gray-100">
+                        {/* Lesson Content Form */}
+                        <div className="p-5 bg-gray-50">
+                            {renderLessonForm()}
+                        </div>
+                        
+                        {/* Settings Section */}
+                        <div className="p-5 bg-white border-t border-gray-100">
+                            <h5 className="text-sm font-semibold text-gray-900 mb-4">Lesson Settings</h5>
+                            <div className="flex flex-wrap items-center gap-6">
+                                <label className="flex items-center space-x-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={lesson.isRequired || true}
+                                        onChange={e => onChange({ ...lesson, isRequired: e.target.checked })}
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">Required Lesson</span>
+                                </label>
+                                
+                                <div className="flex items-center space-x-3">
+                                    <label className="text-sm font-medium text-gray-700">Display Order:</label>
+                                    <input
+                                        type="number"
+                                        value={lesson.order || 1}
+                                        onChange={e => onChange({ ...lesson, order: parseInt(e.target.value) || 1 })}
+                                        className="w-20 px-3 py-2 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        min="1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
 
-// Also update the SavedModuleDisplay to handle lesson IDs properly
-// Updated SavedModuleDisplay with proper courseId passing
+// Updated SavedModuleDisplay with improved layout
 const SavedModuleDisplay = ({ module, courseId, onAddLesson, onLessonChange, onLessonRemove }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const totalLessons = module.lessons?.length || 0;
@@ -556,62 +629,79 @@ const SavedModuleDisplay = ({ module, courseId, onAddLesson, onLessonChange, onL
     });
 
     return (
-        <div className="bg-white border-2 border-green-200 rounded-2xl overflow-hidden shadow-lg">
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-green-100 rounded-xl">
-                            <CheckCircle className="w-6 h-6 text-green-600" />
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-bold text-gray-900">{module.title}</h3>
-                            <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                                <span className="flex items-center gap-1">
-                                    <Clock className="w-4 h-4" />
-                                    {module.estimatedDuration} min
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <BookOpen className="w-4 h-4" />
-                                    {totalLessons} lessons
-                                </span>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    module.isPublished 
-                                        ? 'bg-green-100 text-green-800' 
-                                        : 'bg-yellow-100 text-yellow-800'
-                                }`}>
-                                    {module.isPublished ? 'Published' : 'Draft'}
-                                </span>
+        <div className="bg-white border border-gray-200  shadow-lg overflow-hidden">
+            {/* Module Header */}
+            <div className="bg-gradient-to-r from-blue-50 via-blue-50 to-indigo-50 border-b border-blue-100">
+                <div className="p-6">
+                    <div className="flex items-center justify-between">
+                        {/* Left Side - Module Info */}
+                        <div className="flex items-center space-x-4">
+                            <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                                <CheckCircle className="w-8 h-8 text-white" />
+                            </div>
+                            
+                            <div className="flex-1">
+                                <h3 className="text-xl text-gray-900 mb-2">{module.title}</h3>
+                                
+                                {/* Stats Row */}
+                                <div className="flex items-center space-x-6 text-sm">
+                                    <div className="flex items-center space-x-2 text-gray-600">
+                                        <BookOpen className="w-4 h-4" />
+                                        <span className="font-medium">{totalLessons} lesson{totalLessons !== 1 ? 's' : ''}</span>
+                                    </div>
+                                    
+                                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                        module.isPublished 
+                                            ? 'bg-emerald-100 text-emerald-800' 
+                                            : 'bg-amber-100 text-amber-800'
+                                    }`}>
+                                        <div className={`w-2 h-2 rounded-full mr-2 ${
+                                            module.isPublished ? 'bg-emerald-500' : 'bg-amber-500'
+                                        }`}></div>
+                                        {module.isPublished ? 'Published' : 'Draft'}
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Right Side - Toggle Button */}
+                        <button
+                            type="button"
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/70 hover:bg-white text-gray-600 hover:text-gray-800 transition-all duration-200 shadow-sm"
+                        >
+                            {isExpanded ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
+                        </button>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="p-2 rounded-lg hover:bg-white/50 transition-colors duration-200"
-                    >
-                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                    </button>
                 </div>
             </div>
 
-            {isExpanded && (
+            {/* Lessons Section */}
+            {!isExpanded && (
                 <div className="p-6">
+                    {/* Section Header */}
                     <div className="flex items-center justify-between mb-6">
-                        <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <BookOpen className="w-5 h-5 text-blue-600" />
-                            Lessons ({totalLessons})
-                        </h4>
+                        <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <BookOpen className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <h4 className="text-xl font-semibold text-gray-900">
+                                Lessons {totalLessons > 0 && <span className="text-gray-500">({totalLessons})</span>}
+                            </h4>
+                        </div>
+                        
                         <button
                             type="button"
                             onClick={addLesson}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm"
+                            className="flex items-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200"
                         >
                             <Plus className="w-4 h-4" />
-                            Add Lesson
+                            <span>Add Lesson</span>
                         </button>
                     </div>
                     
-                    <div className="space-y-4">
+                    {/* Lessons List */}
+                    <div className="space-y-6">
                         {module.lessons?.map((lesson, idx) => (
                             <LessonEditor
                                 key={lesson._id || lesson.id || idx}
@@ -628,18 +718,23 @@ const SavedModuleDisplay = ({ module, courseId, onAddLesson, onLessonChange, onL
                             />
                         ))}
                         
+                        {/* Empty State */}
                         {totalLessons === 0 && (
-                            <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                                <BookOpen className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                                <h4 className="text-lg font-medium text-gray-900 mb-2">Ready to add lessons!</h4>
-                                <p className="text-gray-600 mb-4">Your module is created. Now you can start adding lessons.</p>
+                            <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300">
+                                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <BookOpen className="w-10 h-10 text-blue-600" />
+                                </div>
+                                <h4 className="text-xl font-semibold text-gray-900 mb-2">Ready to Create Lessons!</h4>
+                                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                                    Your module is set up and ready. Start building your course content by adding your first lesson.
+                                </p>
                                 <button
                                     type="button"
                                     onClick={addLesson}
-                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 mx-auto"
+                                    className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200"
                                 >
-                                    <Plus className="w-4 h-4" />
-                                    Add First Lesson
+                                    <Plus className="w-5 h-5" />
+                                    <span>Add First Lesson</span>
                                 </button>
                             </div>
                         )}
