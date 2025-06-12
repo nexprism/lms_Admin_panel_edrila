@@ -210,8 +210,8 @@ const Quiz = ({ sectionId, lessonId, lesson, quizId, onClose, onSaveSuccess }: Q
     }
 
     return (
-        <div className="fixed inset-0 overflow-scroll flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform scale-95 animate-scale-in">
+        <div >
+            <div className="bg-white rounded-xl  max-w-full w-full max-h-[70vh]  overflow-y-auto transform scale-95 animate-scale-in hide-scrollbar">
                 {/* Modal Header */}
                 <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-4 rounded-t-xl flex justify-between items-center shadow-md">
                     <h2 className="text-xl font-bold flex items-center">
@@ -221,13 +221,6 @@ const Quiz = ({ sectionId, lessonId, lesson, quizId, onClose, onSaveSuccess }: Q
                             : 'Create New Quiz'
                         }
                     </h2>
-                    <button
-                        onClick={handleClose}
-                        className="p-2 rounded-full hover:bg-blue-700 transition-colors"
-                        title="Close"
-                    >
-                        <X className="w-6 h-6" />
-                    </button>
                 </div>
 
                 {/* Modal Body */}

@@ -155,8 +155,8 @@ export default function AddAssignmentForm({
   };
 
   return (
-    <div className="min-h-screen overflow-scroll bg-gray-50 p-4">
-      <div className="max-w-4xl overflow-scroll mx-auto">
+    <div className="min-h-fit overflow-scroll bg-gray-50 p-4 hide-scrollbar">
+      <div className="max-w-full max-h-[60vh] overflow-scroll mx-auto hide-scrollbar">
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-red-600" />
@@ -416,20 +416,6 @@ export default function AddAssignmentForm({
                   )}
                 </div>
               </div>
-            </div>
-
-            <div className="flex justify-end pt-6 border-t">
-              <button
-                type="submit"
-                onClick={handleSubmit}
-                disabled={loading}
-                className={`px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all font-medium flex items-center gap-2 ${
-                  loading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {loading ? 'Saving...' : 'Save Assignment'}
-              </button>
             </div>
           </div>
           <div className="flex justify-end pt-6 border-t">

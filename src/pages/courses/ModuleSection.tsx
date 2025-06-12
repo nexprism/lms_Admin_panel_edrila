@@ -45,7 +45,7 @@ const Modal = ({
 
             {/* Modal Container */}
             <div
-                className={`relative w-full max-h-[90vh] min-h-[700px] overflow-hidden rounded-xl shadow-2xl bg-white transform scale-95 animate-scale-in
+                className={`relative w-full max-h-[90vh] min-h-[700px] overflow-scroll hide-scrollbar rounded-xl shadow-2xl bg-white transform scale-95 animate-scale-in
                     max-w-${maxWidth}`}
             >
                 {/* Modal Header */}
