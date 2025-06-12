@@ -242,10 +242,8 @@ const TextLessonEditor = ({section, lesson, onChange, courseId, lessonId}) => {
               disabled={loading}
             >
               <option value="English">English</option>
-              <option value="Spanish">Spanish</option>
-              <option value="French">French</option>
-              <option value="German">German</option>
-              <option value="Italian">Italian</option>
+              <option value="Spanish">Hindi</option>
+          
             </select>
           </div>
 
