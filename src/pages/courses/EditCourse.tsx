@@ -198,10 +198,11 @@ return (
 };
 
 const EditCourse = () => {
-const dispatch = useDispatch<AppDispatch>();
 
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  const dispatch = useDispatch<AppDispatch>();
+
   
   // Fallback extraction from pathname
   const courseId = id || location.pathname.split('/').pop();
@@ -217,6 +218,8 @@ const [description, setDescription] = useState('');
 const [seoContent, setSeoContent] = useState('');
 const [modules, setModules] = useState<any[]>([]);
 const [dataLoaded, setDataLoaded] = useState(false);
+// Store the processed course data separately
+const [processedCourseData, setProcessedCourseData] = useState<any>(null);
 
 const [formData, setFormData] = useState<any>({
     title: '',
@@ -266,7 +269,10 @@ useEffect(() => {
         console.log('Setting course data:', course);
         console.log('Course modules:', course.modules);
         console.log('Course tags:', course.tags);
-        console.log('Saving hghghh data:', courseData.data);
+        console.log('Raw courseData:', courseData);
+        
+        // Store the processed course data
+        setProcessedCourseData(course);
         
         setFormData((prev: any) => ({
             ...prev,
@@ -709,8 +715,8 @@ return (
                                     value={formData.seoMetaDescription}
                                     onChange={handleInputChange}
                                     className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Enter SEO meta description"
                                     rows={3}
+                                    placeholder="Enter SEO meta description"
                                 />
                             </div>
                             <div>
@@ -720,40 +726,82 @@ return (
                                 <RichTextEditor
                                     value={seoContent}
                                     onChange={setSeoContent}
-                                    placeholder="Enter SEO content for better search visibility..."
+                                    placeholder="Enter SEO-friendly content..."
                                 />
                             </div>
                         </div>
                     </div>
-                    {/* Modules Section */}
-                    <ModuleSection
+
+                    {/* Course Modules */}
+                      <ModuleSection
                         modules={modules}
                         onModulesChange={handleModulesChange}
                         courseId={courseId || ''}
                         courseData={courseData}
                         isEditing={true}
+
                     />
+
+                    {/* Publication Status */}
+                    <div className="bg-white rounded-lg shadow-sm p-6">
+                        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                            <Eye className="w-5 h-5 text-blue-600" />
+                            Publication Status
+                        </h2>
+                        <div className="space-y-4">
+                            <label className="flex items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    name="isPublished"
+                                    checked={formData.isPublished}
+                                    onChange={handleInputChange}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    Publish Course (Make it visible to students)
+                                </span>
+                            </label>
+                            <p className="text-sm text-gray-600">
+                                When published, this course will be visible to students and available for enrollment.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="flex flex-col sm:flex-row gap-4 justify-end">
+                            <button
+                                type="button"
+                                onClick={(e) => handleSubmit(e, true)}
+                                disabled={loading}
+                                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {loading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <FileText className="w-4 h-4" />
+                                )}
+                                Save as Draft
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {loading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Upload className="w-4 h-4" />
+                                )}
+                                Update Course
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div className="mt-8 flex justify-end gap-4">
-                    <button
-                        type="button"
-                        onClick={() => handleSubmit(new Event('submit'), true)}
-                        className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                    >
-                        Save as Draft
-                    </button>
-                    <button
-                        type="submit"
-                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        Update Course
-                    </button>
-                </div>
-            </form> 
+            </form>
         </div>
     </div>
 );
-}
-
+};
 
 export default EditCourse;

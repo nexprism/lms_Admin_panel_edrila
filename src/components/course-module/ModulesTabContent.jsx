@@ -9,6 +9,7 @@ const ModulesTabContent = ({
     ModuleCreationForm, 
     handleModuleCreated, 
     courseId, 
+    courseData,
     savedModules, 
     SavedModuleDisplay, 
     addLessonToModule, 
@@ -74,6 +75,7 @@ const ModulesTabContent = ({
                         key={module._id || index}
                         module={module}
                         courseId={courseId}
+                        courseData={courseData}
                         onAddLesson={(newLesson) => addLessonToModule(index, newLesson)}
                         onLessonChange={(lessonIndex, updatedLesson) => updateLessonInModule(index, lessonIndex, updatedLesson)}
                         onLessonRemove={(lessonIndex) => removeLessonFromModule(index, lessonIndex)}

@@ -1,22 +1,26 @@
-
-
-
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { BookOpen, FileText, Upload, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { createAssignment } from '../../../store/slices/assignment'; // Adjust path as needed
+import { createAssignment, updateAssignment, fetchAssignments } from '../../../store/slices/assignment';
 import PopupAlert from '../../../components/popUpAlert';
 
 interface AddAssignmentFormProps {
-  onChange?: () => void;
   courseId: string;
   lessonId: string;
+  assignmentId?: string; // If provided, edit mode
+  onClose?: () => void;
+  onSaveSuccess?: (data: any) => void;
 }
 
-export default function AddAssignmentForm({ courseId, lessonId}: AddAssignmentFormProps) {
+export default function AddAssignmentForm({
+  courseId,
+  lessonId,
+  assignmentId,
+  onClose,
+  onSaveSuccess,
+}: AddAssignmentFormProps) {
   const dispatch = useDispatch();
-  const { loading, error } = useSelector((state: any) => state.assignment);
+  const { loading, error, data } = useSelector((state: any) => state.assignment);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -31,9 +35,41 @@ export default function AddAssignmentForm({ courseId, lessonId}: AddAssignmentFo
     document: null as File | null,
   });
 
-  const [showSuccess, setShowSuccess] = useState(false);
   const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
+  const [isEditMode, setIsEditMode] = useState(false);
 
+  // Fetch assignment if editing
+  useEffect(() => {
+    if (assignmentId) {
+      setIsEditMode(true);
+      // You may want to create a fetchAssignmentById thunk for a single assignment
+      // For now, let's assume fetchAssignments returns all and you filter below
+      dispatch(fetchAssignments() as any);
+    } else {
+      setIsEditMode(false);
+    }
+  }, [assignmentId, dispatch]);
+
+  // Prefill form in edit mode
+  useEffect(() => {
+    if (isEditMode && data && Array.isArray(data)) {
+      const assignment = data.find((a: any) => a._id === assignmentId);
+      if (assignment) {
+        setFormData({
+          title: assignment.title || '',
+          subject: assignment.subject || '',
+          language: assignment.language || 'English',
+          description: assignment.description || '',
+          score: assignment.score?.toString() || '',
+          maxScore: assignment.maxScore?.toString() || '',
+          duration: assignment.duration?.toString() || '',
+          materials: assignment.materials || '',
+          file: null,
+          document: null,
+        });
+      }
+    }
+  }, [isEditMode, data, assignmentId]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -76,68 +112,72 @@ export default function AddAssignmentForm({ courseId, lessonId}: AddAssignmentFo
     if (formData.document) apiFormData.append('documentFile', formData.document);
 
     try {
-      const result = await dispatch(createAssignment(apiFormData) as any);
-      if (createAssignment.fulfilled.match(result)) {
-          // Show success popup
-  setPopup({
-    isVisible: true,
-    message: 'Assignment created successfully!',
-    type: 'success'
-  });
-// setShowSuccess(true);
-setFormData({
-  title: '',
-  subject: '',
-  language: 'English',
-  description: '',
-  score: '',
-  maxScore: '',
-  duration: '',
-  materials: '',
-  file: null,
-  document: null
-});
-setTimeout(() => setShowSuccess(false), 3000);
+      let result;
+      if (isEditMode && assignmentId) {
+        result = await dispatch(updateAssignment({ id: assignmentId, formData: apiFormData }) as any);
+      } else {
+        result = await dispatch(createAssignment(apiFormData) as any);
+      }
+      if (
+        (isEditMode && updateAssignment.fulfilled.match(result)) ||
+        (!isEditMode && createAssignment.fulfilled.match(result))
+      ) {
+        setPopup({
+          isVisible: true,
+          message: `Assignment ${isEditMode ? 'updated' : 'created'} successfully!`,
+          type: 'success'
+        });
+        setFormData({
+          title: '',
+          subject: '',
+          language: 'English',
+          description: '',
+          score: '',
+          maxScore: '',
+          duration: '',
+          materials: '',
+          file: null,
+          document: null
+        });
+        if (onSaveSuccess) onSaveSuccess(result.payload);
+        setTimeout(() => {
+          setPopup({ isVisible: false, message: '', type: '' });
+          if (onClose) onClose();
+        }, 1500);
       }
     } catch (err) {
-  setPopup({
-    isVisible: true,
-    message: 'Failed to create Assignment. Please try again.',
-    type: 'error'
-  });    }
+      setPopup({
+        isVisible: true,
+        message: `Failed to ${isEditMode ? 'update' : 'create'} Assignment. Please try again.`,
+        type: 'error'
+      });
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto">
-        {showSuccess && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <p className="text-green-800 font-medium">Assignment created successfully!</p>
-          </div>
-        )}
+    <div className="min-h-screen overflow-scroll bg-gray-50 p-4">
+      <div className="max-w-4xl overflow-scroll mx-auto">
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-red-600" />
             <p className="text-red-800 font-medium">{error}</p>
           </div>
         )}
- {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-600 text-white p-6 rounded-t-lg">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600  to-blue-600 text-white p-6 rounded-t-lg">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
               <h1 className="text-2xl font-bold">Assignments</h1>
-              <p className="text-blue-100">Add New Assignment</p>
+              <p className="text-blue-100">{isEditMode ? 'Edit Assignment' : 'Add New Assignment'}</p>
             </div>
           </div>
         </div>
-
         {/* Form */}
-        <div className="bg-white rounded-b-lg shadow-lg p-6">
-          <div className="space-y-6">
+        <form className="bg-white rounded-b-lg shadow-lg p-6" onSubmit={handleSubmit}>
+            <div className="space-y-6">
             {/* Assignment Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -392,13 +432,42 @@ setTimeout(() => setShowSuccess(false), 3000);
               </button>
             </div>
           </div>
-        </div>      </div>
-          <PopupAlert 
-  message={popup.message}
-  type={popup.type}
-  isVisible={popup.isVisible}
-  onClose={() => setPopup({ ...popup, isVisible: false })}
-/>
+          <div className="flex justify-end pt-6 border-t">
+            <button
+              type="submit"
+              disabled={loading}
+              className={`px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all font-medium flex items-center gap-2 ${
+                loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {loading
+                ? isEditMode
+                  ? 'Updating...'
+                  : 'Saving...'
+                : isEditMode
+                ? 'Update Assignment'
+                : 'Save Assignment'}
+            </button>
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="ml-4 px-8 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                disabled={loading}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+      <PopupAlert
+        message={popup.message}
+        type={popup.type}
+        isVisible={popup.isVisible}
+        onClose={() => setPopup({ ...popup, isVisible: false })}
+      />
     </div>
   );
 }

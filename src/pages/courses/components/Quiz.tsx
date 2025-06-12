@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-    BookOpen, FileText, Clock, CheckCircle, Plus, Edit2, Trash2, 
-    X, Save, HelpCircle, AlertCircle, Eye, Settings 
+import {
+    BookOpen, FileText, Clock, CheckCircle, Plus, Edit2, Trash2,
+    X, Save, HelpCircle, AlertCircle, Eye, Settings
 } from 'lucide-react';
-import { createQuiz } from '../../../store/slices/quiz'; // Adjust the import path as needed
+import { createQuiz, upadateQuiz, fetchQuiz } from '../../../store/slices/quiz';
 import PopupAlert from '../../../components/popUpAlert';
+
+// Types
 type QuestionType = {
     question: string;
     options: string[];
@@ -21,14 +23,6 @@ type LessonType = {
     questions?: QuestionType[];
 };
 
-type QuizProps = {
-    lesson?: LessonType;
-    onChange?: (data: LessonType) => void;
-    courseId: string; // Required for API call
-    lessonId: string; // Required for API call
-};
-
-// Redux state type (adjust according to your store structure)
 interface RootState {
     quiz: {
         loading: boolean;
@@ -37,278 +31,401 @@ interface RootState {
     };
 }
 
-const Quiz = ({ section, lesson, onChange, courseId, lessonId }) => {
-    
-        const dispatch = useDispatch();
-    const { loading: saving, error: saveError, data: saveData } = useSelector((state: RootState) => state.quiz);
+// Props for the Quiz component when used as a modal
+type QuizModalProps = {
+    sectionId: string;
+    lessonId: string;
+    lesson?: LessonType;
+    quizId?: string; // If provided, component will edit existing quiz
+    onClose: () => void;
+    onSaveSuccess?: (data: any) => void;
+};
 
+const Quiz = ({ sectionId, lessonId, lesson, quizId, onClose, onSaveSuccess }: QuizModalProps) => {
+    const dispatch = useDispatch();
+    const { loading, error: saveError, data: saveData } = useSelector((state: RootState) => state.quiz);
 
-    
     const [showQuestionBuilder, setShowQuestionBuilder] = useState(false);
-    const [questions, setQuestions] = useState<QuestionType[]>(lesson.questions || []);
+    const [questions, setQuestions] = useState<QuestionType[]>([]);
     const [editingQuestion, setEditingQuestion] = useState<number | null>(null);
     const [quizData, setQuizData] = useState({
-        quizTitle: lesson.quizTitle || '',
-        quizDuration: lesson.quizDuration || '',
-        quizDifficulty: lesson.quizDifficulty || '',
-        passMark: lesson.passMark || 70,
-        quizDescription: lesson.quizDescription || '',
+        quizTitle: '',
+        quizDuration: '',
+        quizDifficulty: '',
+        passMark: 70,
+        quizDescription: '',
+        courseId: '',
+        courseTitle: '',
+        lessonTitle: '',
     });
-    const [saveSuccess, setSaveSuccess] = useState(false);
-        const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
+    const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
+    const [isEditMode, setIsEditMode] = useState(false);
 
-
-    // Handle save success
+    // Initialize component based on mode
     useEffect(() => {
-        if (saveData && !saving && !saveError) {
-            setSaveSuccess(true);
-            // Auto-hide success message after 3 seconds
-            const timer = setTimeout(() => setSaveSuccess(false), 3000);
-            return () => clearTimeout(timer);
+        if (quizId) {
+            // Fetch quiz data using Redux
+            dispatch(fetchQuiz(quizId) as any);
+            setIsEditMode(true);
+        } else {
+            // Create mode - initialize with lesson data if provided
+            setQuizData({
+                quizTitle: lesson?.quizTitle || '',
+                quizDuration: lesson?.quizDuration || '',
+                quizDifficulty: lesson?.quizDifficulty || '',
+                passMark: lesson?.passMark || 70,
+                quizDescription: lesson?.quizDescription || '',
+                courseId: sectionId,
+                courseTitle: '',
+                lessonTitle: '',
+            });
+            setQuestions(lesson?.questions || []);
+            setIsEditMode(false);
         }
-    }, [saveData, saving, saveError]);
+    }, [quizId, lesson, sectionId, dispatch]);
 
-    const handleChange = (field: any, value: any) => {
+    // Handle quiz data from Redux when fetching for edit mode
+    useEffect(() => {
+        if (isEditMode && saveData && !loading && !saveError) {
+            const data = saveData?.data || saveData;
+            if (data && typeof data === 'object') {
+                setQuizData({
+                    quizTitle: data.title || '',
+                    quizDuration: data.duration || '',
+                    quizDifficulty: data.difficulty || '',
+                    passMark: data.passMark || 70,
+                    quizDescription: data.description || '',
+                    courseId: data?.course?._id || '',
+                    courseTitle: data?.course?.title || '',
+                    lessonTitle: data?.lesson?.title || '',
+                });
+                setQuestions(data.questions || []);
+            }
+        }
+    }, [saveData, loading, saveError, isEditMode]);
+
+    // Handle save success and error popups
+    useEffect(() => {
+        if (!loading) {
+            if (saveData && !saveError && !isEditMode) {
+                // Only show success popup for create/update operations, not fetch
+                const isCreateOrUpdate = saveData?.message || saveData?.success;
+                if (isCreateOrUpdate) {
+                    setPopup({
+                        isVisible: true,
+                        message: `Quiz ${isEditMode ? 'updated' : 'created'} successfully!`,
+                        type: 'success'
+                    });
+                    if (onSaveSuccess) {
+                        onSaveSuccess(saveData);
+                    }
+                }
+            } else if (saveError) {
+                setPopup({
+                    isVisible: true,
+                    message: `Failed to ${isEditMode ? 'update' : 'create'} quiz: ${saveError}`,
+                    type: 'error'
+                });
+            }
+        }
+    }, [saveData, loading, saveError, isEditMode, onSaveSuccess]);
+
+    const handleChange = (field: keyof typeof quizData, value: string | number) => {
         setQuizData(prev => ({ ...prev, [field]: value }));
-        if (onChange) onChange({ ...lesson, ...quizData, [field]: value, questions });
     };
 
-    const handleQuestionsUpdate = (updatedQuestions: any) => {
+    const handleQuestionsUpdate = (updatedQuestions: QuestionType[]) => {
         setQuestions(updatedQuestions);
-        if (onChange) onChange({ ...lesson, ...quizData, questions: updatedQuestions });
     };
 
     const handleSaveQuiz = async () => {
-        // Validate required fields
+        // Validation
         if (!quizData.quizTitle.trim()) {
-            alert('Please enter a quiz title');
+            setPopup({
+                isVisible: true,
+                message: 'Please enter a quiz title.',
+                type: 'error'
+            });
             return;
         }
-        
+
         if (questions.length === 0) {
-            alert('Please add at least one question');
+            setPopup({
+                isVisible: true,
+                message: 'Please add at least one question to the quiz.',
+                type: 'error'
+            });
             return;
         }
 
-        // Reset previous success state
-        setSaveSuccess(false);
-        
-        // Prepare payload for API
-        const payload = {
-            course: courseId,
-            lesson: lessonId,
-            questions: questions,
-            passMark: quizData.passMark,
-            // Include other quiz data if your API supports it
-            title: quizData.quizTitle,
-            duration: quizData.quizDuration,
-            difficulty: quizData.quizDifficulty,
-            description: quizData.quizDescription,
-        };
-
-        try {
-            await dispatch(createQuiz(payload) as any);
-              // Show success popup
-  setPopup({
-    isVisible: true,
-    message: 'Quiz created successfully!',
-    type: 'success'
-  });
-        } catch (error) {
-              setPopup({
-    isVisible: true,
-    message: 'Failed to create Quiz. Please try again.',
-    type: 'error'
-  });      
-            console.error('Failed to save quiz:', error);
+        // Prepare payload based on mode
+        let payload;
+        if (isEditMode && quizId) {
+            // Update existing quiz
+            payload = {
+                id: quizId,
+                passMark: quizData.passMark,
+                questions: questions,
+                title: quizData.quizTitle,
+                duration: quizData.quizDuration,
+                difficulty: quizData.quizDifficulty,
+                description: quizData.quizDescription,
+            };
+            dispatch(upadateQuiz(payload) as any);
+        } else {
+            // Create new quiz
+            payload = {
+                course: sectionId,
+                lesson: lessonId,
+                questions: questions,
+                passMark: quizData.passMark,
+                title: quizData.quizTitle,
+                duration: quizData.quizDuration,
+                difficulty: quizData.quizDifficulty,
+                description: quizData.quizDescription,
+            };
+            dispatch(createQuiz(payload) as any);
         }
     };
 
-    return (
-        <div className="space-y-8">
-            {/* Error Display */}
-            {saveError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div className="flex items-center">
-                        <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-                        <span className="text-red-700 font-medium">Error saving quiz:</span>
-                    </div>
-                    <p className="text-red-600 mt-1">{saveError}</p>
-                </div>
-            )}
+    const handleClose = () => {
+        // Close any open popups and then close the modal
+        setPopup({ isVisible: false, message: '', type: '' });
+        onClose();
+    };
 
-            {/* Basic Quiz Information */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Settings className="w-5 h-5 mr-2 text-blue-600" />
-                    Quiz Configuration
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <BookOpen className="w-4 h-4 inline mr-2" />
-                            Quiz Title *
-                        </label>
-                        <input
-                            type="text"
-                            value={quizData.quizTitle}
-                            onChange={e => handleChange('quizTitle', e.target.value)}
-                            placeholder="Enter quiz title"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            required
-                        />
+    if (loading && isEditMode) {
+        return (
+            <div className="fixed inset-0 overflow-scroll flex items-center justify-center z-50 p-4 animate-fade-in">
+                <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform scale-95 animate-scale-in">
+                    <div className="flex items-center justify-center py-20">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                            <p className="text-gray-600">Loading quiz data...</p>
+                        </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <Clock className="w-4 h-4 inline mr-2" />
-                            Duration (minutes)
-                        </label>
-                        <input
-                            type="number"
-                            min="1"
-                            max="180"
-                            value={quizData.quizDuration}
-                            onChange={e => handleChange('quizDuration', parseInt(e.target.value) || '')}
-                            placeholder="30"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <CheckCircle className="w-4 h-4 inline mr-2" />
-                            Difficulty Level
-                        </label>
-                        <select
-                            value={quizData.quizDifficulty}
-                            onChange={e => handleChange('quizDifficulty', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                            <option value="">Select difficulty</option>
-                            <option value="easy">🟢 Easy</option>
-                            <option value="medium">🟡 Medium</option>
-                            <option value="hard">🔴 Hard</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <AlertCircle className="w-4 h-4 inline mr-2" />
-                            Pass Mark (%) *
-                        </label>
-                        <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={quizData.passMark}
-                            onChange={e => handleChange('passMark', parseInt(e.target.value) )}
-                            // placeholder="70"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            required
-                        />
-                    </div>
-                </div>
-                <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <FileText className="w-4 h-4 inline mr-2" />
-                        Description
-                    </label>
-                    <textarea
-                        value={quizData.quizDescription}
-                        onChange={e => handleChange('quizDescription', e.target.value)}
-                        placeholder="Brief description of the quiz content and objectives"
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
-                    />
                 </div>
             </div>
+        );
+    }
 
-            {/* Questions Management */}
-            <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden shadow">
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                                <HelpCircle className="w-5 h-5 mr-2 text-green-600" />
-                                Quiz Questions ({questions.length})
-                            </h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                                Manage your quiz questions and answers
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => {
-                                setEditingQuestion(null);
-                                setShowQuestionBuilder(true);
-                            }}
-                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Add Question
-                        </button>
-                    </div>
+    return (
+        <div className="fixed inset-0 overflow-scroll flex items-center justify-center z-50 p-4 animate-fade-in">
+            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform scale-95 animate-scale-in">
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-4 rounded-t-xl flex justify-between items-center shadow-md">
+                    <h2 className="text-xl font-bold flex items-center">
+                        <BookOpen className="w-6 h-6 mr-3" />
+                        {isEditMode 
+                            ? `Edit Quiz: ${quizData.quizTitle || 'Untitled Quiz'}` 
+                            : 'Create New Quiz'
+                        }
+                    </h2>
+                    <button
+                        onClick={handleClose}
+                        className="p-2 rounded-full hover:bg-blue-700 transition-colors"
+                        title="Close"
+                    >
+                        <X className="w-6 h-6" />
+                    </button>
                 </div>
-                <div className="p-6">
-                    {questions.length === 0 ? (
-                        <div className="text-center py-12">
-                            <HelpCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                            <h4 className="text-lg font-medium text-gray-900 mb-2">No questions yet</h4>
-                            <p className="text-gray-500 mb-4">Start building your quiz by adding questions</p>
-                            <button
-                                onClick={() => setShowQuestionBuilder(true)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg inline-flex items-center gap-2"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Add First Question
-                            </button>
+
+                {/* Modal Body */}
+                <div className="p-6 space-y-8">
+                    {/* Basic Quiz Information */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 shadow-sm">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <Settings className="w-5 h-5 mr-2 text-blue-600" />
+                            Quiz Configuration
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <BookOpen className="w-4 h-4 inline mr-2" />
+                                    Quiz Title *
+                                </label>
+                                <input
+                                    type="text"
+                                    value={quizData.quizTitle}
+                                    onChange={e => handleChange('quizTitle', e.target.value)}
+                                    placeholder="Enter quiz title"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <Clock className="w-4 h-4 inline mr-2" />
+                                    Duration (minutes)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="180"
+                                    value={quizData.quizDuration}
+                                    onChange={e => handleChange('quizDuration', parseInt(e.target.value) || '')}
+                                    placeholder="30"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <CheckCircle className="w-4 h-4 inline mr-2" />
+                                    Difficulty Level
+                                </label>
+                                <select
+                                    value={quizData.quizDifficulty}
+                                    onChange={e => handleChange('quizDifficulty', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="">Select difficulty</option>
+                                    <option value="easy">🟢 Easy</option>
+                                    <option value="medium">🟡 Medium</option>
+                                    <option value="hard">🔴 Hard</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <AlertCircle className="w-4 h-4 inline mr-2" />
+                                    Pass Mark (%) *
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={quizData.passMark}
+                                    onChange={e => handleChange('passMark', parseInt(e.target.value))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
                         </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {questions.map((question, index) => (
-                                <QuestionCard
-                                    key={index}
-                                    question={question}
-                                    index={index}
-                                    onEdit={() => {
-                                        setEditingQuestion(index);
+
+                        {/* Show course and lesson info in edit mode */}
+                        {isEditMode && (quizData.courseTitle || quizData.lessonTitle) && (
+                            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <h4 className="text-sm font-medium text-blue-900 mb-2">Quiz Context</h4>
+                                {quizData.courseTitle && (
+                                    <p className="text-sm text-blue-800">
+                                        <strong>Course:</strong> {quizData.courseTitle}
+                                    </p>
+                                )}
+                                {quizData.lessonTitle && (
+                                    <p className="text-sm text-blue-800">
+                                        <strong>Lesson:</strong> {quizData.lessonTitle}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <FileText className="w-4 h-4 inline mr-2" />
+                                Description
+                            </label>
+                            <textarea
+                                value={quizData.quizDescription}
+                                onChange={e => handleChange('quizDescription', e.target.value)}
+                                placeholder="Brief description of the quiz content and objectives"
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Questions Management */}
+                    <div className="bg-white overflow-scroll rounded-xl border-2 border-gray-200 overflow-hidden shadow">
+                        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                                        <HelpCircle className="w-5 h-5 mr-2 text-green-600" />
+                                        Quiz Questions ({questions.length})
+                                    </h3>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        Manage your quiz questions and answers
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setEditingQuestion(null);
                                         setShowQuestionBuilder(true);
                                     }}
-                                    onDelete={() => {
-                                        const updatedQuestions = questions.filter((_, i) => i !== index);
-                                        handleQuestionsUpdate(updatedQuestions);
-                                    }}
-                                />
-                            ))}
+                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Add Question
+                                </button>
+                            </div>
                         </div>
-                    )}
+                        <div className="p-6">
+                            {questions.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <HelpCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                                    <h4 className="text-lg font-medium text-gray-900 mb-2">No questions yet</h4>
+                                    <p className="text-gray-500 mb-4">Start building your quiz by adding questions</p>
+                                    <button
+                                        onClick={() => setShowQuestionBuilder(true)}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg inline-flex items-center gap-2"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Add First Question
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {questions.map((question, index) => (
+                                        <QuestionCard
+                                            key={index}
+                                            question={question}
+                                            index={index}
+                                            onEdit={() => {
+                                                setEditingQuestion(index);
+                                                setShowQuestionBuilder(true);
+                                            }}
+                                            onDelete={() => {
+                                                const updatedQuestions = questions.filter((_, i) => i !== index);
+                                                handleQuestionsUpdate(updatedQuestions);
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            {/* Save Quiz Button */}
-            <div className="flex justify-end items-center gap-4">
-                <button
-                    onClick={handleSaveQuiz}
-                    disabled={saving || questions.length === 0 || !quizData.quizTitle.trim()}
-                    className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors shadow ${
-                        saving || questions.length === 0 || !quizData.quizTitle.trim()
-                            ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                            : 'bg-blue-600 hover:bg-blue-700 text-white'
-                    }`}
-                >
-                    <Save className="w-5 h-5" />
-                    {saving ? 'Saving Quiz...' : 'Save Quiz'}
-                </button>
-                {saveSuccess && (
-                    <span className="text-green-600 font-medium flex items-center animate-fade-in">
-                        <CheckCircle className="w-5 h-5 mr-1" /> 
-                        Quiz saved successfully!
-                    </span>
-                )}
+                {/* Modal Footer (Save Button) */}
+                <div className="sticky bottom-0 bg-gray-100 px-6 py-4 border-t border-gray-200 rounded-b-xl flex justify-end items-center gap-4 shadow-inner">
+                    <button
+                        onClick={handleClose}
+                        className="px-6 py-3 rounded-lg font-semibold text-gray-700 border border-gray-300 hover:bg-gray-200 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSaveQuiz}
+                        disabled={loading || questions.length === 0 || !quizData.quizTitle.trim()}
+                        className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors shadow ${
+                            loading || questions.length === 0 || !quizData.quizTitle.trim()
+                                ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        }`}
+                    >
+                        <Save className="w-5 h-5" />
+                        {loading 
+                            ? `${isEditMode ? 'Updating' : 'Creating'} Quiz...` 
+                            : `${isEditMode ? 'Update' : 'Create'} Quiz`
+                        }
+                    </button>
+                </div>
             </div>
 
             {/* Question Builder Modal */}
             {showQuestionBuilder && (
                 <QuestionBuilder
                     question={editingQuestion !== null ? questions[editingQuestion] : null}
-                    onSave={(questionData: any) => {
+                    onSave={(questionData: QuestionType) => {
                         let updatedQuestions;
                         if (editingQuestion !== null) {
                             updatedQuestions = [...questions];
@@ -326,10 +443,18 @@ const Quiz = ({ section, lesson, onChange, courseId, lessonId }) => {
                     }}
                 />
             )}
+
+            <PopupAlert
+                message={popup.message}
+                type={popup.type}
+                isVisible={popup.isVisible}
+                onClose={() => setPopup({ isVisible: false, message: '', type: '' })}
+            />
         </div>
     );
 };
 
+// QuestionCard component
 const QuestionCard = ({ question, index, onEdit, onDelete }) => {
     const [showPreview, setShowPreview] = useState(false);
 
@@ -403,10 +528,11 @@ const QuestionCard = ({ question, index, onEdit, onDelete }) => {
     );
 };
 
+// QuestionBuilder component
 const QuestionBuilder = ({ question, onSave, onClose }) => {
     const [formData, setFormData] = useState({
         question: question?.question || '',
-        options: question?.options || ['', '', '', ''],
+        options: question?.options && question.options.length > 0 ? question.options : ['', '', '', ''],
         correctAnswer: question?.correctAnswer || ''
     });
     const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
@@ -434,21 +560,39 @@ const QuestionBuilder = ({ question, onSave, onClose }) => {
                 options: newOptions,
                 correctAnswer: formData.correctAnswer === formData.options[index] ? '' : formData.correctAnswer
             });
+        } else {
+            setPopup({
+                isVisible: true,
+                message: 'You must have at least 2 options for a question.',
+                type: 'error'
+            });
         }
     };
 
     const handleSave = () => {
         if (!formData.question.trim()) {
-            alert('Please enter a question');
+            setPopup({
+                isVisible: true,
+                message: 'Please enter a question.',
+                type: 'error'
+            });
             return;
         }
         const filledOptions = formData.options.filter(opt => opt.trim());
         if (filledOptions.length < 2) {
-            alert('Please provide at least 2 options');
+            setPopup({
+                isVisible: true,
+                message: 'Please provide at least 2 options.',
+                type: 'error'
+            });
             return;
         }
         if (!formData.correctAnswer || !filledOptions.includes(formData.correctAnswer)) {
-            alert('Please select a valid correct answer');
+            setPopup({
+                isVisible: true,
+                message: 'Please select a valid correct answer from the provided options.',
+                type: 'error'
+            });
             return;
         }
         onSave({
@@ -458,16 +602,22 @@ const QuestionBuilder = ({ question, onSave, onClose }) => {
         });
     };
 
+    const handleClose = () => {
+        // Close popup and then close modal
+        setPopup({ isVisible: false, message: '', type: '' });
+        onClose();
+    };
+
     return (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-blue-200">
-                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4 animate-fade-in">
+            <div className="bg-white rounded-xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-blue-200 transform scale-95 animate-scale-in">
+                <div className="sticky top-0 bg-blue-50 border-b border-gray-200 px-6 py-4 rounded-t-xl">
                     <div className="flex justify-between items-center">
                         <h3 className="text-lg font-semibold text-gray-900">
                             {question ? 'Edit Question' : 'Add New Question'}
                         </h3>
                         <button
-                            onClick={onClose}
+                            onClick={handleClose}
                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         >
                             <X className="w-5 h-5" />
@@ -539,38 +689,33 @@ const QuestionBuilder = ({ question, onSave, onClose }) => {
                             ))}
                         </div>
                         <p className="text-xs text-gray-500 mt-2">
-                            Select the radio button next to the correct answer
+                            Select the radio button next to the correct answer.
                         </p>
                     </div>
                 </div>
-                <div className="sticky bottom-0 bg-gray-50 px-6 py-4 border-t border-gray-200 rounded-b-xl">
-                    <div className="flex justify-end gap-3">
-                        <button
-                            onClick={onClose}
-                            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                        >
-                            <Save className="w-4 h-4" />
-                            {question ? 'Update Question' : 'Add Question'}
-                        </button>
-                    </div>
+                <div className="sticky bottom-0 bg-gray-50 px-6 py-4 border-t border-gray-200 rounded-b-xl flex justify-end items-center gap-4 shadow-inner">
+                    <button
+                        onClick={handleClose}
+                        className="px-6 py-3 rounded-lg font-semibold text-gray-700 border border-gray-300 hover:bg-gray-200 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        className="px-6 py-3 rounded-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                    >
+                        Save Question
+                    </button>
                 </div>
-              
-                
+                <PopupAlert
+                    message={popup.message}
+                    type={popup.type}
+                    isVisible={popup.isVisible}
+                    onClose={() => setPopup({ isVisible: false, message: '', type: '' })}
+                />
             </div>
-               <PopupAlert 
-  message={popup.message}
-  type={popup.type}
-  isVisible={popup.isVisible}
-  onClose={() => setPopup({ ...popup, isVisible: false })}
-/>
         </div>
     );
-};
-
+    
+}
 export default Quiz;

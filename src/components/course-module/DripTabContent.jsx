@@ -1,9 +1,38 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Eye, Zap, Settings, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { ChevronDown, ChevronRight, Eye, Zap, Settings, X, Loader2, AlertCircle, BookOpen, Play, FileText, HelpCircle, ClipboardList, Clock, Users } from 'lucide-react';
+import { fetchCourseById } from '../../store/slices/course';
 
-const CourseAccordion = () => {
+const CourseAccordion = ({ courseId }) => {
+    const dispatch = useDispatch();
+    const { loading, error, data: courseData } = useSelector((state) => state.course);
+    
     const [expandedModules, setExpandedModules] = useState(new Set());
     const [modalData, setModalData] = useState(null);
+    const [modules, setModules] = useState([]);
+
+    // Fetch course data when component mounts or courseId changes
+    useEffect(() => {
+        if (courseId) {
+            dispatch(fetchCourseById({ courseId }));
+            
+            // For demo purposes, using simulated data
+            fetchDemoData();
+        }
+    }, [courseId, dispatch]);
+
+    // Process course data when it's received
+    useEffect(() => {
+        if (courseData?.modules) {
+            setModules(courseData.modules);
+        } else if (courseData) {
+            // If modules are nested differently in your API response, adjust accordingly
+            setModules(courseData.data?.modules || []);
+        }
+    }, [courseData]);
+
+    // Demo data fetch function - replace with actual API call
+
 
     const toggleModule = (moduleId) => {
         const newExpanded = new Set(expandedModules);
@@ -23,99 +52,235 @@ const CourseAccordion = () => {
         setModalData(null);
     };
 
-    const modules = [
-        {
-            id: 1,
-            name: "Introduction to Web Development",
-            lessons: [
-                { id: 1, name: "Getting Started with HTML" },
-                { id: 2, name: "Understanding CSS Basics" },
-                { id: 3, name: "Introduction to JavaScript" },
-                { id: 4, name: "Setting up Development Environment" }
-            ]
-        },
-        {
-            id: 2,
-            name: "Advanced JavaScript Concepts",
-            lessons: [
-                { id: 5, name: "Async/Await and Promises" },
-                { id: 6, name: "ES6+ Features" },
-                { id: 7, name: "DOM Manipulation" },
-                { id: 8, name: "Event Handling" }
-            ]
-        },
-        {
-            id: 3,
-            name: "React Fundamentals",
-            lessons: [
-                { id: 9, name: "Component Architecture" },
-                { id: 10, name: "State Management" },
-                { id: 11, name: "Props and Data Flow" },
-                { id: 12, name: "Hooks Introduction" }
-            ]
-        },
-        {
-            id: 4,
-            name: "Backend Development",
-            lessons: [
-                { id: 13, name: "Node.js Basics" },
-                { id: 14, name: "Express.js Framework" },
-                { id: 15, name: "Database Integration" },
-                { id: 16, name: "API Development" }
-            ]
+    const handleAccessSettingsSave = (lessonId, moduleId, settings) => {
+        // API call to update lesson access settings
+        console.log('Updating access settings:', { lessonId, moduleId, settings });
+        
+        // Update local state
+        const updatedModules = modules.map(module => {
+            if (module.id === moduleId || module._id === moduleId) {
+                return {
+                    ...module,
+                    lessons: module.lessons.map(lesson => {
+                        if (lesson.id === lessonId || lesson._id === lessonId) {
+                            return {
+                                ...lesson,
+                                accessSettings: settings
+                            };
+                        }
+                        return lesson;
+                    })
+                };
+            }
+            return module;
+        });
+        
+        setModules(updatedModules);
+        closeModal();
+    };
+
+    const handleDripSettings = (lessonId, moduleId) => {
+        console.log('Drip settings for lesson:', lessonId, 'in module:', moduleId);
+        // Implement drip settings logic
+    };
+
+    const handleLessonSettings = (lessonId, moduleId) => {
+        console.log('General settings for lesson:', lessonId, 'in module:', moduleId);
+        // Implement general lesson settings logic
+    };
+
+    const getLessonTypeIcon = (type) => {
+        switch (type) {
+            case 'video':
+                return <Play className="w-4 h-4" />;
+            case 'text':
+                return <FileText className="w-4 h-4" />;
+            case 'quiz':
+                return <HelpCircle className="w-4 h-4" />;
+            case 'assignment':
+                return <ClipboardList className="w-4 h-4" />;
+            default:
+                return <Play className="w-4 h-4" />;
         }
-    ];
+    };
+
+    const getTotalStats = () => {
+        const totalLessons = modules.reduce((sum, module) => sum + (module.lessons?.length || 0), 0);
+        const completedLessons = modules.reduce((sum, module) => 
+            sum + (module.lessons?.filter(lesson => lesson.isCompleted).length || 0), 0
+        );
+        const totalDuration = modules.reduce((sum, module) => 
+            sum + (module.lessons?.reduce((lessonSum, lesson) => lessonSum + (lesson.duration || 0), 0) || 0), 0
+        );
+
+        return { totalLessons, completedLessons, totalDuration };
+    };
+
+    const { totalLessons, completedLessons, totalDuration } = getTotalStats();
+
+    if (loading) {
+        return (
+            <div className="max-w-full mx-auto min-h-fit">
+                <div className="bg-white rounded-lg shadow-lg border border-blue-100 p-8">
+                    <div className="flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mr-3" />
+                        <span className="text-gray-600 text-lg">Loading course content...</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="max-w-full mx-auto min-h-fit">
+                <div className="bg-white rounded-lg shadow-lg border border-red-100 p-8">
+                    <div className="flex items-center justify-center text-red-600">
+                        <AlertCircle className="w-8 h-8 mr-3" />
+                        <div>
+                            <h3 className="text-lg font-semibold">Error Loading Course</h3>
+                            <p className="text-sm mt-1">{error.message || error}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!modules || modules.length === 0) {
+        return (
+            <div className="max-w-full mx-auto min-h-fit">
+                <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-8">
+                    <div className="text-center">
+                        <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">No Content Available</h3>
+                        <p className="text-gray-600">This course doesn't have any modules yet.</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-full mx-auto min-h-fit">
+            {/* Course Stats Header */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100 p-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                            <BookOpen className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-600">Total Modules</p>
+                            <p className="text-2xl font-bold text-gray-900">{modules.length}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-green-100 rounded-lg">
+                            <Users className="w-6 h-6 text-green-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-600">Progress</p>
+                            <p className="text-2xl font-bold text-gray-900">{completedLessons}/{totalLessons}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-purple-100 rounded-lg">
+                            <Clock className="w-6 h-6 text-purple-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-600">Total Duration</p>
+                            <p className="text-2xl font-bold text-gray-900">{Math.floor(totalDuration / 60)}h {totalDuration % 60}m</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Course Modules */}
             <div className="bg-white rounded-lg shadow-lg border border-blue-100">
-                
                 <div className="divide-y divide-blue-100">
                     {modules.map((module) => (
-                        <div key={module.id} className="bg-white">
+                        <div key={module.id || module._id} className="bg-white">
                             {/* Module Header */}
                             <div
                                 className="flex items-center justify-between p-4 hover:bg-blue-50 cursor-pointer transition-all duration-200"
-                                onClick={() => toggleModule(module.id)}
+                                onClick={() => toggleModule(module.id || module._id)}
                             >
                                 <div className="flex items-center space-x-3">
                                     <div className="transition-transform duration-300 ease-in-out">
-                                        {expandedModules.has(module.id) ? (
+                                        {expandedModules.has(module.id || module._id) ? (
                                             <ChevronDown className="w-5 h-5 text-blue-600" />
                                         ) : (
                                             <ChevronRight className="w-5 h-5 text-blue-600" />
                                         )}
                                     </div>
-                                    <h3 className="text-lg font-semibold text-gray-900">
-                                        {module.name}
-                                    </h3>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900">
+                                            {module.title || module.name}
+                                        </h3>
+                                        {module.description && (
+                                            <p className="text-sm text-gray-600 mt-1">{module.description}</p>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full font-medium">
-                                    {module.lessons.length} lessons
+                                <div className="flex items-center space-x-3">
+                                    {!module.isPublished && (
+                                        <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
+                                            Draft
+                                        </span>
+                                    )}
+                                    <div className="text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full font-medium">
+                                        {module.lessons?.length || 0} lessons
+                                    </div>
+                                    {module.estimatedDuration && (
+                                        <div className="text-sm text-gray-500 flex items-center">
+                                            <Clock className="w-4 h-4 mr-1" />
+                                            {module.estimatedDuration}min
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Lessons List */}
                             <div 
                                 className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                                    expandedModules.has(module.id) 
+                                    expandedModules.has(module.id || module._id) 
                                         ? 'max-h-screen opacity-100' 
                                         : 'max-h-0 opacity-0'
                                 }`}
                             >
                                 <div className="bg-blue-50 border-t border-blue-100">
-                                    {module.lessons.map((lesson, index) => (
+                                    {module.lessons?.map((lesson, index) => (
                                         <div
-                                            key={lesson.id}
+                                            key={lesson.id || lesson._id}
                                             className="flex items-center justify-between p-4 pl-12 hover:bg-white transition-colors duration-200 border-b border-blue-100 last:border-b-0"
                                         >
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                                                    {index + 1}
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
+                                                    lesson.isCompleted 
+                                                        ? 'bg-green-600 text-white' 
+                                                        : 'bg-blue-600 text-white'
+                                                }`}>
+                                                    {lesson.isCompleted ? '✓' : index + 1}
                                                 </div>
-                                                <span className="text-gray-900 font-medium">
-                                                    {lesson.name}
-                                                </span>
+                                                <div className="flex items-center space-x-2">
+                                                    <div className="text-gray-500">
+                                                        {getLessonTypeIcon(lesson.type)}
+                                                    </div>
+                                                    <span className="text-gray-900 font-medium">
+                                                        {lesson.title || lesson.name}
+                                                    </span>
+                                                    {lesson.duration && (
+                                                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                                            {lesson.duration}min
+                                                        </span>
+                                                    )}
+                                                    {lesson.accessSettings?.platform === 'phone' && (
+                                                        <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
+                                                            Mobile Only
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                             
                                             <div className="flex items-center space-x-2">
@@ -135,10 +300,9 @@ const CourseAccordion = () => {
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         e.stopPropagation();
-                                                        // Just prevent default, no modal
-                                                        console.log('Drip clicked for:', lesson.name);
+                                                        handleDripSettings(lesson.id || lesson._id, module.id || module._id);
                                                     }}
-                                                    className="flex items-center space-x-1 px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200 text-sm font-medium shadow-sm"
+                                                    className="flex items-center space-x-1 px-3 py-1.5 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors duration-200 text-sm font-medium shadow-sm"
                                                 >
                                                     <Zap className="w-4 h-4" />
                                                     <span>Drip</span>
@@ -148,8 +312,7 @@ const CourseAccordion = () => {
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         e.stopPropagation();
-                                                        // Just prevent default, no modal
-                                                        console.log('Settings clicked for:', lesson.name);
+                                                        handleLessonSettings(lesson.id || lesson._id, module.id || module._id);
                                                     }}
                                                     className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-md transition-colors duration-200"
                                                 >
@@ -158,6 +321,13 @@ const CourseAccordion = () => {
                                             </div>
                                         </div>
                                     ))}
+                                    
+                                    {(!module.lessons || module.lessons.length === 0) && (
+                                        <div className="p-8 text-center text-gray-500">
+                                            <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                            <p>No lessons in this module yet</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -165,7 +335,7 @@ const CourseAccordion = () => {
                 </div>
             </div>
 
-            {/* Modal - Only for View */}
+            {/* Access Settings Modal */}
             {modalData && modalData.type === 'view' && (
                 <div 
                     className="fixed inset-0 bg-black/20 backdrop-blur-[2px] bg-opacity-50 flex items-center justify-center z-[10000] p-4"
@@ -189,14 +359,13 @@ const CourseAccordion = () => {
                             </div>
                             
                             <div className="space-y-4">
-                                
                                 <div className="pt-4 border-t border-gray-200">
                                     <div className="mb-6">
                                         <h4 className="text-lg font-semibold text-gray-900 mb-3">
-                                            Where do you want to make this course available?
+                                            Where do you want to make this lesson available?
                                         </h4>
                                         <p className="text-sm text-gray-600 mb-4">
-                                            Choose the platform(s) where students can access this lesson.
+                                            Choose the platform(s) where students can access "{modalData.lesson.title || modalData.lesson.name}".
                                         </p>
                                         
                                         <div className="space-y-3">
@@ -205,6 +374,8 @@ const CourseAccordion = () => {
                                                     type="radio" 
                                                     id="phone-only" 
                                                     name="access-type" 
+                                                    value="phone"
+                                                    defaultChecked={modalData.lesson.accessSettings?.platform === 'phone'}
                                                     className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                                                 />
                                                 <label htmlFor="phone-only" className="ml-3 flex-1 cursor-pointer">
@@ -218,8 +389,9 @@ const CourseAccordion = () => {
                                                     type="radio" 
                                                     id="both-platforms" 
                                                     name="access-type" 
+                                                    value="both"
+                                                    defaultChecked={!modalData.lesson.accessSettings?.platform || modalData.lesson.accessSettings?.platform === 'both'}
                                                     className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                                                    defaultChecked
                                                 />
                                                 <label htmlFor="both-platforms" className="ml-3 flex-1 cursor-pointer">
                                                     <div className="font-medium text-gray-900">Web & App Both</div>
@@ -241,8 +413,12 @@ const CourseAccordion = () => {
                                 <button
                                     onClick={() => {
                                         const selectedOption = document.querySelector('input[name="access-type"]:checked');
-                                        console.log('Selected access type:', selectedOption ? selectedOption.id : 'none');
-                                        closeModal();
+                                        const platform = selectedOption ? selectedOption.value : 'both';
+                                        handleAccessSettingsSave(
+                                            modalData.lesson.id || modalData.lesson._id,
+                                            modalData.module.id || modalData.module._id,
+                                            { platform }
+                                        );
                                     }}
                                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
                                 >

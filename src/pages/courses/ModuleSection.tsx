@@ -3,144 +3,77 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createModule } from '../../store/slices/module';
 import { createLesson } from '../../store/slices/lesson';
 import { RootState, AppDispatch } from '../../store';
+
 import { BookOpen, Plus, X, Bold, Italic, Underline, List, Link, 
     Image, Video, Eye, Trash2, Edit, Save, Loader2, 
     CheckCircle, AlertCircle, Type, AlignLeft, AlignCenter,
     AlignRight, Quote, Heading1, Heading2, Heading3, Play,
     FileText, HelpCircle, ClipboardList, Clock, Users,
     Settings, ChevronDown, ChevronUp, GripVertical, ArrowRight,
-    Folder, Zap, Package // Add these new icons
-} from 'lucide-react';
+    Folder, Zap, Package } from 'lucide-react';
+
+    import ModulesTabContent from '../../components/course-module/ModulesTabContent';
+import DripTabContent from '../../components/course-module/DripTabContent';
+import AssetsTabContent from '../../components/course-module/AssetsTabContent';
 import Files from './components/Files';
 import TextLesson from './components/TextLesson';
 import Quiz from './components/Quiz';
 import Assignment from './components/Assignment';
-import ModulesTabContent from '../../components/course-module/ModulesTabContent';
-import DripTabContent from '../../components/course-module/DripTabContent';
-import AssetsTabContent from '../../components/course-module/AssetsTabContent';
 
-// Enhanced Rich Text Editor Component
-const RichTextEditor = ({ value, onChange, placeholder = "Start typing..." }) => {
-    const editorRef = useRef(null);
-    const [isPreview, setIsPreview] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(false);
 
-    const execCommand = (command, value = null) => {
-        document.execCommand(command, false, value);
-        if (editorRef.current) {
-            onChange(editorRef.current.innerHTML);
-        }
-    };
 
-    const handleInput = () => {
-        if (editorRef.current) {
-            onChange(editorRef.current.innerHTML);
-        }
-    };
 
-    const insertLink = () => {
-        const url = prompt('Enter URL:');
-        if (url) {
-            execCommand('createLink', url);
-        }
-    };
 
-    const insertImage = () => {
-        const url = prompt('Enter image URL:');
-        if (url) {
-            execCommand('insertImage', url);
-        }
-    };
-
-    const toolbarButtons = [
-        { icon: Bold, command: 'bold', title: 'Bold' },
-        { icon: Italic, command: 'italic', title: 'Italic' },
-        { icon: Underline, command: 'underline', title: 'Underline' },
-        { icon: Heading1, command: 'formatBlock', value: 'h1', title: 'Heading 1' },
-        { icon: Heading2, command: 'formatBlock', value: 'h2', title: 'Heading 2' },
-        { icon: Heading3, command: 'formatBlock', value: 'h3', title: 'Heading 3' },
-        { icon: AlignLeft, command: 'justifyLeft', title: 'Align Left' },
-        { icon: AlignCenter, command: 'justifyCenter', title: 'Align Center' },
-        { icon: AlignRight, command: 'justifyRight', title: 'Align Right' },
-        { icon: List, command: 'insertUnorderedList', title: 'Bullet List' },
-        { icon: Quote, command: 'formatBlock', value: 'blockquote', title: 'Quote' },
-    ];
+const Modal = ({
+    isOpen,
+    onClose,
+    title,
+    children,
+    maxWidth = "4xl",
+    showCloseButton = true,
+    footer
+}: ModalProps) => {
+    if (!isOpen) return null;
 
     return (
-        <div className="border-2 border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-200">
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 p-3">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 flex-wrap">
-                        {toolbarButtons.slice(0, isExpanded ? toolbarButtons.length : 6).map((button, index) => (
-                            <button
-                                key={index}
-                                type="button"
-                                onClick={() => execCommand(button.command, button.value)}
-                                className="p-2 rounded-lg hover:bg-white hover:shadow-sm transition-all duration-200 text-gray-600 hover:text-gray-900"
-                                title={button.title}
-                            >
-                                <button.icon className="w-4 h-4" />
-                            </button>
-                        ))}
-                        {!isExpanded && toolbarButtons.length > 6 && (
-                            <button
-                                type="button"
-                                onClick={() => setIsExpanded(true)}
-                                className="p-2 rounded-lg hover:bg-white hover:shadow-sm transition-all duration-200 text-gray-500"
-                                title="More options"
-                            >
-                                <Settings className="w-4 h-4" />
-                            </button>
-                        )}
-                        <div className="w-px h-6 bg-gray-300 mx-2" />
+        <div className="fixed inset-0 z-[1000] min-h-[700px] flex bg-[#00000021] bg-opacity-70 items-center justify-center p-4 animate-fade-in">
+            {/* Backdrop */}
+            <div
+                className="fixed inset-0 bg-[#00000021] bg-opacity-70 transition-opacity"
+                onClick={onClose}
+            />
+
+            {/* Modal Container */}
+            <div
+                className={`relative w-full max-h-[90vh] min-h-[700px] overflow-hidden rounded-xl shadow-2xl bg-white transform scale-95 animate-scale-in
+                    max-w-${maxWidth}`}
+            >
+                {/* Modal Header */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50 rounded-t-xl">
+                    <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
+                    {showCloseButton && (
                         <button
-                            type="button"
-                            onClick={insertLink}
-                            className="p-2 rounded-lg hover:bg-white hover:shadow-sm transition-all duration-200 text-gray-600 hover:text-blue-600"
-                            title="Insert Link"
+                            onClick={onClose}
+                            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                            aria-label="Close modal"
                         >
-                            <Link className="w-4 h-4" />
+                            <X className="w-6 h-6" />
                         </button>
-                        <button
-                            type="button"
-                            onClick={insertImage}
-                            className="p-2 rounded-lg hover:bg-white hover:shadow-sm transition-all duration-200 text-gray-600 hover:text-green-600"
-                            title="Insert Image"
-                        >
-                            <Image className="w-4 h-4" />
-                        </button>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setIsPreview(!isPreview)}
-                        className={`p-2 rounded-lg transition-all duration-200 ${
-                            isPreview 
-                                ? 'bg-blue-100 text-blue-600 shadow-sm' 
-                                : 'hover:bg-white hover:shadow-sm text-gray-600'
-                        }`}
-                        title="Toggle Preview"
-                    >
-                        <Eye className="w-4 h-4" />
-                    </button>
+                    )}
                 </div>
+
+                {/* Modal Body */}
+                <div className="p-6 overflow-y-auto custom-scrollbar" style={{ maxHeight: 'calc(90vh - 120px - (var(--header-height, 0) + var(--footer-height, 0)))' }}>
+                    {children}
+                </div>
+
+                {/* Modal Footer (Optional) */}
+                {footer && (
+                    <div className="sticky bottom-0 bg-gray-50 p-6 border-t border-gray-200 rounded-b-xl flex justify-end gap-3 shadow-inner">
+                        {footer}
+                    </div>
+                )}
             </div>
-            {isPreview ? (
-                <div
-                    className="p-6 min-h-[200px] prose max-w-none bg-gray-50"
-                    dangerouslySetInnerHTML={{ __html: value }}
-                />
-            ) : (
-                <div
-                    ref={editorRef}
-                    contentEditable
-                    onInput={handleInput}
-                    className="p-6 min-h-[200px] outline-none prose max-w-none focus:bg-blue-50/30 transition-colors duration-200"
-                    style={{ minHeight: '200px' }}
-                    suppressContentEditableWarning={true}
-                    dangerouslySetInnerHTML={{ __html: value }}
-                    placeholder={placeholder}
-                />
-            )}
         </div>
     );
 };
@@ -292,26 +225,91 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
     );
 };
 
-const LessonEditor = ({ lesson, moduleId, section, courseId, onChange, onRemove, onSave }) => {
-    const dispatch = useDispatch();
-    const { loading: lessonLoading } = useSelector((state) => state.lesson);
+const LessonEditor = ({ lesson, moduleId, section, courseId,courseData, onChange, onRemove, onSave }) => {
+        const dispatch = useDispatch();
+
     const [isSaving, setIsSaving] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(false);
     const [savedLessonId, setSavedLessonId] = useState(lesson._id || lesson.id || null);
-    console.log('LessonEditor - Available IDs:', {
-        lessonId: lesson._id || lesson.id,
-        savedLessonId,
-        moduleId,
-        section,
-        courseId,
-        lesson
-    });
+    const [showContentModal, setShowContentModal] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
+    console.log("cours",courseData)
+
+    // Mock loading states
+    const lessonLoading = false;
 
     // Determine if this is a new lesson (not saved yet)
     const isNewLesson = !savedLessonId;
 
-    // Auto-expand for new lessons, allow manual control for saved lessons
-    const shouldShowExpanded = isNewLesson ? true : isExpanded;
+    // Extract content IDs based on lesson type
+    // Helper to get the correct content object (e.g., quiz, assignment, etc.) by lesson type and lesson ID
+    const getContentId = () => {
+        // If lesson already has the content object, use its _id
+        switch (lesson.type) {
+            case 'quiz':
+                // If lesson.quiz exists, use its _id, else try to find from courseData
+                if (lesson.quiz?._id) return lesson.quiz._id;
+                // Try to find quiz by lesson._id in courseData
+                if (courseData?.modules) {
+                    for (const mod of courseData.modules) {
+                        if (mod.lessons) {
+                            for (const l of mod.lessons) {
+                                if (l._id === lesson._id && l.quiz?._id) {
+                                    return l.quiz._id;
+                                }
+                            }
+                        }
+                    }
+                }
+                return lesson.quizId || null;
+            case 'assignment':
+                if (lesson.assignment?._id) return lesson.assignment._id;
+                if (courseData?.modules) {
+                    for (const mod of courseData.modules) {
+                        if (mod.lessons) {
+                            for (const l of mod.lessons) {
+                                if (l._id === lesson._id && l.assignment?._id) {
+                                    return l.assignment._id;
+                                }
+                            }
+                        }
+                    }
+                }
+                return lesson.assignmentId || lesson.fileId || null;
+            case 'text':
+                if (lesson.textContent?._id) return lesson.textContent._id;
+                if (courseData?.modules) {
+                    for (const mod of courseData.modules) {
+                        if (mod.lessons) {
+                            for (const l of mod.lessons) {
+                                if (l._id === lesson._id && l.textContent?._id) {
+                                    return l.textContent._id;
+                                }
+                            }
+                        }
+                    }
+                }
+                return lesson.textLessonId || null;
+            case 'video':
+                if (lesson.video?._id) return lesson.video._id;
+                if (courseData?.modules) {
+                    for (const mod of courseData.modules) {
+                        if (mod.lessons) {
+                            for (const l of mod.lessons) {
+                                if (l._id === lesson._id && l.video?._id) {
+                                    return l.video._id;
+                                }
+                            }
+                        }
+                    }
+                }
+                return lesson.videoId || lesson.fileId || null;
+            default:
+                return null;
+        }
+    };
+
+    const contentId = getContentId();
+    const hasExistingContent = !!contentId;
 
     const lessonTypeConfig = {
         video: { icon: Play, label: 'File', color: 'text-red-500 bg-red-50 border-red-200' },
@@ -322,7 +320,7 @@ const LessonEditor = ({ lesson, moduleId, section, courseId, onChange, onRemove,
 
     const currentConfig = lessonTypeConfig[lesson.type || 'video'];
 
-    const handleSaveLesson = async () => {
+     const handleSaveLesson = async () => {
         if (!lesson.title.trim()) {
             alert('Please enter a lesson title');
             return;
@@ -381,226 +379,373 @@ const LessonEditor = ({ lesson, moduleId, section, courseId, onChange, onRemove,
         }
     };
 
-    const renderLessonForm = () => {
+
+    const renderContentModal = () => {
+        console.log('Rendering content modal for lesson type:', section, lesson, courseId);
+        
         const commonProps = {
-            section: section || courseId,
+            sectionId: section || courseId,
             lesson: { ...lesson, _id: savedLessonId },
-            onChange
+            onChange,
+            courseId: courseId || section,
+            lessonId: savedLessonId,
+            moduleId: moduleId,
+            // Pass the specific content ID based on lesson type
+            contentId: contentId,
+            isEdit: hasExistingContent, // Boolean flag to indicate edit mode
         };
 
+        console.log('hjkl;',lesson.quiz?._id || lesson.quizId)
+        // Add type-specific props
         switch (lesson.type) {
+            case 'quiz': {
+            // Find the quiz object for this lesson from courseData if not present
+            let quizData = lesson.quiz;
+            let quizId = lesson.quiz?._id || lesson.quizId;
+            if (!quizData && courseData?.modules) {
+                for (const mod of courseData.modules) {
+                if (mod.lessons) {
+                    for (const l of mod.lessons) {
+                    if (l._id === lesson._id && l.quiz) {
+                        quizData = l.quiz;
+                        quizId = l.quiz._id;
+                    }
+                    }
+                }
+                }
+            }
+            return (
+                <Quiz
+                {...commonProps}
+                quizId={quizId}
+                quizData={quizData}
+                />
+            );
+            }
+            case 'assignment': {
+            let assignmentData = lesson.assignment;
+            let assignmentId = lesson.assignment?._id || lesson.assignmentId;
+            if (!assignmentData && courseData?.modules) {
+                for (const mod of courseData.modules) {
+                if (mod.lessons) {
+                    for (const l of mod.lessons) {
+                    if (l._id === lesson._id && l.assignment) {
+                        assignmentData = l.assignment;
+                        assignmentId = l.assignment._id;
+                    }
+                    }
+                }
+                }
+            }
+            return (
+                <Assignment
+                {...commonProps}
+                assignmentId={assignmentId}
+                fileId={lesson.fileId}
+                assignmentData={assignmentData}
+                />
+            );
+            }
+            case 'text': {
+            let textData = lesson.textContent;
+            let textLessonId = lesson.textContent?._id || lesson.textLessonId;
+            if (!textData && courseData?.modules) {
+                for (const mod of courseData.modules) {
+                if (mod.lessons) {
+                    for (const l of mod.lessons) {
+                    if (l._id === lesson._id && l.textContent) {
+                        textData = l.textContent;
+                        textLessonId = l.textContent._id;
+                    }
+                    }
+                }
+                }
+            }
+            return (
+                <TextLesson
+                {...commonProps}
+                textLessonId={textLessonId}
+                textData={textData}
+                />
+            );
+            }
             case 'video':
-                return <Files  {...commonProps}
-                        courseId={courseId || section}
-                        lessonId={savedLessonId}
-                        moduleId={moduleId} />;
-            case 'text':
-                return <TextLesson {...commonProps}
-                courseId={courseId || section}
-                        lessonId={savedLessonId}
-                        moduleId={moduleId} />;
-            case 'quiz':
-                return (
-                    <Quiz
-                        {...commonProps}
-                        courseId={courseId || section}
-                        lessonId={savedLessonId}
-                        moduleId={moduleId}
-                    />
-                );
-            case 'assignment':
-                return (
-                    <Assignment
-                        {...commonProps}
-                        courseId={courseId || section}
-                        lessonId={savedLessonId}
-                        moduleId={moduleId}
-                    />
-                );
-            default:
-                return <Files {...commonProps} />;
+            default: {
+            let videoData = lesson.video;
+            let fileId = lesson.video?._id || lesson.fileId;
+            if (!videoData && courseData?.modules) {
+                for (const mod of courseData.modules) {
+                if (mod.lessons) {
+                    for (const l of mod.lessons) {
+                    if (l._id === lesson._id && l.video) {
+                        videoData = l.video;
+                        fileId = l.video._id;
+                    }
+                    }
+                }
+                }
+            }
+            return (
+                <Files
+                {...commonProps}
+                fileId={fileId}
+                videoData={videoData}
+                />
+            );
+            }
         }
     };
 
-    return (
-        <div className="group relative">
-            {/* Main Card */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-                {/* Header Section */}
-                <div className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 p-5">
-                    <div className="flex items-center justify-between">
-                        {/* Left Side - Lesson Info */}
-                        <div className="flex items-center space-x-4">
-                            <div className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 ${currentConfig.color} transition-all duration-200`}>
-                                <currentConfig.icon className="w-6 h-6" />
-                            </div>
-                            
-                            <div className="flex-1">
-                                <div className="flex items-center space-x-3 mb-1">
-                                    <h4 className="text-lg font-semibold text-gray-900">{currentConfig.label}</h4>
-                                    {savedLessonId && (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></div>
-                                            Saved
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-sm text-gray-500 font-medium">
-                                    Lesson #{lesson.order || 1}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Right Side - Actions */}
-                        <div className="flex items-center space-x-2">
-                            {/* Expand/Collapse Button - Only for saved lessons */}
-                            {isNewLesson && (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsExpanded(!isExpanded)}
-                                    className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-all duration-200"
-                                    title={isExpanded ? "Collapse lesson" : "Expand lesson"}
-                                >
-                                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                                </button>
-                            )}
-                            {/* {!isNewLesson && (
-                                <a
-                                    href={
-                                        lesson.type === 'quiz'
-                                            ? `/quizzes/${savedLessonId}`
-                                            : lesson.type === 'assignment'
-                                            ? `/assignments/${savedLessonId}`
-                                            : lesson.type === 'text'
-                                            ? `/text-lessons/${savedLessonId}`
-                                            : `/files/${savedLessonId}`
-                                    }
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 text-blue-600 hover:text-blue-800 transition-all duration-200"
-                                    title="Go to lesson details"
-                                >
-                                    <ArrowRight className="w-5 h-5" />
-                                </a>
-                            )} */}
-                            
-                            {/* Save Button */}
-                            <button 
-                                type="button" 
-                                onClick={handleSaveLesson}
-                                disabled={isSaving}
-                                className="flex items-center space-x-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-                            >
-                                {isSaving ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Save className="w-4 h-4" />
-                                )}
-                                <span>{isSaving ? 'Saving...' : savedLessonId ? 'Update' : 'Save'}</span>
-                            </button>
-                            
-                            {/* Remove Button */}
-                            <button 
-                                type="button" 
-                                onClick={onRemove} 
-                                className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 transition-all duration-200"
-                                title="Remove lesson"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
+    const getActionButtons = () => {
+        if (isNewLesson) {
+            return (
+                <div className="text-center py-6 bg-blue-50 rounded-lg border-2 border-blue-200">
+                    <AlertCircle className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+                    <h4 className="font-semibold text-blue-900 mb-2">Save Lesson First</h4>
+                    <p className="text-sm text-blue-700 mb-4">
+                        Please save the lesson to unlock content creation tools
+                    </p>
+                    <button
+                        onClick={handleSaveLesson}
+                        disabled={isSaving || !lesson.title.trim()}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isSaving ? 'Saving...' : 'Save Lesson'}
+                    </button>
                 </div>
+            );
+        }
 
-                {/* Basic Form Section */}
-                <div className="p-5 bg-white">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Lesson Title</label>
-                            <input
-                                type="text"
-                                value={lesson.title}
-                                onChange={e => onChange({ ...lesson, title: e.target.value })}
-                                placeholder="Enter lesson title..."
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
-                            />
-                        </div>
-                        
-                        <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Lesson Type</label>
-                            <select
-                                value={lesson.type || 'video'}
-                                onChange={e => onChange({ ...lesson, type: e.target.value })}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
-                            >
-                                <option value="video">📹 File</option>
-                                <option value="text">📄 Text Lesson</option>
-                                <option value="quiz">❓ Quiz</option>
-                                <option value="assignment">📋 Assignment</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Warning Message for Quiz/Assignment */}
-                    {(lesson.type === 'quiz' || lesson.type === 'assignment') && !savedLessonId && (
-                        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                            <div className="flex items-start space-x-3">
-                                <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <h5 className="font-medium text-amber-800">Save Required</h5>
-                                    <p className="text-sm text-amber-700 mt-1">
-                                        Please save the lesson first to access {lesson.type} content creation tools.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Expanded Content */}
-                {shouldShowExpanded && (
-                    <div className="border-t border-gray-100">
-                        {/* Lesson Content Form */}
-                        <div className="p-5 bg-gray-50">
-                            {renderLessonForm()}
-                        </div>
-                        
-                        {/* Settings Section */}
-                        <div className="p-5 bg-white border-t border-gray-100">
-                            <h5 className="text-sm font-semibold text-gray-900 mb-4">Lesson Settings</h5>
-                            <div className="flex flex-wrap items-center gap-6">
-                                <label className="flex items-center space-x-3 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={lesson.isRequired || true}
-                                        onChange={e => onChange({ ...lesson, isRequired: e.target.checked })}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                                    />
-                                    <span className="text-sm font-medium text-gray-700">Required Lesson</span>
-                                </label>
-                                
-                                <div className="flex items-center space-x-3">
-                                    <label className="text-sm font-medium text-gray-700">Display Order:</label>
-                                    <input
-                                        type="number"
-                                        value={lesson.order || 1}
-                                        onChange={e => onChange({ ...lesson, order: parseInt(e.target.value) || 1 })}
-                                        className="w-20 px-3 py-2 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                        min="1"
-                                    />
-                                </div>
-                            </div>
-                        </div>
+        return (
+            <div className="flex items-center space-x-3">
+                <button
+                    onClick={() => setShowContentModal(true)}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                        hasExistingContent 
+                            ? 'bg-amber-600 text-white hover:bg-amber-700' 
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                >
+                    <Edit className="w-4 h-4" />
+                    <span>{hasExistingContent ? 'Edit Content' : 'Create Content'}</span>
+                </button>
+                
+                {hasExistingContent && (
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="text-sm font-medium">Content Created</span>
+                        <span className="text-xs text-green-600">ID: {contentId.substring(0, 8)}...</span>
                     </div>
                 )}
+                
+                <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                    <Settings className="w-4 h-4" />
+                    <span>Settings</span>
+                </button>
             </div>
-        </div>
+        );
+    };
+
+    return (
+        <>
+            <div className="group relative">
+                {/* Main Card */}
+                <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+                    {/* Header Section */}
+                    <div className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 p-5">
+                        <div className="flex items-center justify-between">
+                            {/* Left Side - Lesson Info */}
+                            <div className="flex items-center space-x-4">
+                                <div className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 ${currentConfig.color} transition-all duration-200`}>
+                                    <currentConfig.icon className="w-6 h-6" />
+                                </div>
+                                
+                                <div className="flex-1">
+                                    <div className="flex items-center space-x-3 mb-1">
+                                        <h4 className="text-lg font-semibold text-gray-900">{currentConfig.label}</h4>
+                                        {savedLessonId && (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></div>
+                                                Saved
+                                            </span>
+                                        )}
+                                        {hasExistingContent && (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <CheckCircle className="w-3 h-3 mr-1" />
+                                                Content Ready
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                                        <span className="font-medium">Lesson #{lesson.order || 1}</span>
+                                        {savedLessonId && (
+                                            <span className="text-xs">Lesson ID: {savedLessonId.substring(0, 8)}...</span>
+                                        )}
+                                        {contentId && (
+                                            <span className="text-xs">Content ID: {contentId.substring(0, 8)}...</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Side - Actions */}
+                            <div className="flex items-center space-x-2">
+                                {/* Save Button */}
+                                <button 
+                                    onClick={handleSaveLesson}
+                                    disabled={isSaving}
+                                    className="flex items-center space-x-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                                >
+                                    {isSaving ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Save className="w-4 h-4" />
+                                    )}
+                                    <span>{isSaving ? 'Saving...' : savedLessonId ? 'Update' : 'Save'}</span>
+                                </button>
+                                
+                                {/* Remove Button */}
+                                <button 
+                                    onClick={onRemove} 
+                                    className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 transition-all duration-200"
+                                    title="Remove lesson"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Basic Form Section */}
+                    <div className="p-5 bg-white">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">Lesson Title</label>
+                                <input
+                                    type="text"
+                                    value={lesson.title}
+                                    onChange={e => onChange({ ...lesson, title: e.target.value })}
+                                    placeholder="Enter lesson title..."
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
+                                />
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">Lesson Type</label>
+                                <select
+                                    value={lesson.type || 'video'}
+                                    onChange={e => onChange({ ...lesson, type: e.target.value })}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
+                                >
+                                    <option value="video">📹 File</option>
+                                    <option value="text">📄 Text Lesson</option>
+                                    <option value="quiz">❓ Quiz</option>
+                                    <option value="assignment">📋 Assignment</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons Section */}
+                        {getActionButtons()}
+
+                        {/* Settings Section */}
+                        {showSettings && savedLessonId && (
+                            <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <h5 className="text-sm font-semibold text-gray-900 mb-4">Lesson Settings</h5>
+                                <div className="flex flex-wrap items-center gap-6">
+                                    <label className="flex items-center space-x-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={lesson.isRequired || true}
+                                            onChange={e => onChange({ ...lesson, isRequired: e.target.checked })}
+                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">Required Lesson</span>
+                                    </label>
+                                    
+                                    <div className="flex items-center space-x-3">
+                                        <label className="text-sm font-medium text-gray-700">Display Order:</label>
+                                        <input
+                                            type="number"
+                                            value={lesson.order || 1}
+                                            onChange={e => onChange({ ...lesson, order: parseInt(e.target.value) || 1 })}
+                                            className="w-20 px-3 py-2 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                            min="1"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Content Modal */}
+            <Modal
+                isOpen={showContentModal}
+                onClose={() => setShowContentModal(false)}
+                title={`${hasExistingContent ? 'Edit' : 'Create'} ${currentConfig.label} Content`}
+                maxWidth="6xl"
+            >
+                <div className="space-y-6">
+                    {/* Lesson Info Header */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <currentConfig.icon className="w-6 h-6 text-gray-600" />
+                                <div>
+                                    <h4 className="font-medium text-gray-900">{lesson.title || 'Untitled Lesson'}</h4>
+                                    <p className="text-sm text-gray-500">Lesson ID: {savedLessonId}</p>
+                                </div>
+                            </div>
+                            
+                            {hasExistingContent && (
+                                <div className="flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-800 rounded-lg">
+                                    <CheckCircle className="w-4 h-4" />
+                                    <div className="text-sm font-medium">
+                                        <div>Edit Mode</div>
+                                        <div className="text-xs text-green-600">Content ID: {contentId}</div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    
+                    {/* Content Form */}
+                    {renderContentModal()}
+                    
+                    {/* Modal Actions */}
+                    <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                        <button
+                            onClick={() => setShowContentModal(false)}
+                            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={() => {
+                                // Save content logic here
+                                setShowContentModal(false);
+                            }}
+                            className={`px-6 py-2 text-white rounded-lg transition-colors ${
+                                hasExistingContent 
+                                    ? 'bg-amber-600 hover:bg-amber-700' 
+                                    : 'bg-blue-600 hover:bg-blue-700'
+                            }`}
+                        >
+                            {hasExistingContent ? 'Update Content' : 'Save Content'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+        </>
     );
 };
 
-// Updated SavedModuleDisplay with improved layout
-// Updated SavedModuleDisplay with smooth accordion animation - Lines 442-550
-const SavedModuleDisplay = ({ module, courseId, onAddLesson, onLessonChange, onLessonRemove }) => {
+const SavedModuleDisplay = ({ module, courseId,courseData, onAddLesson, onLessonChange, onLessonRemove }) => {
     const [isExpanded, setIsExpanded] = useState(false); // Changed to false by default
     const totalLessons = module.lessons?.length || 0;
 
@@ -674,7 +819,7 @@ const SavedModuleDisplay = ({ module, courseId, onAddLesson, onLessonChange, onL
             {/* Expandable Content with Smooth Animation */}
             <div 
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                    isExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+                    isExpanded ? 'max-h-fit opacity-100' : 'max-h-0 opacity-0'
                 }`}
             >
                 <div className="border-t border-gray-200 bg-gray-50">
@@ -738,6 +883,7 @@ const SavedModuleDisplay = ({ module, courseId, onAddLesson, onLessonChange, onL
                                     moduleId={module?.module?._id || module?._id}
                                     section={extractedCourseId}
                                     courseId={extractedCourseId}
+                                    courseData={courseData}
                                     onChange={l => onLessonChange(idx, l)}
                                     onRemove={() => onLessonRemove(idx)}
                                     onSave={(savedLesson) => {
@@ -781,6 +927,7 @@ const SavedModuleDisplay = ({ module, courseId, onAddLesson, onLessonChange, onL
 const ModuleSection = ({ courseId, modules = [], onModulesChange, courseData, isEditing = false }) => {
     const { loading: moduleLoading, error: moduleError } = useSelector((state) => state.module);
     const { loading: lessonLoading, error: lessonError } = useSelector((state) => state.lesson);
+    console.log("courseData",courseData)
     
     const [savedModules, setSavedModules] = useState([]);
     const [showCreateForm, setShowCreateForm] = useState(false);
@@ -876,141 +1023,7 @@ const ModuleSection = ({ courseId, modules = [], onModulesChange, courseData, is
         }
     ];
 
-    // Render tab content based on active tab
-    // const renderTabContent = () => {
-    //     switch (activeTab) {
-    //         case 'modules':
-    //             return (
-    //                 <div>
-    //                     {/* Stats Cards */}
-    //                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    //                         <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-    //                             <div className="flex items-center gap-3">
-    //                                 <div className="p-2 bg-blue-100 rounded-lg">
-    //                                     <BookOpen className="w-5 h-5 text-blue-600" />
-    //                                 </div>
-    //                                 <div>
-    //                                     <p className="text-sm font-medium text-gray-600">Total Modules</p>
-    //                                     <p className="text-2xl font-bold text-gray-900">{totalModules}</p>
-    //                                 </div>
-    //                             </div>
-    //                         </div>
-    //                         <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-    //                             <div className="flex items-center gap-3">
-    //                                 <div className="p-2 bg-green-100 rounded-lg">
-    //                                     <CheckCircle className="w-5 h-5 text-green-600" />
-    //                                 </div>
-    //                                 <div>
-    //                                     <p className="text-sm font-medium text-gray-600">Published Modules</p>
-    //                                     <p className="text-2xl font-bold text-gray-900">{publishedModules}</p>
-    //                                 </div>
-    //                             </div>
-    //                         </div>
-    //                         <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-    //                             <div className="flex items-center gap-3">
-    //                                 <div className="p-2 bg-yellow-100 rounded-lg">
-    //                                     <Users className="w-5 h-5 text-yellow-600" />
-    //                                 </div>
-    //                                 <div>
-    //                                     <p className="text-sm font-medium text-gray-600">Total Lessons</p>
-    //                                     <p className="text-2xl font-bold text-gray-900">{totalLessons}</p>
-    //                                 </div>
-    //                             </div>
-    //                         </div>
-    //                     </div>
-
-    //                     {/* Module Creation Form */}
-    //                     {showCreateForm && (
-    //                         <div className="mb-6">
-    //                             <ModuleCreationForm
-    //                                 onModuleCreated={handleModuleCreated}
-    //                                 courseId={courseId}
-    //                             />
-    //                         </div>
-    //                     )}
-
-    //                     {/* Saved Modules Display */}
-    //                     <div className="space-y-6">
-    //                         {savedModules.map((module, index) => (
-    //                             <SavedModuleDisplay
-    //                                 key={module._id || index}
-    //                                 module={module}
-    //                                 courseId={courseId}
-    //                                 onAddLesson={(newLesson) => addLessonToModule(index, newLesson)}
-    //                                 onLessonChange={(lessonIndex, updatedLesson) => updateLessonInModule(index, lessonIndex, updatedLesson)}
-    //                                 onLessonRemove={(lessonIndex) => removeLessonFromModule(index, lessonIndex)}
-    //                             />
-    //                         ))}
-
-    //                         {moduleLoading && (
-    //                             <div className="text-center py-8">
-    //                                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-    //                                 <p className="mt-4 text-gray-600">Loading modules...</p>
-    //                             </div>
-    //                         )}
-
-    //                         {moduleError && (
-    //                             <div className="text-red-600 text-center py-8">
-    //                                 <p>Error loading modules: {moduleError.message}</p>
-    //                             </div>
-    //                         )}
-
-    //                         {savedModules.length === 0 && !moduleLoading && !moduleError && !showCreateForm && (
-    //                             <div className="text-center py-8">
-    //                                 <BookOpen className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-    //                                 <h4 className="text-lg font-medium text-gray-900 mb-2">No modules created yet!</h4>
-    //                                 <p className="text-gray-600 mb-4">Start by creating your first module.</p>
-    //                                 <button
-    //                                     type="button"
-    //                                     onClick={() => setShowCreateForm(true)}
-    //                                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 mx-auto"
-    //                                 >
-    //                                     <Plus className="w-4 h-4" />
-    //                                     Create First Module
-    //                                 </button>
-    //                             </div>
-    //                         )}
-    //                     </div>
-    //                 </div>
-    //             );
-
-    //         case 'drip':
-    //             return (
-    //                 <div className="text-center py-12">
-    //                     <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-    //                         <Zap className="w-10 h-10 text-purple-600" />
-    //                     </div>
-    //                     <h4 className="text-xl font-semibold text-gray-900 mb-2">Drip Content</h4>
-    //                     <p className="text-gray-600 mb-6 max-w-md mx-auto">
-    //                         Set up drip campaigns and scheduled content releases for your course.
-    //                     </p>
-    //                     <div className="text-sm text-gray-500">
-    //                         Content will be added here - coming soon!
-    //                     </div>
-    //                 </div>
-    //             );
-
-    //         case 'assets':
-    //             return (
-    //                 <div className="text-center py-12">
-    //                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-    //                         <Package className="w-10 h-10 text-green-600" />
-    //                     </div>
-    //                     <h4 className="text-xl font-semibold text-gray-900 mb-2">Course Assets</h4>
-    //                     <p className="text-gray-600 mb-6 max-w-md mx-auto">
-    //                         Manage all your course files, images, videos, and downloadable resources.
-    //                     </p>
-    //                     <div className="text-sm text-gray-500">
-    //                         Content will be added here - coming soon!
-    //                     </div>
-    //                 </div>
-    //             );
-
-    //         default:
-    //             return null;
-    //     }
-    // };
-    // Render tab content based on active tab
+ 
 const renderTabContent = () => {
     switch (activeTab) {
         case 'modules':
@@ -1023,6 +1036,7 @@ const renderTabContent = () => {
                     ModuleCreationForm={ModuleCreationForm}
                     handleModuleCreated={handleModuleCreated}
                     courseId={courseId}
+                    courseData={courseData}
                     savedModules={savedModules}
                     SavedModuleDisplay={SavedModuleDisplay}
                     addLessonToModule={addLessonToModule}
