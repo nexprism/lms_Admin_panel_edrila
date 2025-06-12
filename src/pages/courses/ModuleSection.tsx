@@ -3,18 +3,21 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createModule } from '../../store/slices/module';
 import { createLesson } from '../../store/slices/lesson';
 import { RootState, AppDispatch } from '../../store';
-import {
-    BookOpen, Plus, X, Bold, Italic, Underline, List, Link, 
+import { BookOpen, Plus, X, Bold, Italic, Underline, List, Link, 
     Image, Video, Eye, Trash2, Edit, Save, Loader2, 
     CheckCircle, AlertCircle, Type, AlignLeft, AlignCenter,
     AlignRight, Quote, Heading1, Heading2, Heading3, Play,
     FileText, HelpCircle, ClipboardList, Clock, Users,
-    Settings, ChevronDown, ChevronUp, GripVertical, ArrowRight
+    Settings, ChevronDown, ChevronUp, GripVertical, ArrowRight,
+    Folder, Zap, Package // Add these new icons
 } from 'lucide-react';
 import Files from './components/Files';
 import TextLesson from './components/TextLesson';
 import Quiz from './components/Quiz';
 import Assignment from './components/Assignment';
+import ModulesTabContent from '../../components/course-module/ModulesTabContent';
+import DripTabContent from '../../components/course-module/DripTabContent';
+import AssetsTabContent from '../../components/course-module/AssetsTabContent';
 
 // Enhanced Rich Text Editor Component
 const RichTextEditor = ({ value, onChange, placeholder = "Start typing..." }) => {
@@ -596,8 +599,9 @@ const LessonEditor = ({ lesson, moduleId, section, courseId, onChange, onRemove,
 };
 
 // Updated SavedModuleDisplay with improved layout
+// Updated SavedModuleDisplay with smooth accordion animation - Lines 442-550
 const SavedModuleDisplay = ({ module, courseId, onAddLesson, onLessonChange, onLessonRemove }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(false); // Changed to false by default
     const totalLessons = module.lessons?.length || 0;
 
     const addLesson = () => {
@@ -619,132 +623,160 @@ const SavedModuleDisplay = ({ module, courseId, onAddLesson, onLessonChange, onL
                              module?.course?.id || 
                              module?.course?._id;
 
-    console.log('SavedModuleDisplay - Available IDs:', {
-        courseId,
-        'module.courseId': module?.courseId,
-        'module.module.courseId': module?.module?.courseId,
-        'module._id': module?._id,
-        'module.id': module?.id,
-        extractedCourseId
-    });
-
     return (
-        <div className="bg-white border border-gray-200  shadow-lg overflow-hidden">
-            {/* Module Header */}
-            <div className="bg-gradient-to-r from-blue-50 via-blue-50 to-indigo-50 border-b border-blue-100">
-                <div className="p-6">
-                    <div className="flex items-center justify-between">
-                        {/* Left Side - Module Info */}
-                        <div className="flex items-center space-x-4">
-                            <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                                <CheckCircle className="w-8 h-8 text-white" />
-                            </div>
-                            
-                            <div className="flex-1">
-                                <h3 className="text-xl text-gray-900 mb-2">{module.title}</h3>
-                                
-                                {/* Stats Row */}
-                                <div className="flex items-center space-x-6 text-sm">
-                                    <div className="flex items-center space-x-2 text-gray-600">
-                                        <BookOpen className="w-4 h-4" />
-                                        <span className="font-medium">{totalLessons} lesson{totalLessons !== 1 ? 's' : ''}</span>
-                                    </div>
-                                    
-                                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                                        module.isPublished 
-                                            ? 'bg-emerald-100 text-emerald-800' 
-                                            : 'bg-amber-100 text-amber-800'
-                                    }`}>
-                                        <div className={`w-2 h-2 rounded-full mr-2 ${
-                                            module.isPublished ? 'bg-emerald-500' : 'bg-amber-500'
-                                        }`}></div>
-                                        {module.isPublished ? 'Published' : 'Draft'}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
+            {/* Module Header - Always Visible */}
+            <div 
+                className="p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium text-gray-900">{module.title}</h3>
+                    {/* <h3 className="text-lg font-medium text-gray-900">{module.title}</h3> */}
+                    
+                    {/* Left Side - Module Info */}
+                    <div className="flex items-center space-x-3">
+                        {/* Chevron Icon */}
+                        {/* <div className="flex items-center justify-center w-6 h-6">
+                            <svg 
+                                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div> */}
+                        
+                        {/* Module Title */}
+                        {/* <h3 className="text-lg font-medium text-gray-900">{module.title}</h3> */}
+                    </div>
 
-                        {/* Right Side - Toggle Button */}
-                        <button
-                            type="button"
-                            onClick={() => setIsExpanded(!isExpanded)}
-                            className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/70 hover:bg-white text-gray-600 hover:text-gray-800 transition-all duration-200 shadow-sm"
-                        >
-                            {isExpanded ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
-                        </button>
+                    {/* Right Side - Lesson Count */}
+                    <div className="flex items-center space-x-2">
+                        <span className="text-sm text-blue-600 font-medium">
+                            {totalLessons} lesson{totalLessons !== 1 ? 's' : ''}
+                        </span>
+                         <div className="flex items-center justify-center w-6 h-6">
+                            <svg 
+                                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Lessons Section */}
-            {!isExpanded && (
-                <div className="p-6">
-                    {/* Section Header */}
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <BookOpen className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <h4 className="text-xl font-semibold text-gray-900">
-                                Lessons {totalLessons > 0 && <span className="text-gray-500">({totalLessons})</span>}
-                            </h4>
-                        </div>
-                        
-                        <button
-                            type="button"
-                            onClick={addLesson}
-                            className="flex items-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200"
-                        >
-                            <Plus className="w-4 h-4" />
-                            <span>Add Lesson</span>
-                        </button>
-                    </div>
-                    
-                    {/* Lessons List */}
-                    <div className="space-y-6">
-                        {module.lessons?.map((lesson, idx) => (
-                            <LessonEditor
-                                key={lesson._id || lesson.id || idx}
-                                lesson={lesson}
-                                moduleId={module?.module?._id || module?._id}
-                                section={extractedCourseId}
-                                courseId={extractedCourseId}
-                                onChange={l => onLessonChange(idx, l)}
-                                onRemove={() => onLessonRemove(idx)}
-                                onSave={(savedLesson) => {
-                                    // Update the lesson with the saved data
-                                    onLessonChange(idx, savedLesson);
-                                }}
-                            />
-                        ))}
-                        
-                        {/* Empty State */}
-                        {totalLessons === 0 && (
-                            <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300">
-                                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <BookOpen className="w-10 h-10 text-blue-600" />
-                                </div>
-                                <h4 className="text-xl font-semibold text-gray-900 mb-2">Ready to Create Lessons!</h4>
-                                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                                    Your module is set up and ready. Start building your course content by adding your first lesson.
-                                </p>
-                                <button
-                                    type="button"
-                                    onClick={addLesson}
-                                    className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200"
-                                >
-                                    <Plus className="w-5 h-5" />
-                                    <span>Add First Lesson</span>
-                                </button>
+            {/* Expandable Content with Smooth Animation */}
+            <div 
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                    isExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+                }`}
+            >
+                <div className="border-t border-gray-200 bg-gray-50">
+                    <div className="p-6">
+                        {/* Module Description */}
+                        {module.description && (
+                            <div className="mb-6">
+                                <p className="text-gray-600">{module.description}</p>
                             </div>
                         )}
+
+                        {/* Module Stats */}
+                        <div className="flex items-center space-x-6 mb-6 text-sm">
+                            <div className="flex items-center space-x-2 text-gray-600">
+                                <Clock className="w-4 h-4" />
+                                <span>{module.estimatedDuration || 60} minutes</span>
+                            </div>
+                            
+                            <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                module.isPublished 
+                                    ? 'bg-emerald-100 text-emerald-800' 
+                                    : 'bg-amber-100 text-amber-800'
+                            }`}>
+                                <div className={`w-2 h-2 rounded-full mr-2 ${
+                                    module.isPublished ? 'bg-emerald-500' : 'bg-amber-500'
+                                }`}></div>
+                                {module.isPublished ? 'Published' : 'Draft'}
+                            </div>
+                        </div>
+
+                        {/* Section Header */}
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <BookOpen className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <h4 className="text-xl font-semibold text-gray-900">
+                                    Lessons {totalLessons > 0 && <span className="text-gray-500">({totalLessons})</span>}
+                                </h4>
+                            </div>
+                            
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    addLesson();
+                                }}
+                                className="flex items-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>Add Lesson</span>
+                            </button>
+                        </div>
+                        
+                        {/* Lessons List */}
+                        <div className="space-y-6">
+                            {module.lessons?.map((lesson, idx) => (
+                                <LessonEditor
+                                    key={lesson._id || lesson.id || idx}
+                                    lesson={lesson}
+                                    moduleId={module?.module?._id || module?._id}
+                                    section={extractedCourseId}
+                                    courseId={extractedCourseId}
+                                    onChange={l => onLessonChange(idx, l)}
+                                    onRemove={() => onLessonRemove(idx)}
+                                    onSave={(savedLesson) => {
+                                        // Update the lesson with the saved data
+                                        onLessonChange(idx, savedLesson);
+                                    }}
+                                />
+                            ))}
+                            
+                            {/* Empty State */}
+                            {totalLessons === 0 && (
+                                <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300">
+                                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <BookOpen className="w-10 h-10 text-blue-600" />
+                                    </div>
+                                    <h4 className="text-xl font-semibold text-gray-900 mb-2">Ready to Create Lessons!</h4>
+                                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                                        Your module is set up and ready. Start building your course content by adding your first lesson.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            addLesson();
+                                        }}
+                                        className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200"
+                                    >
+                                        <Plus className="w-5 h-5" />
+                                        <span>Add First Lesson</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 };
-
 // Main Enhanced Module Section Component
 const ModuleSection = ({ courseId, modules = [], onModulesChange, courseData, isEditing = false }) => {
     const { loading: moduleLoading, error: moduleError } = useSelector((state) => state.module);
@@ -752,6 +784,7 @@ const ModuleSection = ({ courseId, modules = [], onModulesChange, courseData, is
     
     const [savedModules, setSavedModules] = useState([]);
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const [activeTab, setActiveTab] = useState('modules'); // Add this new state
 
     // Initialize modules from props when component mounts or modules prop changes
     useEffect(() => {
@@ -821,20 +854,212 @@ const ModuleSection = ({ courseId, modules = [], onModulesChange, courseData, is
     const publishedModules = savedModules.filter(m => m.isPublished).length;
     const totalLessons = savedModules.reduce((sum, m) => sum + (m.lessons?.length || 0), 0);
 
+    // Tab configuration
+    const tabs = [
+        {
+            id: 'modules',
+            label: 'Modules',
+            icon: BookOpen,
+            color: 'blue'
+        },
+        {
+            id: 'drip',
+            label: 'Drip',
+            icon: Zap,
+            color: 'purple'
+        },
+        {
+            id: 'assets',
+            label: 'Assets',
+            icon: Package,
+            color: 'green'
+        }
+    ];
+
+    // Render tab content based on active tab
+    // const renderTabContent = () => {
+    //     switch (activeTab) {
+    //         case 'modules':
+    //             return (
+    //                 <div>
+    //                     {/* Stats Cards */}
+    //                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    //                         <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+    //                             <div className="flex items-center gap-3">
+    //                                 <div className="p-2 bg-blue-100 rounded-lg">
+    //                                     <BookOpen className="w-5 h-5 text-blue-600" />
+    //                                 </div>
+    //                                 <div>
+    //                                     <p className="text-sm font-medium text-gray-600">Total Modules</p>
+    //                                     <p className="text-2xl font-bold text-gray-900">{totalModules}</p>
+    //                                 </div>
+    //                             </div>
+    //                         </div>
+    //                         <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+    //                             <div className="flex items-center gap-3">
+    //                                 <div className="p-2 bg-green-100 rounded-lg">
+    //                                     <CheckCircle className="w-5 h-5 text-green-600" />
+    //                                 </div>
+    //                                 <div>
+    //                                     <p className="text-sm font-medium text-gray-600">Published Modules</p>
+    //                                     <p className="text-2xl font-bold text-gray-900">{publishedModules}</p>
+    //                                 </div>
+    //                             </div>
+    //                         </div>
+    //                         <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+    //                             <div className="flex items-center gap-3">
+    //                                 <div className="p-2 bg-yellow-100 rounded-lg">
+    //                                     <Users className="w-5 h-5 text-yellow-600" />
+    //                                 </div>
+    //                                 <div>
+    //                                     <p className="text-sm font-medium text-gray-600">Total Lessons</p>
+    //                                     <p className="text-2xl font-bold text-gray-900">{totalLessons}</p>
+    //                                 </div>
+    //                             </div>
+    //                         </div>
+    //                     </div>
+
+    //                     {/* Module Creation Form */}
+    //                     {showCreateForm && (
+    //                         <div className="mb-6">
+    //                             <ModuleCreationForm
+    //                                 onModuleCreated={handleModuleCreated}
+    //                                 courseId={courseId}
+    //                             />
+    //                         </div>
+    //                     )}
+
+    //                     {/* Saved Modules Display */}
+    //                     <div className="space-y-6">
+    //                         {savedModules.map((module, index) => (
+    //                             <SavedModuleDisplay
+    //                                 key={module._id || index}
+    //                                 module={module}
+    //                                 courseId={courseId}
+    //                                 onAddLesson={(newLesson) => addLessonToModule(index, newLesson)}
+    //                                 onLessonChange={(lessonIndex, updatedLesson) => updateLessonInModule(index, lessonIndex, updatedLesson)}
+    //                                 onLessonRemove={(lessonIndex) => removeLessonFromModule(index, lessonIndex)}
+    //                             />
+    //                         ))}
+
+    //                         {moduleLoading && (
+    //                             <div className="text-center py-8">
+    //                                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+    //                                 <p className="mt-4 text-gray-600">Loading modules...</p>
+    //                             </div>
+    //                         )}
+
+    //                         {moduleError && (
+    //                             <div className="text-red-600 text-center py-8">
+    //                                 <p>Error loading modules: {moduleError.message}</p>
+    //                             </div>
+    //                         )}
+
+    //                         {savedModules.length === 0 && !moduleLoading && !moduleError && !showCreateForm && (
+    //                             <div className="text-center py-8">
+    //                                 <BookOpen className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+    //                                 <h4 className="text-lg font-medium text-gray-900 mb-2">No modules created yet!</h4>
+    //                                 <p className="text-gray-600 mb-4">Start by creating your first module.</p>
+    //                                 <button
+    //                                     type="button"
+    //                                     onClick={() => setShowCreateForm(true)}
+    //                                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 mx-auto"
+    //                                 >
+    //                                     <Plus className="w-4 h-4" />
+    //                                     Create First Module
+    //                                 </button>
+    //                             </div>
+    //                         )}
+    //                     </div>
+    //                 </div>
+    //             );
+
+    //         case 'drip':
+    //             return (
+    //                 <div className="text-center py-12">
+    //                     <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+    //                         <Zap className="w-10 h-10 text-purple-600" />
+    //                     </div>
+    //                     <h4 className="text-xl font-semibold text-gray-900 mb-2">Drip Content</h4>
+    //                     <p className="text-gray-600 mb-6 max-w-md mx-auto">
+    //                         Set up drip campaigns and scheduled content releases for your course.
+    //                     </p>
+    //                     <div className="text-sm text-gray-500">
+    //                         Content will be added here - coming soon!
+    //                     </div>
+    //                 </div>
+    //             );
+
+    //         case 'assets':
+    //             return (
+    //                 <div className="text-center py-12">
+    //                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+    //                         <Package className="w-10 h-10 text-green-600" />
+    //                     </div>
+    //                     <h4 className="text-xl font-semibold text-gray-900 mb-2">Course Assets</h4>
+    //                     <p className="text-gray-600 mb-6 max-w-md mx-auto">
+    //                         Manage all your course files, images, videos, and downloadable resources.
+    //                     </p>
+    //                     <div className="text-sm text-gray-500">
+    //                         Content will be added here - coming soon!
+    //                     </div>
+    //                 </div>
+    //             );
+
+    //         default:
+    //             return null;
+    //     }
+    // };
+    // Render tab content based on active tab
+const renderTabContent = () => {
+    switch (activeTab) {
+        case 'modules':
+            return (
+                <ModulesTabContent
+                    totalModules={totalModules}
+                    publishedModules={publishedModules}
+                    totalLessons={totalLessons}
+                    showCreateForm={showCreateForm}
+                    ModuleCreationForm={ModuleCreationForm}
+                    handleModuleCreated={handleModuleCreated}
+                    courseId={courseId}
+                    savedModules={savedModules}
+                    SavedModuleDisplay={SavedModuleDisplay}
+                    addLessonToModule={addLessonToModule}
+                    updateLessonInModule={updateLessonInModule}
+                    removeLessonFromModule={removeLessonFromModule}
+                    moduleLoading={moduleLoading}
+                    moduleError={moduleError}
+                    setShowCreateForm={setShowCreateForm}
+                />
+            );
+
+        case 'drip':
+            return <DripTabContent />;
+
+        case 'assets':
+            return <AssetsTabContent />;
+
+        default:
+            return null;
+    }
+};
+
     return (
         <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-xl p-8">
             <div className="mb-8">
+                {/* Header Section */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                             <div className="p-2 bg-blue-100 rounded-xl">
                                 <BookOpen className="w-8 h-8 text-blue-600" />
                             </div>
-                            Course Modules
+                            Course Content
                         </h2>
-                        <p className="text-gray-600 mt-2">Build your course content step by step</p>
+                        <p className="text-gray-600 mt-2">Build and manage your course content</p>
                     </div>
-                    {!showCreateForm && (
+                    {activeTab === 'modules' && !showCreateForm && (
                         <button
                             type="button"
                             onClick={() => setShowCreateForm(true)}
@@ -846,97 +1071,47 @@ const ModuleSection = ({ courseId, modules = [], onModulesChange, courseData, is
                     )}
                 </div>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-100 rounded-lg">
-                                <BookOpen className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Total Modules</p>
-                                <p className="text-2xl font-bold text-gray-900">{totalModules}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-green-100 rounded-lg">
-                                <CheckCircle className="w-5 h-5 text-green-600" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Published Modules</p>
-                                <p className="text-2xl font-bold text-gray-900">{publishedModules}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-yellow-100 rounded-lg">
-                                <Users className="w-5 h-5 text-yellow-600" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Total Lessons</p>
-                                <p className="text-2xl font-bold text-gray-900">{totalLessons}</p>
-                            </div>
-                        </div>
+                {/* Tab Navigation */}
+                <div className="mb-6">
+                    <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl">
+                        {tabs.map((tab) => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.id;
+                            
+                            return (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 flex-1 justify-center ${
+                                        isActive
+                                            ? `bg-white shadow-sm text-${tab.color}-600 border border-${tab.color}-200`
+                                            : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    <Icon className="w-5 h-5" />
+                                    <span>{tab.label}</span>
+                                    {tab.id === 'modules' && totalModules > 0 && (
+                                        <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                                            isActive ? `bg-${tab.color}-100 text-${tab.color}-700` : 'bg-gray-200 text-gray-600'
+                                        }`}>
+                                            {totalModules}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
-                {/* Module Creation Form */}
-                {showCreateForm && (
-                    <div className="mb-6">
-                        <ModuleCreationForm
-                            onModuleCreated={handleModuleCreated}
-                            courseId={courseId}
-                        />
-                    </div>
-                )}
-
-                {/* Saved Modules Display */}
-               <div className="space-y-6">
-    {savedModules.map((module, index) => (
-        <SavedModuleDisplay
-            key={module._id || index}
-            module={module}
-            courseId={courseId} // Pass courseId explicitly
-            onAddLesson={(newLesson) => addLessonToModule(index, newLesson)}
-            onLessonChange={(lessonIndex, updatedLesson) => updateLessonInModule(index, lessonIndex, updatedLesson)}
-            onLessonRemove={(lessonIndex) => removeLessonFromModule(index, lessonIndex)}
-        />
-    ))}
-
-    {moduleLoading && (
-        <div className="text-center py-8">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-            <p className="mt-4 text-gray-600">Loading modules...</p>
-        </div>
-    )}
-
-    {moduleError && (
-        <div className="text-red-600 text-center py-8">
-            <p>Error loading modules: {moduleError.message}</p>
-        </div>
-    )}
-
-    {savedModules.length === 0 && !moduleLoading && !moduleError && !showCreateForm && (
-        <div className="text-center py-8">
-            <BookOpen className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-            <h4 className="text-lg font-medium text-gray-900 mb-2">No modules created yet!</h4>
-            <p className="text-gray-600 mb-4">Start by creating your first module.</p>
-            <button
-                type="button"
-                onClick={() => setShowCreateForm(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 mx-auto"
-            >
-                <Plus className="w-4 h-4" />
-                Create First Module
-            </button>
-        </div>
-    )}
-</div>
+                {/* Tab Content */}
+                <div className="min-h-fit">
+                {/* <div className="min-h-[400px]"> */}
+                    {renderTabContent()}
+                </div>
             </div>
         </div>
     );
 };
+
 export default ModuleSection;
