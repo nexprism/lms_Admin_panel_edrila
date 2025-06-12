@@ -70,6 +70,27 @@ export const updateTextLesson = createAsyncThunk(
   }
 );
 
+
+export const fetchTextLessonById = createAsyncThunk(
+  "textLesson/fetchById",
+  async (lessonId: string, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/text-lesson/${lessonId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // withCredentials: true, // Uncomment if you need to send cookies
+        }
+      );
+      return response.data;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
+  }
+);
+
 const textLessonSlice = createSlice({
   name: "textLesson",
   initialState,
@@ -97,6 +118,33 @@ const textLessonSlice = createSlice({
         state.data = action.payload;
       })
       .addCase(fetchTextLessons.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(updateTextLesson.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateTextLesson.fulfilled, (state, action) => {
+        state.loading = false;
+        // Optionally update the specific lesson in the state
+        state.data = state.data.map((lesson: any) =>
+          lesson.id === action.payload.id ? action.payload : lesson
+        );
+      })
+      .addCase(updateTextLesson.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchTextLessonById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTextLessonById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
+      })
+      .addCase(fetchTextLessonById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
