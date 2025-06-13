@@ -410,13 +410,33 @@ const LessonEditor = ({
   const contentId = getContentId();
   const hasExistingContent = !!contentId;
 
-    const lessonTypeConfig = {
-        "video-lesson": { icon: Play, label: 'video-lesson', color: 'text-red-500 bg-red-50 border-red-200' },
-        video: { icon: Play, label: 'File', color: 'text-red-500 bg-red-50 border-red-200' },
-        text: { icon: FileText, label: 'Text Lesson', color: 'text-blue-500 bg-blue-50 border-blue-200' },
-        quiz: { icon: HelpCircle, label: 'Quiz', color: 'text-green-500 bg-green-50 border-green-200' },
-        assignment: { icon: ClipboardList, label: 'Assignment', color: 'text-purple-500 bg-purple-50 border-purple-200' }
-    };
+  const lessonTypeConfig = {
+    "video-lesson": {
+      icon: Play,
+      label: "video-lesson",
+      color: "text-red-500 bg-red-50 border-red-200",
+    },
+    video: {
+      icon: Play,
+      label: "File",
+      color: "text-red-500 bg-red-50 border-red-200",
+    },
+    text: {
+      icon: FileText,
+      label: "Text Lesson",
+      color: "text-blue-500 bg-blue-50 border-blue-200",
+    },
+    quiz: {
+      icon: HelpCircle,
+      label: "Quiz",
+      color: "text-green-500 bg-green-50 border-green-200",
+    },
+    assignment: {
+      icon: ClipboardList,
+      label: "Assignment",
+      color: "text-purple-500 bg-purple-50 border-purple-200",
+    },
+  };
 
   const currentConfig = lessonTypeConfig[lesson.type || "video"];
 
@@ -483,140 +503,128 @@ const LessonEditor = ({
     }
   };
 
-    const renderContentModal = () => {
-        // Common props for all content editors
-        const commonProps = {
-            sectionId: section || courseId,
-            lesson: { ...lesson, _id: savedLessonId },
-            onChange,
-            courseId: courseId || section,
-            lessonId: savedLessonId,
-            moduleId: moduleId,
-            contentId: contentId,
-            isEdit: hasExistingContent,
-        };
-
-        switch (lesson.type) {
-            case 'quiz': {
-                // Find quiz data and id
-                let quizData = lesson.quiz;
-                let quizId = lesson.quiz?._id || lesson.quizId;
-                if (!quizData && courseData?.modules) {
-                    for (const mod of courseData.modules) {
-                        if (mod.lessons) {
-                            for (const l of mod.lessons) {
-                                if (l._id === lesson._id && l.quiz) {
-                                    quizData = l.quiz;
-                                    quizId = l.quiz._id;
-                                }
-                            }
-                        }
-                    }
-                }
-                return (
-                    <Quiz
-                        {...commonProps}
-                        quizId={quizId}
-                        quizData={quizData}
-                    />
-                );
-            }
-            case 'assignment': {
-                let assignmentData = lesson.assignment;
-                let assignmentId = lesson.assignment?._id || lesson.assignmentId;
-                if (!assignmentData && courseData?.modules) {
-                    for (const mod of courseData.modules) {
-                        if (mod.lessons) {
-                            for (const l of mod.lessons) {
-                                if (l._id === lesson._id && l.assignment) {
-                                    assignmentData = l.assignment;
-                                    assignmentId = l.assignment._id;
-                                }
-                            }
-                        }
-                    }
-                }
-                return (
-                    <Assignment
-                        {...commonProps}
-                        assignmentId={assignmentId}
-                        fileId={lesson.fileId}
-                        assignmentData={assignmentData}
-                    />
-                );
-            }
-            case 'text': {
-                let textData = lesson.textContent;
-                let textLessonId = lesson.textContent?._id || lesson.textLessonId;
-                if (!textData && courseData?.modules) {
-                    for (const mod of courseData.modules) {
-                        if (mod.lessons) {
-                            for (const l of mod.lessons) {
-                                if (l._id === lesson._id && l.textContent) {
-                                    textData = l.textContent;
-                                    textLessonId = l.textContent._id;
-                                }
-                            }
-                        }
-                    }
-                }
-                return (
-                    <TextLesson
-                        {...commonProps}
-                        textLessonId={textLessonId}
-                        textData={textData}
-                    />
-                );
-            }
-            case 'video-lesson': {
-                let videoLessonData = lesson.videoLesson;
-                let videoLessonId = lesson.videoLesson?._id || lesson.videoLessonId;
-                if (!videoLessonData && courseData?.modules) {
-                    for (const mod of courseData.modules) {
-                        if (mod.lessons) {
-                            for (const l of mod.lessons) {
-                                if (l._id === lesson._id && l.videoLesson) {
-                                    videoLessonData = l.videoLesson;
-                                    videoLessonId = l.videoLesson._id;
-                                }
-                            }
-                        }
-                    }
-                }
-                return (
-                    <VedioLesson
-                        {...commonProps}
-                        fileId={videoLessonId}
-                        videoData={videoLessonData}
-                    />
-                );
-            }
-            case 'video':
-            default: {
-                let videoData = lesson.video;
-                let fileId = lesson.video?._id || lesson.fileId;
-                if (!videoData && courseData?.modules) {
-                    for (const mod of courseData.modules) {
-                        if (mod.lessons) {
-                            for (const l of mod.lessons) {
-                                if (l._id === lesson._id && l.video) {
-                                    videoData = l.video;
-                                    fileId = l.video._id;
-                                }
-                            }
-                        }
-                    }
-                }
-                return (
-                    <Files
-                        {...commonProps}
-                        fileId={fileId}
-                        videoData={videoData}
-                    />
-                );
-            }
-        }
+  const renderContentModal = () => {
+    // Common props for all content editors
+    const commonProps = {
+      sectionId: section || courseId,
+      lesson: { ...lesson, _id: savedLessonId },
+      onChange,
+      courseId: courseId || section,
+      lessonId: savedLessonId,
+      moduleId: moduleId,
+      contentId: contentId,
+      isEdit: hasExistingContent,
     };
+
+    switch (lesson.type) {
+      case "quiz": {
+        // Find quiz data and id
+        let quizData = lesson.quiz;
+        let quizId = lesson.quiz?._id || lesson.quizId;
+        if (!quizData && courseData?.modules) {
+          for (const mod of courseData.modules) {
+            if (mod.lessons) {
+              for (const l of mod.lessons) {
+                if (l._id === lesson._id && l.quiz) {
+                  quizData = l.quiz;
+                  quizId = l.quiz._id;
+                }
+              }
+            }
+          }
+        }
+        return <Quiz {...commonProps} quizId={quizId} quizData={quizData} />;
+      }
+      case "assignment": {
+        let assignmentData = lesson.assignment;
+        let assignmentId = lesson.assignment?._id || lesson.assignmentId;
+        if (!assignmentData && courseData?.modules) {
+          for (const mod of courseData.modules) {
+            if (mod.lessons) {
+              for (const l of mod.lessons) {
+                if (l._id === lesson._id && l.assignment) {
+                  assignmentData = l.assignment;
+                  assignmentId = l.assignment._id;
+                }
+              }
+            }
+          }
+        }
+        return (
+          <Assignment
+            {...commonProps}
+            assignmentId={assignmentId}
+            fileId={lesson.fileId}
+            assignmentData={assignmentData}
+          />
+        );
+      }
+      case "text": {
+        let textData = lesson.textContent;
+        let textLessonId = lesson.textContent?._id || lesson.textLessonId;
+        if (!textData && courseData?.modules) {
+          for (const mod of courseData.modules) {
+            if (mod.lessons) {
+              for (const l of mod.lessons) {
+                if (l._id === lesson._id && l.textContent) {
+                  textData = l.textContent;
+                  textLessonId = l.textContent._id;
+                }
+              }
+            }
+          }
+        }
+        return (
+          <TextLesson
+            {...commonProps}
+            textLessonId={textLessonId}
+            textData={textData}
+          />
+        );
+      }
+      case "video-lesson": {
+        let videoLessonData = lesson.videoLesson;
+        let videoLessonId = lesson.videoLesson?._id || lesson.videoLessonId;
+        if (!videoLessonData && courseData?.modules) {
+          for (const mod of courseData.modules) {
+            if (mod.lessons) {
+              for (const l of mod.lessons) {
+                if (l._id === lesson._id && l.videoLesson) {
+                  videoLessonData = l.videoLesson;
+                  videoLessonId = l.videoLesson._id;
+                }
+              }
+            }
+          }
+        }
+        return (
+          <VedioLesson
+            {...commonProps}
+            fileId={videoLessonId}
+            videoData={videoLessonData}
+          />
+        );
+      }
+      case "video":
+      default: {
+        let videoData = lesson.video;
+        let fileId = lesson.video?._id || lesson.fileId;
+        if (!videoData && courseData?.modules) {
+          for (const mod of courseData.modules) {
+            if (mod.lessons) {
+              for (const l of mod.lessons) {
+                if (l._id === lesson._id && l.video) {
+                  videoData = l.video;
+                  fileId = l.video._id;
+                }
+              }
+            }
+          }
+        }
+        return <Files {...commonProps} fileId={fileId} videoData={videoData} />;
+      }
+    }
+  };
 
   const getActionButtons = () => {
     if (isNewLesson) {
@@ -759,35 +767,43 @@ const LessonEditor = ({
             </div>
           </div>
 
-                    {/* Basic Form Section */}
-                    <div className="p-5 bg-white">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700">Lesson Title</label>
-                                <input
-                                    type="text"
-                                    value={lesson.title}
-                                    onChange={e => onChange({ ...lesson, title: e.target.value })}
-                                    placeholder="Enter lesson title..."
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
-                                />
-                            </div>
-                            
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700">Lesson Type</label>
-                                <select
-                                    value={lesson.type || 'video'}
-                                    onChange={e => onChange({ ...lesson, type: e.target.value })}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
-                                >
-                                    <option value="video-lesson">🎬 Video Lesson</option>
-                                    <option value="video">📹 File</option>
-                                    <option value="text">📄 Text Lesson</option>
-                                    <option value="quiz">❓ Quiz</option>
-                                    <option value="assignment">📋 Assignment</option>
-                                </select>
-                            </div>
-                        </div>
+          {/* Basic Form Section */}
+          <div className="p-5 bg-white">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Lesson Title
+                </label>
+                <input
+                  type="text"
+                  value={lesson.title}
+                  onChange={(e) =>
+                    onChange({ ...lesson, title: e.target.value })
+                  }
+                  placeholder="Enter lesson title..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Lesson Type
+                </label>
+                <select
+                  value={lesson.type || "video"}
+                  onChange={(e) =>
+                    onChange({ ...lesson, type: e.target.value })
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
+                >
+                  <option value="video-lesson">🎬 Video Lesson</option>
+                  <option value="video">📹 File</option>
+                  <option value="text">📄 Text Lesson</option>
+                  <option value="quiz">❓ Quiz</option>
+                  <option value="assignment">📋 Assignment</option>
+                </select>
+              </div>
+            </div>
 
             {/* Action Buttons Section */}
             {getActionButtons()}
