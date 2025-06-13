@@ -338,6 +338,7 @@ const LessonEditor = ({
         }
         return lesson.quizId || null;
       case "assignment":
+        console.log("Assignment lesson data:", lesson);
         if (lesson.assignment?._id) return lesson.assignment._id;
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
@@ -352,20 +353,23 @@ const LessonEditor = ({
         }
         return lesson.assignmentId || lesson.fileId || null;
       case "text":
-        if (lesson.textContent?._id) return lesson.textContent._id;
+        console.log("lesson.textContent", lesson);
+        console.log("modeLessons", courseData?.modules);
+        if (lesson.textLessons?._id) return lesson.textLessons._id;
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
               for (const l of mod.lessons) {
-                if (l._id === lesson._id && l.textContent?._id) {
-                  return l.textContent._id;
+                if (l._id === lesson._id && l.textLessons[0]?._id) {
+                  return l.textLessons._id || l.textLessons[0]?._id;
                 }
               }
             }
           }
         }
-        return lesson.textLessonId || null;
+        return lesson.textLessons || lesson.textLessons || null;
       case "video":
+        console.log("lesson.files", lesson.files);
         if (lesson.files?._id) return lesson.files._id;
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
@@ -541,20 +545,23 @@ const LessonEditor = ({
         );
       }
       case "text": {
-        let textData = lesson.textContent;
-        let textLessonId = lesson.textContent?._id || lesson.textLessonId;
+        let textData = lesson.textLessons?.[0];
+        let textLessonId = lesson.textLessons?.[0]._id || lesson.textLessonId;
         if (!textData && courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
               for (const l of mod.lessons) {
-                if (l._id === lesson._id && l.textContent) {
-                  textData = l.textContent;
-                  textLessonId = l.textContent._id;
+                if (l._id === lesson._id && l.textLessons[0]) {
+                  textData = l.textLessons[0];
+                  textLessonId = l.textLessons?.[0]._id;
                 }
               }
             }
           }
         }
+        console.log("Text lesson data:", textData);
+        console.log("Text lesson ID:", textLessonId);
+
         return (
           <TextLesson
             {...commonProps}
@@ -654,15 +661,17 @@ const LessonEditor = ({
               {/* Left Side - Lesson Info */}
               <div className="flex items-center space-x-4">
                 <div
-                  className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 ${currentConfig.color} transition-all duration-200`}
+                  className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 ${currentConfig?.color} transition-all duration-200`}
                 >
-                  <currentConfig.icon className="w-6 h-6" />
+                  {currentConfig?.icon && (
+                    <currentConfig.icon className="w-6 h-6" />
+                  )}
                 </div>
 
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-1">
                     <h4 className="text-lg font-semibold text-gray-900">
-                      {currentConfig.label}
+                      {currentConfig?.label}
                     </h4>
                     {savedLessonId && (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
@@ -815,7 +824,7 @@ const LessonEditor = ({
         isOpen={showContentModal}
         onClose={() => setShowContentModal(false)}
         title={`${hasExistingContent ? "Edit" : "Create"} ${
-          currentConfig.label
+          currentConfig?.label
         } Content`}
         maxWidth="6xl"
       >
@@ -824,7 +833,9 @@ const LessonEditor = ({
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <currentConfig.icon className="w-6 h-6 text-gray-600" />
+                {currentConfig?.icon && (
+                  <currentConfig.icon className="w-6 h-6 text-gray-600" />
+                )}
                 <div>
                   <h4 className="font-medium text-gray-900">
                     {lesson.title || "Untitled Lesson"}

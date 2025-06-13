@@ -73,7 +73,6 @@ export const updateTextLesson = createAsyncThunk(
   }
 );
 
-
 export const fetchTextLessonById = createAsyncThunk(
   "textLesson/fetchById",
   async (lessonId: string, { rejectWithValue }) => {
@@ -131,9 +130,9 @@ const textLessonSlice = createSlice({
       .addCase(updateTextLesson.fulfilled, (state, action) => {
         state.loading = false;
         // Optionally update the specific lesson in the state
-        state.data = state.data.map((lesson: any) =>
-          lesson.id === action.payload.id ? action.payload : lesson
-        );
+        // state.data = state.data.map((lesson: any) =>
+        //   lesson.id === action.payload.id ? action.payload : lesson
+        // );
       })
       .addCase(updateTextLesson.rejected, (state, action) => {
         state.loading = false;
@@ -145,7 +144,7 @@ const textLessonSlice = createSlice({
       })
       .addCase(fetchTextLessonById.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload;
+        // state.data = action.payload;
       })
       .addCase(fetchTextLessonById.rejected, (state, action) => {
         state.loading = false;
