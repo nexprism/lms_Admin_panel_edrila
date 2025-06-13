@@ -2,17 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChevronDown, ChevronRight, Eye, Zap, Settings, X, Loader2, AlertCircle, BookOpen, Play, FileText, HelpCircle, ClipboardList, Clock, Users } from 'lucide-react';
 import { fetchCourseById } from '../../store/slices/course';
+import { updateLessonMobileOnly } from '../../store/slices/lesson'; // Import the lesson thunk
 import DripPopup from './DripPopup'; 
-
 
 const CourseAccordion = ({ courseId }) => {
     const dispatch = useDispatch();
     const { loading, error, data: courseData } = useSelector((state) => state.course);
+    const { loading: lessonLoading } = useSelector((state) => state.lesson); // Get lesson loading state
+    const { token } = useSelector((state) => state.auth); // Assuming you have auth token in Redux
     
     const [expandedModules, setExpandedModules] = useState(new Set());
     const [modalData, setModalData] = useState(null);
     const [modules, setModules] = useState([]);
-    const [dripModalData, setDripModalData] = useState(null); // Add state for drip modal
+    const [dripModalData, setDripModalData] = useState(null);
+    const [savingSettings, setSavingSettings] = useState(false); // Local loading state for settings save
 
     // Fetch course data when component mounts or courseId changes
     useEffect(() => {
@@ -35,7 +38,9 @@ const CourseAccordion = ({ courseId }) => {
     }, [courseData]);
 
     // Demo data fetch function - replace with actual API call
-
+    const fetchDemoData = () => {
+        // Your existing demo data logic here
+    };
 
     const toggleModule = (moduleId) => {
         const newExpanded = new Set(expandedModules);
@@ -55,31 +60,53 @@ const CourseAccordion = ({ courseId }) => {
         setModalData(null);
     };
 
-    const handleAccessSettingsSave = (lessonId, moduleId, settings) => {
-        // API call to update lesson access settings
-        console.log('Updating access settings:', { lessonId, moduleId, settings });
-        
-        // Update local state
-        const updatedModules = modules.map(module => {
-            if (module.id === moduleId || module._id === moduleId) {
-                return {
-                    ...module,
-                    lessons: module.lessons.map(lesson => {
-                        if (lesson.id === lessonId || lesson._id === lessonId) {
-                            return {
-                                ...lesson,
-                                accessSettings: settings
-                            };
-                        }
-                        return lesson;
-                    })
-                };
-            }
-            return module;
-        });
-        
-        setModules(updatedModules);
-        closeModal();
+    const handleAccessSettingsSave = async (lessonId, moduleId, settings) => {
+        try {
+            setSavingSettings(true);
+            
+            // Determine if mobile only based on platform setting
+            const ismobileOnly = settings.platform === 'phone';
+            
+            // Call the API to update mobile-only setting
+            const result = await dispatch(updateLessonMobileOnly({
+                lessonId,
+                ismobileOnly,
+                token
+            })).unwrap();
+            
+            // Update local state only after successful API call
+            const updatedModules = modules.map(module => {
+                if (module.id === moduleId || module._id === moduleId) {
+                    return {
+                        ...module,
+                        lessons: module.lessons.map(lesson => {
+                            if (lesson.id === lessonId || lesson._id === lessonId) {
+                                return {
+                                    ...lesson,
+                                    accessSettings: settings,
+                                    ismobileOnly // Update the mobile-only flag
+                                };
+                            }
+                            return lesson;
+                        })
+                    };
+                }
+                return module;
+            });
+            
+            setModules(updatedModules);
+            closeModal();
+            
+            // Optional: Show success message
+            console.log('Mobile-only setting updated successfully:', result);
+            
+        } catch (error) {
+            console.error('Failed to update mobile-only setting:', error);
+            // Optional: Show error message to user
+            alert('Failed to update lesson settings. Please try again.');
+        } finally {
+            setSavingSettings(false);
+        }
     };
 
     const handleDripSettings = (lessonId, moduleId) => {
@@ -89,14 +116,14 @@ const CourseAccordion = ({ courseId }) => {
         const lesson = module?.lessons?.find(l => (l.id === lessonId || l._id === lessonId));
         
         // Set the drip modal data to open the popup
-       setDripModalData({
-    lessonId,
-    moduleId,
-    lesson,
-    module,
-    targetType: 'lesson', // Add target type
-    targetId: lessonId    // Add target ID
-});
+        setDripModalData({
+            lessonId,
+            moduleId,
+            lesson,
+            module,
+            targetType: 'lesson', // Add target type
+            targetId: lessonId    // Add target ID
+        });
     };
 
     const closeDripModal = () => {
@@ -301,7 +328,7 @@ const CourseAccordion = ({ courseId }) => {
                                                             {lesson.duration}min
                                                         </span>
                                                     )}
-                                                    {lesson.accessSettings?.platform === 'phone' && (
+                                                    {(lesson.ismobileOnly || lesson.accessSettings?.platform === 'phone') && (
                                                         <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
                                                             Mobile Only
                                                         </span>
@@ -379,6 +406,7 @@ const CourseAccordion = ({ courseId }) => {
                                 <button
                                     onClick={closeModal}
                                     className="p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                                    disabled={savingSettings}
                                 >
                                     <X className="w-5 h-5 text-gray-500" />
                                 </button>
@@ -401,8 +429,9 @@ const CourseAccordion = ({ courseId }) => {
                                                     id="phone-only" 
                                                     name="access-type" 
                                                     value="phone"
-                                                    defaultChecked={modalData.lesson.accessSettings?.platform === 'phone'}
+                                                    defaultChecked={modalData.lesson.ismobileOnly || modalData.lesson.accessSettings?.platform === 'phone'}
                                                     className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                                    disabled={savingSettings}
                                                 />
                                                 <label htmlFor="phone-only" className="ml-3 flex-1 cursor-pointer">
                                                     <div className="font-medium text-gray-900">Phone Only</div>
@@ -416,8 +445,9 @@ const CourseAccordion = ({ courseId }) => {
                                                     id="both-platforms" 
                                                     name="access-type" 
                                                     value="both"
-                                                    defaultChecked={!modalData.lesson.accessSettings?.platform || modalData.lesson.accessSettings?.platform === 'both'}
+                                                    defaultChecked={!modalData.lesson.ismobileOnly && (!modalData.lesson.accessSettings?.platform || modalData.lesson.accessSettings?.platform === 'both')}
                                                     className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                                    disabled={savingSettings}
                                                 />
                                                 <label htmlFor="both-platforms" className="ml-3 flex-1 cursor-pointer">
                                                     <div className="font-medium text-gray-900">Web & App Both</div>
@@ -433,6 +463,7 @@ const CourseAccordion = ({ courseId }) => {
                                 <button
                                     onClick={closeModal}
                                     className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+                                    disabled={savingSettings}
                                 >
                                     Cancel
                                 </button>
@@ -446,9 +477,11 @@ const CourseAccordion = ({ courseId }) => {
                                             { platform }
                                         );
                                     }}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={savingSettings}
                                 >
-                                    Save Settings
+                                    {savingSettings && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    <span>{savingSettings ? 'Saving...' : 'Save Settings'}</span>
                                 </button>
                             </div>
                         </div>
@@ -480,16 +513,16 @@ const CourseAccordion = ({ courseId }) => {
                             </div>
                             
                             <DripPopup
-    onSubmit={handleDripSubmit}
-    onClose={closeDripModal}
-    initialData={{
-        ...dripModalData.lesson?.dripSettings,
-        targetType: dripModalData.targetType,
-        targetId: dripModalData.targetId
-    }}
-    targetType={dripModalData.targetType}
-    targetId={dripModalData.targetId}
-/>
+                                onSubmit={handleDripSubmit}
+                                onClose={closeDripModal}
+                                initialData={{
+                                    ...dripModalData.lesson?.dripSettings,
+                                    targetType: dripModalData.targetType,
+                                    targetId: dripModalData.targetId
+                                }}
+                                targetType={dripModalData.targetType}
+                                targetId={dripModalData.targetId}
+                            />
                         </div>
                     </div>
                 </div>

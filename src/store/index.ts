@@ -12,6 +12,7 @@ import CourseBundle from './slices/courseBundle';
 import quiz from './slices/quiz';
 import file from './slices/files';
 import drip from './slices/drip'
+import vedio from './slices/vedio';
 
 
 
@@ -28,6 +29,7 @@ export const store = configureStore({
     courseBundle: CourseBundle,
     quiz: quiz,
     drip:drip,
+    vedio: vedio,
     file: file,
   },
   middleware: (getDefaultMiddleware) =>

@@ -89,24 +89,37 @@ export const updateLessonMobileOnly = createAsyncThunk(
 );
 
 const lessonSlice = createSlice({
-  name: "lesson",
-  initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(createLesson.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(createLesson.fulfilled, (state, action) => {
-        state.loading = false;
-        state.data = action.payload;
-      })
-      .addCase(createLesson.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
-  },
+    name: 'lesson',
+    initialState,
+    reducers: {},
+    extraReducers: (builder) => {
+        builder
+            .addCase(createLesson.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createLesson.fulfilled, (state, action) => {
+                state.loading = false;
+                state.data = action.payload;
+            })
+            .addCase(createLesson.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(updateLessonMobileOnly.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateLessonMobileOnly.fulfilled, (state, action) => {
+                state.loading = false;
+                // Assuming the payload contains the updated lesson data
+                state.data = { ...state.data, ...action.payload };
+            })
+            .addCase(updateLessonMobileOnly.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            });
+    },
 });
 
 export default lessonSlice.reducer;
