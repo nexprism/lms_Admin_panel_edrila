@@ -93,6 +93,31 @@ export const updateCourse = createAsyncThunk(
   }
 );
 
+
+
+export const fetchCourseAttachments = createAsyncThunk(
+  "course/fetchCourseAttachments",
+  async (
+    { courseId, type }: { courseId: string; type: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axiosInstance.get(
+        `/courses/${courseId}/attachments`,
+        {
+          params: { type },
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data?.data || [];
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 const courseSlice = createSlice({
   name: "course",
   initialState,
@@ -134,7 +159,37 @@ const courseSlice = createSlice({
       .addCase(fetchCourseById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(updateCourse.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateCourse.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
+      })
+      .addCase(updateCourse.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchCourseAttachments.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCourseAttachments.fulfilled, (state, action) => {
+        state.loading = false;
+        // Assuming you want to store attachments in the data field
+        if (state.data) {
+          state.data.attachments = action.payload;
+        } else {
+          state.data = { attachments: action.payload };
+        }
+      })
+      .addCase(fetchCourseAttachments.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
+      
   },
 });
 
