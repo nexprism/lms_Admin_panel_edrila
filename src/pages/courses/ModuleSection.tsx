@@ -19,6 +19,7 @@ import Files from './components/Files';
 import TextLesson from './components/TextLesson';
 import Quiz from './components/Quiz';
 import Assignment from './components/Assignment';
+import VedioLesson from './components/VideoLesson';
 
 
 
@@ -312,6 +313,7 @@ const LessonEditor = ({ lesson, moduleId, section, courseId,courseData, onChange
     const hasExistingContent = !!contentId;
 
     const lessonTypeConfig = {
+        "video-lesson": { icon: Play, label: 'video-lesson', color: 'text-red-500 bg-red-50 border-red-200' },
         video: { icon: Play, label: 'File', color: 'text-red-500 bg-red-50 border-red-200' },
         text: { icon: FileText, label: 'Text Lesson', color: 'text-blue-500 bg-blue-50 border-blue-200' },
         quiz: { icon: HelpCircle, label: 'Quiz', color: 'text-green-500 bg-green-50 border-green-200' },
@@ -381,8 +383,7 @@ const LessonEditor = ({ lesson, moduleId, section, courseId,courseData, onChange
 
 
     const renderContentModal = () => {
-        console.log('Rendering content modal for lesson type:', section, lesson, courseId);
-        
+        // Common props for all content editors
         const commonProps = {
             sectionId: section || courseId,
             lesson: { ...lesson, _id: savedLessonId },
@@ -390,108 +391,128 @@ const LessonEditor = ({ lesson, moduleId, section, courseId,courseData, onChange
             courseId: courseId || section,
             lessonId: savedLessonId,
             moduleId: moduleId,
-            // Pass the specific content ID based on lesson type
             contentId: contentId,
-            isEdit: hasExistingContent, // Boolean flag to indicate edit mode
+            isEdit: hasExistingContent,
         };
 
-        console.log('hjkl;',lesson.quiz?._id || lesson.quizId)
-        // Add type-specific props
         switch (lesson.type) {
             case 'quiz': {
-            // Find the quiz object for this lesson from courseData if not present
-            let quizData = lesson.quiz;
-            let quizId = lesson.quiz?._id || lesson.quizId;
-            if (!quizData && courseData?.modules) {
-                for (const mod of courseData.modules) {
-                if (mod.lessons) {
-                    for (const l of mod.lessons) {
-                    if (l._id === lesson._id && l.quiz) {
-                        quizData = l.quiz;
-                        quizId = l.quiz._id;
-                    }
+                // Find quiz data and id
+                let quizData = lesson.quiz;
+                let quizId = lesson.quiz?._id || lesson.quizId;
+                if (!quizData && courseData?.modules) {
+                    for (const mod of courseData.modules) {
+                        if (mod.lessons) {
+                            for (const l of mod.lessons) {
+                                if (l._id === lesson._id && l.quiz) {
+                                    quizData = l.quiz;
+                                    quizId = l.quiz._id;
+                                }
+                            }
+                        }
                     }
                 }
-                }
-            }
-            return (
-                <Quiz
-                {...commonProps}
-                quizId={quizId}
-                quizData={quizData}
-                />
-            );
+                return (
+                    <Quiz
+                        {...commonProps}
+                        quizId={quizId}
+                        quizData={quizData}
+                    />
+                );
             }
             case 'assignment': {
-            let assignmentData = lesson.assignment;
-            let assignmentId = lesson.assignment?._id || lesson.assignmentId;
-            if (!assignmentData && courseData?.modules) {
-                for (const mod of courseData.modules) {
-                if (mod.lessons) {
-                    for (const l of mod.lessons) {
-                    if (l._id === lesson._id && l.assignment) {
-                        assignmentData = l.assignment;
-                        assignmentId = l.assignment._id;
-                    }
+                let assignmentData = lesson.assignment;
+                let assignmentId = lesson.assignment?._id || lesson.assignmentId;
+                if (!assignmentData && courseData?.modules) {
+                    for (const mod of courseData.modules) {
+                        if (mod.lessons) {
+                            for (const l of mod.lessons) {
+                                if (l._id === lesson._id && l.assignment) {
+                                    assignmentData = l.assignment;
+                                    assignmentId = l.assignment._id;
+                                }
+                            }
+                        }
                     }
                 }
-                }
-            }
-            return (
-                <Assignment
-                {...commonProps}
-                assignmentId={assignmentId}
-                fileId={lesson.fileId}
-                assignmentData={assignmentData}
-                />
-            );
+                return (
+                    <Assignment
+                        {...commonProps}
+                        assignmentId={assignmentId}
+                        fileId={lesson.fileId}
+                        assignmentData={assignmentData}
+                    />
+                );
             }
             case 'text': {
-            let textData = lesson.textLessons;
-            let textLessonId = lesson.textLessons?._id || lesson.textLessonId;
-            if (!textData && courseData?.modules) {
-                for (const mod of courseData.modules) {
-                if (mod.lessons) {
-                    for (const l of mod.lessons) {
-                    if (l._id === lesson._id && l.textLessons) {
-                        textData = l.textLessons;
-                        textLessonId = l.textLessons?.[0]?._id;
-                    }
+                let textData = lesson.textContent;
+                let textLessonId = lesson.textContent?._id || lesson.textLessonId;
+                if (!textData && courseData?.modules) {
+                    for (const mod of courseData.modules) {
+                        if (mod.lessons) {
+                            for (const l of mod.lessons) {
+                                if (l._id === lesson._id && l.textContent) {
+                                    textData = l.textContent;
+                                    textLessonId = l.textContent._id;
+                                }
+                            }
+                        }
                     }
                 }
-                }
+                return (
+                    <TextLesson
+                        {...commonProps}
+                        textLessonId={textLessonId}
+                        textData={textData}
+                    />
+                );
             }
-            return (
-                <TextLesson
-                {...commonProps}
-                textLessonId={textLessonId}
-                textData={textData}
-                />
-            );
+            case 'video-lesson': {
+                let videoLessonData = lesson.videoLesson;
+                let videoLessonId = lesson.videoLesson?._id || lesson.videoLessonId;
+                if (!videoLessonData && courseData?.modules) {
+                    for (const mod of courseData.modules) {
+                        if (mod.lessons) {
+                            for (const l of mod.lessons) {
+                                if (l._id === lesson._id && l.videoLesson) {
+                                    videoLessonData = l.videoLesson;
+                                    videoLessonId = l.videoLesson._id;
+                                }
+                            }
+                        }
+                    }
+                }
+                return (
+                    <VedioLesson
+                        {...commonProps}
+                        fileId={videoLessonId}
+                        videoData={videoLessonData}
+                    />
+                );
             }
             case 'video':
             default: {
-            let videoData = lesson.video;
-            let fileId = lesson.video?._id || lesson.fileId;
-            if (!videoData && courseData?.modules) {
-                for (const mod of courseData.modules) {
-                if (mod.lessons) {
-                    for (const l of mod.lessons) {
-                    if (l._id === lesson._id && l.video) {
-                        videoData = l.video;
-                        fileId = l.video._id;
-                    }
+                let videoData = lesson.video;
+                let fileId = lesson.video?._id || lesson.fileId;
+                if (!videoData && courseData?.modules) {
+                    for (const mod of courseData.modules) {
+                        if (mod.lessons) {
+                            for (const l of mod.lessons) {
+                                if (l._id === lesson._id && l.video) {
+                                    videoData = l.video;
+                                    fileId = l.video._id;
+                                }
+                            }
+                        }
                     }
                 }
-                }
-            }
-            return (
-                <Files
-                {...commonProps}
-                fileId={fileId}
-                videoData={videoData}
-                />
-            );
+                return (
+                    <Files
+                        {...commonProps}
+                        fileId={fileId}
+                        videoData={videoData}
+                    />
+                );
             }
         }
     };
@@ -640,6 +661,7 @@ const LessonEditor = ({ lesson, moduleId, section, courseId,courseData, onChange
                                     onChange={e => onChange({ ...lesson, type: e.target.value })}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
                                 >
+                                    <option value="video-lesson">🎬 Video Lesson</option>
                                     <option value="video">📹 File</option>
                                     <option value="text">📄 Text Lesson</option>
                                     <option value="quiz">❓ Quiz</option>
