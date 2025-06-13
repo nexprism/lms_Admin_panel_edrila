@@ -871,7 +871,7 @@ const LessonEditor = ({
             >
               Cancel
             </button>
-            <button
+            {/* <button
               onClick={() => {
                 // Save content logic here
                 setShowContentModal(false);
@@ -883,7 +883,7 @@ const LessonEditor = ({
               }`}
             >
               {hasExistingContent ? "Update Content" : "Save Content"}
-            </button>
+            </button> */}
           </div>
         </div>
       </Modal>

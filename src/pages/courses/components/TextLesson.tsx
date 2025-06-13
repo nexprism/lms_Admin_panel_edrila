@@ -174,7 +174,7 @@ const TextLessonEditor = ({
 
       apiFormData.append("language", formData.language);
       apiFormData.append("title", formData.title);
-      apiFormData.append("bookTitle", formData.bookTitle);
+      apiFormData.append("subTitle", formData.bookTitle);
       apiFormData.append("accessibility", formData.accessibility);
       apiFormData.append("summary", formData.summary);
       apiFormData.append("content", formData.content);
@@ -350,7 +350,7 @@ const TextLessonEditor = ({
           {/* Book Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Book Title
+              Sub Title
             </label>
             <input
               type="text"
