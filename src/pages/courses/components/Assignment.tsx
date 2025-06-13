@@ -1,8 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { BookOpen, FileText, Upload, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { createAssignment, updateAssignment, fetchAssignmentById } from '../../../store/slices/assignment';
-import PopupAlert from '../../../components/popUpAlert';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  BookOpen,
+  FileText,
+  Upload,
+  X,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import {
+  createAssignment,
+  updateAssignment,
+  fetchAssignmentById,
+} from "../../../store/slices/assignment";
+import PopupAlert from "../../../components/popUpAlert";
 
 interface AddAssignmentFormProps {
   courseId: string;
@@ -20,31 +32,54 @@ export default function AddAssignmentForm({
   onSaveSuccess,
 }: AddAssignmentFormProps) {
   const dispatch = useDispatch();
-  const { loading, error, data } = useSelector((state: any) => state.assignment);
-
+  const { loading, error, data } = useSelector(
+    (state: any) => state.assignment
+  );
+  console.log("assignmentId", assignmentId);
   const [formData, setFormData] = useState({
-    title: '',
-    subject: '',
-    language: 'English',
-    description: '',
-    score: '',
-    maxScore: '',
-    duration: '',
-    materials: '',
+    title: "",
+    subject: "",
+    language: "English",
+    description: "",
+    score: "",
+    maxScore: "",
+    duration: "",
+    materials: "",
     file: null as File | null,
     document: null as File | null,
   });
 
-  const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
+  const [popup, setPopup] = useState({
+    isVisible: false,
+    message: "",
+    type: "",
+  });
   const [isEditMode, setIsEditMode] = useState(false);
 
   // Fetch assignment if editing
+  const getData = async () => {
+    const response = await dispatch(fetchAssignmentById(assignmentId) as any);
+    console.log("Fetched assignment data: -------------", response);
+
+    const data = response.payload.data;
+    setFormData({
+      title: data.title || "",
+      subject: data.subject || "",
+      language: data.language || "English",
+      description: data.description || "",
+      score: data.score?.toString() || "",
+      maxScore: data.maxScore?.toString() || "",
+      duration: data.duration?.toString() || "",
+      materials: data.materials || "",
+      file: data.attachmentFile || null,
+      document: data.documentFile || null,
+    });
+  };
   useEffect(() => {
     if (assignmentId) {
       setIsEditMode(true);
-      // You may want to create a fetchAssignmentById thunk for a single assignment
-      // For now, let's assume fetchAssignments returns all and you filter below
-      dispatch(fetchAssignmentById(assignmentId) as any);
+      console.log(`Fetching assignment with ID: ${assignmentId}`);
+      getData();
     } else {
       setIsEditMode(false);
     }
@@ -54,16 +89,17 @@ export default function AddAssignmentForm({
   useEffect(() => {
     if (isEditMode && data && Array.isArray(data)) {
       const assignment = data.find((a: any) => a._id === assignmentId);
+      console.log("Fetched assignment data:", assignment);
       if (assignment) {
         setFormData({
-          title: assignment.title || '',
-          subject: assignment.subject || '',
-          language: assignment.language || 'English',
-          description: assignment.description || '',
-          score: assignment.score?.toString() || '',
-          maxScore: assignment.maxScore?.toString() || '',
-          duration: assignment.duration?.toString() || '',
-          materials: assignment.materials || '',
+          title: assignment.title || "",
+          subject: assignment.subject || "",
+          language: assignment.language || "English",
+          description: assignment.description || "",
+          score: assignment.score?.toString() || "",
+          maxScore: assignment.maxScore?.toString() || "",
+          duration: assignment.duration?.toString() || "",
+          materials: assignment.materials || "",
           file: null,
           document: null,
         });
@@ -71,26 +107,33 @@ export default function AddAssignmentForm({
     }
   }, [isEditMode, data, assignmentId]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'file' | 'document') => {
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "file" | "document"
+  ) => {
     const file = e.target.files?.[0] || null;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [type]: file
+      [type]: file,
     }));
   };
 
-  const removeFile = (type: 'file' | 'document') => {
-    setFormData(prev => ({
+  const removeFile = (type: "file" | "document") => {
+    setFormData((prev) => ({
       ...prev,
-      [type]: null
+      [type]: null,
     }));
   };
 
@@ -98,23 +141,26 @@ export default function AddAssignmentForm({
     e.preventDefault();
 
     const apiFormData = new FormData();
-    apiFormData.append('courseId', courseId);
-    apiFormData.append('lessonId', lessonId);
-    apiFormData.append('title', formData.title);
-    apiFormData.append('subject', formData.subject);
-    apiFormData.append('language', formData.language);
-    apiFormData.append('description', formData.description);
-    if (formData.score) apiFormData.append('score', formData.score);
-    if (formData.maxScore) apiFormData.append('maxScore', formData.maxScore);
-    if (formData.duration) apiFormData.append('duration', formData.duration);
-    if (formData.materials) apiFormData.append('materials', formData.materials);
-    if (formData.file) apiFormData.append('attachmentFile', formData.file);
-    if (formData.document) apiFormData.append('documentFile', formData.document);
+    apiFormData.append("courseId", courseId);
+    apiFormData.append("lessonId", lessonId);
+    apiFormData.append("title", formData.title);
+    apiFormData.append("subject", formData.subject);
+    apiFormData.append("language", formData.language);
+    apiFormData.append("description", formData.description);
+    if (formData.score) apiFormData.append("score", formData.score);
+    if (formData.maxScore) apiFormData.append("maxScore", formData.maxScore);
+    if (formData.duration) apiFormData.append("duration", formData.duration);
+    if (formData.materials) apiFormData.append("materials", formData.materials);
+    if (formData.file) apiFormData.append("attachmentFile", formData.file);
+    if (formData.document)
+      apiFormData.append("documentFile", formData.document);
 
     try {
       let result;
       if (isEditMode && assignmentId) {
-        result = await dispatch(updateAssignment({ id: assignmentId, formData: apiFormData }) as any);
+        result = await dispatch(
+          updateAssignment({ id: assignmentId, formData: apiFormData }) as any
+        );
       } else {
         result = await dispatch(createAssignment(apiFormData) as any);
       }
@@ -124,32 +170,36 @@ export default function AddAssignmentForm({
       ) {
         setPopup({
           isVisible: true,
-          message: `Assignment ${isEditMode ? 'updated' : 'created'} successfully!`,
-          type: 'success'
+          message: `Assignment ${
+            isEditMode ? "updated" : "created"
+          } successfully!`,
+          type: "success",
         });
         setFormData({
-          title: '',
-          subject: '',
-          language: 'English',
-          description: '',
-          score: '',
-          maxScore: '',
-          duration: '',
-          materials: '',
+          title: "",
+          subject: "",
+          language: "English",
+          description: "",
+          score: "",
+          maxScore: "",
+          duration: "",
+          materials: "",
           file: null,
-          document: null
+          document: null,
         });
         if (onSaveSuccess) onSaveSuccess(result.payload);
         setTimeout(() => {
-          setPopup({ isVisible: false, message: '', type: '' });
+          setPopup({ isVisible: false, message: "", type: "" });
           if (onClose) onClose();
         }, 1500);
       }
     } catch (err) {
       setPopup({
         isVisible: true,
-        message: `Failed to ${isEditMode ? 'update' : 'create'} Assignment. Please try again.`,
-        type: 'error'
+        message: `Failed to ${
+          isEditMode ? "update" : "create"
+        } Assignment. Please try again.`,
+        type: "error",
       });
     }
   };
@@ -171,13 +221,18 @@ export default function AddAssignmentForm({
             </div>
             <div>
               <h1 className="text-2xl font-bold">Assignments</h1>
-              <p className="text-blue-100">{isEditMode ? 'Edit Assignment' : 'Add New Assignment'}</p>
+              <p className="text-blue-100">
+                {isEditMode ? "Edit Assignment" : "Add New Assignment"}
+              </p>
             </div>
           </div>
         </div>
         {/* Form */}
-        <form className="bg-white rounded-b-lg shadow-lg p-6" onSubmit={handleSubmit}>
-            <div className="space-y-6">
+        <form
+          className="bg-white rounded-b-lg shadow-lg p-6"
+          onSubmit={handleSubmit}
+        >
+          <div className="space-y-6">
             {/* Assignment Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -334,15 +389,16 @@ export default function AddAssignmentForm({
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
                   {formData.file ? (
                     <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-800">
-                          {formData.file.name}
-                        </span>
-                      </div>
+                      <a
+                        href={"http://localhost:5000/" + formData.file}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {formData.file.name || formData.file}
+                      </a>
                       <button
                         type="button"
-                        onClick={() => removeFile('file')}
+                        onClick={() => removeFile("file")}
                         className="text-red-500 hover:text-red-700"
                         disabled={loading}
                       >
@@ -352,17 +408,21 @@ export default function AddAssignmentForm({
                   ) : (
                     <div>
                       <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600 mb-2">Choose an attachment</p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        Choose an attachment
+                      </p>
                       <input
                         type="file"
-                        onChange={(e) => handleFileChange(e, 'file')}
+                        onChange={(e) => handleFileChange(e, "file")}
                         className="hidden"
                         id="file-upload"
                         disabled={loading}
                       />
                       <label
                         htmlFor="file-upload"
-                        className={`inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors ${
+                          loading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                       >
                         Browse Files
                       </label>
@@ -379,15 +439,22 @@ export default function AddAssignmentForm({
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-400 transition-colors">
                   {formData.document ? (
                     <div className="flex items-center justify-between bg-green-50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-green-600" />
-                        <span className="text-sm font-medium text-green-800">
-                          {formData.document.name}
-                        </span>
-                      </div>
+                      <a
+                        href={"http://localhost:5000/" + formData.document}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-5 h-5 text-green-600" />
+                          <span className="text-sm font-medium text-green-800">
+                            {formData.document.name || formData.document}
+                          </span>
+                        </div>
+                      </a>
+
                       <button
                         type="button"
-                        onClick={() => removeFile('document')}
+                        onClick={() => removeFile("document")}
                         className="text-red-500 hover:text-red-700"
                         disabled={loading}
                       >
@@ -397,10 +464,12 @@ export default function AddAssignmentForm({
                   ) : (
                     <div>
                       <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600 mb-2">Upload document</p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        Upload document
+                      </p>
                       <input
                         type="file"
-                        onChange={(e) => handleFileChange(e, 'document')}
+                        onChange={(e) => handleFileChange(e, "document")}
                         className="hidden"
                         id="document-upload"
                         accept=".pdf,.doc,.docx,.txt"
@@ -408,7 +477,9 @@ export default function AddAssignmentForm({
                       />
                       <label
                         htmlFor="document-upload"
-                        className={`inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer transition-colors ${
+                          loading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                       >
                         Browse Documents
                       </label>
@@ -424,17 +495,17 @@ export default function AddAssignmentForm({
               onClick={handleSubmit}
               disabled={loading}
               className={`px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all font-medium flex items-center gap-2 ${
-                loading ? 'opacity-50 cursor-not-allowed' : ''
+                loading ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {loading
                 ? isEditMode
-                  ? 'Updating...'
-                  : 'Saving...'
+                  ? "Updating..."
+                  : "Saving..."
                 : isEditMode
-                ? 'Update Assignment'
-                : 'Save Assignment'}
+                ? "Update Assignment"
+                : "Save Assignment"}
             </button>
             {onClose && (
               <button

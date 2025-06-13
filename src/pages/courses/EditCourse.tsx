@@ -257,7 +257,7 @@ useEffect(() => {
         const token = localStorage.getItem('token') || '';
         dispatch(fetchCourseById({ courseId, token }));
 
-    }
+    }   
 }, [courseId, dispatch, dataLoaded]);
 
 // Handle course data when it's loaded

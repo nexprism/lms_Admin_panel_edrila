@@ -67,6 +67,27 @@ export const fetchQuiz = createAsyncThunk(
     }
   }
 );
+export const fetchQuizById = createAsyncThunk(
+  "quiz/fetchQuiz",
+  async (quizId: string, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(
+        `http://localhost:5000/quiz/${quizId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            // Add Authorization header if needed
+            // 'Authorization': `Bearer ${token}`,
+          },
+          // withCredentials: true, // Uncomment if cookies are needed
+        }
+      );
+      return response.data;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 
 export const upadateQuiz = createAsyncThunk(
   "quiz/updateQuiz",
