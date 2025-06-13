@@ -86,7 +86,7 @@ export const fetchAssignmentById = createAsyncThunk(
         `http://localhost:5000/assignment/${id}`,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json",   
           },
         }
       );
