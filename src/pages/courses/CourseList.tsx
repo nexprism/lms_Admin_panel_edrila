@@ -96,7 +96,7 @@ const handleResetFilters = () => {
     setLimit(10);
 };
 
-const filteredCourses = courses.filter((course) => {
+const filteredCourses = courses?.filter((course) => {
     const matchesSearch =
         !searchInput ||
         course.title.toLowerCase().includes(searchInput.toLowerCase());

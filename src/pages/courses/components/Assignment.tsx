@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { BookOpen, FileText, Upload, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { createAssignment, updateAssignment, fetchAssignments } from '../../../store/slices/assignment';
+import { createAssignment, updateAssignment, fetchAssignmentById } from '../../../store/slices/assignment';
 import PopupAlert from '../../../components/popUpAlert';
 
 interface AddAssignmentFormProps {
@@ -44,7 +44,7 @@ export default function AddAssignmentForm({
       setIsEditMode(true);
       // You may want to create a fetchAssignmentById thunk for a single assignment
       // For now, let's assume fetchAssignments returns all and you filter below
-      dispatch(fetchAssignments() as any);
+      dispatch(fetchAssignmentById(assignmentId) as any);
     } else {
       setIsEditMode(false);
     }
@@ -421,6 +421,7 @@ export default function AddAssignmentForm({
           <div className="flex justify-end pt-6 border-t">
             <button
               type="submit"
+              onClick={handleSubmit}
               disabled={loading}
               className={`px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all font-medium flex items-center gap-2 ${
                 loading ? 'opacity-50 cursor-not-allowed' : ''

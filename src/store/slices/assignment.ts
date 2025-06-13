@@ -77,6 +77,27 @@ export const updateAssignment = createAsyncThunk(
   }
 );
 
+
+export const fetchAssignmentById = createAsyncThunk(
+  "assignment/fetchAssignmentById",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(
+        `http://localhost:5000/assignment/${id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
+    } catch (err: any) {
+      console.log("Error fetching assignment by id:", err?.message);
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
 const assignmentSlice = createSlice({
   name: "assignment",
   initialState,
@@ -116,6 +137,18 @@ const assignmentSlice = createSlice({
         state.data = action.payload;
       })
       .addCase(updateAssignment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchAssignmentById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAssignmentById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
+      })
+      .addCase(fetchAssignmentById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
