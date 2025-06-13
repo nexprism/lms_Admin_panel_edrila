@@ -11,6 +11,7 @@ import textLesson from './slices/textLesson';
 import CourseBundle from './slices/courseBundle';
 import quiz from './slices/quiz';
 import file from './slices/files';
+import drip from './slices/drip'
 
 
 
@@ -26,6 +27,7 @@ export const store = configureStore({
     textLesson: textLesson,
     courseBundle: CourseBundle,
     quiz: quiz,
+    drip:drip,
     file: file,
   },
   middleware: (getDefaultMiddleware) =>

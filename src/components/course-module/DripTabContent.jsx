@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChevronDown, ChevronRight, Eye, Zap, Settings, X, Loader2, AlertCircle, BookOpen, Play, FileText, HelpCircle, ClipboardList, Clock, Users } from 'lucide-react';
 import { fetchCourseById } from '../../store/slices/course';
+import DripPopup from './DripPopup'; 
+
 
 const CourseAccordion = ({ courseId }) => {
     const dispatch = useDispatch();
@@ -10,6 +12,7 @@ const CourseAccordion = ({ courseId }) => {
     const [expandedModules, setExpandedModules] = useState(new Set());
     const [modalData, setModalData] = useState(null);
     const [modules, setModules] = useState([]);
+    const [dripModalData, setDripModalData] = useState(null); // Add state for drip modal
 
     // Fetch course data when component mounts or courseId changes
     useEffect(() => {
@@ -81,7 +84,30 @@ const CourseAccordion = ({ courseId }) => {
 
     const handleDripSettings = (lessonId, moduleId) => {
         console.log('Drip settings for lesson:', lessonId, 'in module:', moduleId);
-        // Implement drip settings logic
+        // Find the lesson and module data
+        const module = modules.find(m => (m.id === moduleId || m._id === moduleId));
+        const lesson = module?.lessons?.find(l => (l.id === lessonId || l._id === lessonId));
+        
+        // Set the drip modal data to open the popup
+       setDripModalData({
+    lessonId,
+    moduleId,
+    lesson,
+    module,
+    targetType: 'lesson', // Add target type
+    targetId: lessonId    // Add target ID
+});
+    };
+
+    const closeDripModal = () => {
+        setDripModalData(null);
+    };
+
+    const handleDripSubmit = (dripSettings) => {
+        console.log('Saving drip settings:', dripSettings);
+        // Here you would typically make an API call to save the drip settings
+        // For now, just close the modal
+        closeDripModal();
     };
 
     const handleLessonSettings = (lessonId, moduleId) => {
@@ -425,6 +451,45 @@ const CourseAccordion = ({ courseId }) => {
                                     Save Settings
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Drip Settings Modal */}
+            {dripModalData && (
+                <div 
+                    className="fixed inset-0 bg-black/20 backdrop-blur-[2px] bg-opacity-50 flex items-center justify-center z-[10000] p-4"
+                    onClick={closeDripModal}
+                >
+                    <div 
+                        className="bg-white rounded-lg shadow-2xl max-w-5xl w-full transform transition-all duration-300 scale-100"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xl font-bold text-gray-900">
+                                    Drip Settings - {dripModalData.lesson?.title || dripModalData.lesson?.name}
+                                </h3>
+                                <button
+                                    onClick={closeDripModal}
+                                    className="p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                                >
+                                    <X className="w-5 h-5 text-gray-500" />
+                                </button>
+                            </div>
+                            
+                            <DripPopup
+    onSubmit={handleDripSubmit}
+    onClose={closeDripModal}
+    initialData={{
+        ...dripModalData.lesson?.dripSettings,
+        targetType: dripModalData.targetType,
+        targetId: dripModalData.targetId
+    }}
+    targetType={dripModalData.targetType}
+    targetId={dripModalData.targetId}
+/>
                         </div>
                     </div>
                 </div>
