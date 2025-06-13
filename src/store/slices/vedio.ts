@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
+import axiosInstance from '../../services/axiosConfig';
 
 interface VideoState {
     loading: boolean;
@@ -22,6 +23,7 @@ export const uploadVideo = createAsyncThunk(
             sourcePlatform,
             title,
             description,
+            youtubeUrl = '',
             accessToken,
             refreshToken,
         }: {
@@ -30,27 +32,57 @@ export const uploadVideo = createAsyncThunk(
             sourcePlatform: string;
             title: string;
             description: string;
+            youtubeUrl?: string;
             accessToken: string;
             refreshToken: string;
         },
-        { rejectWithValue }
+        { rejectWithValue, signal }
     ) => {
         try {
             const formData = new FormData();
-            formData.append('video', file);
+            if (file) {
+                formData.append('video', file);
+            }
             formData.append('lessonId', lessonId);
             formData.append('sourcePlatform', sourcePlatform);
             formData.append('title', title);
             formData.append('description', description);
+            if (youtubeUrl) {
+                formData.append('embedUrl', youtubeUrl);
+            }
 
-            const response = await axios.post('http://localhost:5000/video/', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            const response = await axiosInstance.post(
+                'http://localhost:5000/video/',
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                    // Increase timeout for video uploads (10 minutes)
+                    timeout: 600000, // 10 minutes in milliseconds
+                    
+                    // Handle upload progress
+                    onUploadProgress: (progressEvent) => {
+                        const percentCompleted = Math.round(
+                            (progressEvent.loaded * 100) / (progressEvent.total || 1)
+                        );
+                        console.log(`Upload Progress: ${percentCompleted}%`);
+                    },
+                    
+                    // Pass the abort signal from Redux Toolkit
+                    signal: signal,
+                }
+            );
 
             return response.data;
         } catch (error: any) {
+            // Handle different types of errors
+            if (error.code === 'ECONNABORTED') {
+                return rejectWithValue('Upload timeout - please try again');
+            }
+            if (error.name === 'AbortError') {
+                return rejectWithValue('Upload was cancelled');
+            }
             return rejectWithValue(error.response?.data || error.message);
         }
     }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { UploadCloud, FileVideo, Loader2, CheckCircle2, X, Trash2, Edit2 } from 'lucide-react';
+import { UploadCloud, FileVideo, Loader2, CheckCircle2, X, Trash2, Edit2, Link } from 'lucide-react';
 import { uploadVideo, fetchVideo, updateVideo } from '../../../store/slices/vedio';
 import PopupAlert from '../../../components/popUpAlert';
 
@@ -43,6 +43,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({ lessonId, videoId, onClose, o
         secureUrl: '',
         embedUrl: '',
         originalUrl: '',
+        youtubeUrl: '', // Added YouTube URL field
     });
     const [isEditMode, setIsEditMode] = useState(false);
     const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
@@ -65,6 +66,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({ lessonId, videoId, onClose, o
                 secureUrl: data.secureUrl || '',
                 embedUrl: data.embedUrl || '',
                 originalUrl: data.originalUrl || '',
+                youtubeUrl: data.youtubeUrl || data.originalUrl || '', // Use existing URL data
             });
         }
     }, [data, isEditMode, loading, error]);
@@ -97,6 +99,12 @@ const VideoLesson: React.FC<VideoLessonProps> = ({ lessonId, videoId, onClose, o
         }
     };
 
+    // Function to validate YouTube URL
+    const isValidYouTubeUrl = (url: string): boolean => {
+        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
+        return youtubeRegex.test(url);
+    };
+
     const handleSave = () => {
         if (!form.title.trim()) {
             setPopup({ isVisible: true, message: 'Please enter a video title.', type: 'error' });
@@ -106,7 +114,18 @@ const VideoLesson: React.FC<VideoLessonProps> = ({ lessonId, videoId, onClose, o
             setPopup({ isVisible: true, message: 'Please select a source platform.', type: 'error' });
             return;
         }
-        if (!isEditMode && !form.file) {
+
+        // Validation based on source platform
+        if (form.sourcePlatform === 'youtube') {
+            if (!form.youtubeUrl.trim()) {
+                setPopup({ isVisible: true, message: 'Please enter a YouTube URL.', type: 'error' });
+                return;
+            }
+            if (!isValidYouTubeUrl(form.youtubeUrl)) {
+                setPopup({ isVisible: true, message: 'Please enter a valid YouTube URL.', type: 'error' });
+                return;
+            }
+        } else if ((form.sourcePlatform === 'manual' || form.sourcePlatform === 'videocypher') && !isEditMode && !form.file) {
             setPopup({ isVisible: true, message: 'Please select a video file to upload.', type: 'error' });
             return;
         }
@@ -115,11 +134,12 @@ const VideoLesson: React.FC<VideoLessonProps> = ({ lessonId, videoId, onClose, o
             dispatch(
                 updateVideo({
                     videoId,
-                    file: form.file,
+                    file: form.sourcePlatform === 'youtube' ? null : form.file,
                     lessonId,
                     sourcePlatform: form.sourcePlatform,
                     title: form.title,
                     description: form.description,
+                    youtubeUrl: form.sourcePlatform === 'youtube' ? form.youtubeUrl : undefined,
                     accessToken: '',
                     refreshToken: '',
                 }) as any
@@ -127,11 +147,12 @@ const VideoLesson: React.FC<VideoLessonProps> = ({ lessonId, videoId, onClose, o
         } else {
             dispatch(
                 uploadVideo({
-                    file: form.file,
+                    file: form.sourcePlatform === 'youtube' ? null : form.file,
                     lessonId,
                     sourcePlatform: form.sourcePlatform,
                     title: form.title,
                     description: form.description,
+                    youtubeUrl: form.sourcePlatform === 'youtube' ? form.youtubeUrl : undefined,
                     accessToken: '',
                     refreshToken: '',
                 }) as any
@@ -142,6 +163,81 @@ const VideoLesson: React.FC<VideoLessonProps> = ({ lessonId, videoId, onClose, o
     const handleClose = () => {
         setPopup({ isVisible: false, message: '', type: '' });
         onClose();
+    };
+
+    // Helper function to render the appropriate input based on source platform
+    const renderSourceInput = () => {
+        if (form.sourcePlatform === 'youtube') {
+            return (
+                <div>
+                    <label className="block text-sm font-medium mb-2">YouTube URL *</label>
+                    <div className="relative">
+                        <input
+                            type="url"
+                            name="youtubeUrl"
+                            value={form.youtubeUrl}
+                            onChange={handleChange}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="https://www.youtube.com/watch?v=..."
+                            required
+                        />
+                        <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    </div>
+                    {form.youtubeUrl && !isValidYouTubeUrl(form.youtubeUrl) && (
+                        <p className="mt-1 text-sm text-red-600">
+                            Please enter a valid YouTube URL
+                        </p>
+                    )}
+                    {form.youtubeUrl && isValidYouTubeUrl(form.youtubeUrl) && (
+                        <p className="mt-1 text-sm text-green-600 flex items-center gap-1">
+                            <CheckCircle2 className="w-4 h-4" />
+                            Valid YouTube URL
+                        </p>
+                    )}
+                </div>
+            );
+        } else if ((form.sourcePlatform === 'manual' || form.sourcePlatform === 'videocypher') && !isEditMode) {
+            return (
+                <div>
+                    <label className="block text-sm font-medium mb-2">Video File *</label>
+                    <input
+                        type="file"
+                        name="file"
+                        accept="video/*"
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        required
+                    />
+                    {form.file && (
+                        <p className="mt-2 text-sm text-gray-600 flex items-center gap-1">
+                            <CheckCircle2 className="w-4 h-4 text-green-600" />
+                            Selected: {form.file.name}
+                        </p>
+                    )}
+                </div>
+            );
+        } else if (form.sourcePlatform === 'vimeo' || form.sourcePlatform === 'external_link') {
+            return (
+                <div>
+                    <label className="block text-sm font-medium mb-2">
+                        {form.sourcePlatform === 'vimeo' ? 'Vimeo URL' : 'External Link'} *
+                    </label>
+                    <div className="relative">
+                        <input
+                            type="url"
+                            name="originalUrl"
+                            value={form.originalUrl}
+                            onChange={handleChange}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder={form.sourcePlatform === 'vimeo' ? 'https://vimeo.com/...' : 'https://...'}
+                            required
+                        />
+                        <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    </div>
+                </div>
+            );
+        }
+        return null;
     };
 
     return (
@@ -196,24 +292,9 @@ const VideoLesson: React.FC<VideoLessonProps> = ({ lessonId, videoId, onClose, o
                         ))}
                     </select>
                 </div>
-                {!isEditMode && (
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Video File *</label>
-                        <input
-                            type="file"
-                            name="file"
-                            accept="video/*"
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                            required
-                        />
-                        {form.file && (
-                            <p className="mt-2 text-sm text-gray-600">
-                                Selected: {form.file.name}
-                            </p>
-                        )}
-                    </div>
-                )}
+                
+                {/* Conditional rendering based on source platform */}
+                {form.sourcePlatform && renderSourceInput()}
             </div>
             <div className="flex justify-end items-center gap-4 mt-8">
                 <button
@@ -239,8 +320,8 @@ const VideoLesson: React.FC<VideoLessonProps> = ({ lessonId, videoId, onClose, o
                         </>
                     ) : (
                         <>
-                            <UploadCloud className="w-5 h-5" />
-                            {isEditMode ? 'Update Video' : 'Upload Video'}
+                            {form.sourcePlatform === 'youtube' ? <Link className="w-5 h-5" /> : <UploadCloud className="w-5 h-5" />}
+                            {isEditMode ? 'Update Video' : (form.sourcePlatform === 'youtube' ? 'Save Video' : 'Upload Video')}
                         </>
                     )}
                 </button>

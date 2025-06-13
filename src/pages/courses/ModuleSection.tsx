@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createModule } from "../../store/slices/module";
 import { createLesson, deleteLesson } from "../../store/slices/lesson";
-import { RootState, AppDispatch } from "../../store";
+import { RootState, AppDispatch } from "../../hooks/redux";
 
 import {
   BookOpen,
@@ -54,6 +54,7 @@ import TextLesson from './components/TextLesson';
 import Quiz from './components/Quiz';
 import Assignment from './components/Assignment';
 import VedioLesson from './components/VideoLesson';
+import { useAppDispatch } from "../../hooks/redux";
 
 
 
@@ -386,6 +387,21 @@ const LessonEditor = ({
           }
         }
         return lesson._id || lesson.fileId || null;
+        case "video-lesson":
+        console.log("lesson.videoLesson", lesson.videoLesson);
+        if (lesson.videoLesson?._id) return lesson.videoLesson._id;
+        if (courseData?.modules) {
+          for (const mod of courseData.modules) {
+            if (mod.lessons) {
+              for (const l of mod.lessons) {
+                if (l._id === lesson._id && l.videoLesson?._id) {
+                  return l.videoLesson._id;
+                }
+              }
+            }
+          }
+        }
+        return lesson.videoLessonId || lesson.fileId || null;
       default:
         return null;
     }
