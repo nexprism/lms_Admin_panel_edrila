@@ -18,6 +18,9 @@ export const createTextLesson = createAsyncThunk(
   "textLesson/create",
   async (formData: FormData, { rejectWithValue }) => {
     try {
+      if (formData.has("lessonId")) {
+        formData.append("lesson", formData.get("lessonId") as string);
+      }
       const response = await axios.post(
         "http://localhost:5000/text-lesson",
         formData,

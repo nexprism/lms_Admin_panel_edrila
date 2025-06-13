@@ -47,6 +47,35 @@ export const createLesson = createAsyncThunk(
     }
 );
 
+
+export const updateLessonMobileOnly = createAsyncThunk(
+    'lesson/updateLessonMobileOnly',
+    async (
+        {
+            lessonId,
+            ismobileOnly,
+            token,
+        }: { lessonId: string; ismobileOnly: boolean; token: string },
+        { rejectWithValue }
+    ) => {
+        try {
+            const response = await axiosInstance.patch(
+                `http://localhost:5000/lesson/${lessonId}/mobile-only`,
+                { ismobileOnly },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
 const lessonSlice = createSlice({
     name: 'lesson',
     initialState,

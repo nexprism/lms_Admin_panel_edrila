@@ -447,15 +447,15 @@ const LessonEditor = ({ lesson, moduleId, section, courseId,courseData, onChange
             );
             }
             case 'text': {
-            let textData = lesson.textContent;
-            let textLessonId = lesson.textContent?._id || lesson.textLessonId;
+            let textData = lesson.textLessons;
+            let textLessonId = lesson.textLessons?._id || lesson.textLessonId;
             if (!textData && courseData?.modules) {
                 for (const mod of courseData.modules) {
                 if (mod.lessons) {
                     for (const l of mod.lessons) {
-                    if (l._id === lesson._id && l.textContent) {
-                        textData = l.textContent;
-                        textLessonId = l.textContent._id;
+                    if (l._id === lesson._id && l.textLessons) {
+                        textData = l.textLessons;
+                        textLessonId = l.textLessons?.[0]?._id;
                     }
                     }
                 }
