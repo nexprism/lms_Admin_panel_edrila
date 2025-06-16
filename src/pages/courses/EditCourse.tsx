@@ -653,7 +653,7 @@ const EditCourse = () => {
               </div>
               <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  {formData.thumbnail && (
+                  {(formData.thumbnail || thumbnailFile) && (
                     <div className="relative">
                       <div
                         onClick={() =>
@@ -675,7 +675,7 @@ const EditCourse = () => {
                   )}
                 </div>
                 <div>
-                  {formData.coverImage && (
+                  {(formData.coverImage || coverImageFile) && (
                     <div className="relative">
                       <div
                         onClick={() =>
@@ -697,7 +697,7 @@ const EditCourse = () => {
                   )}
                 </div>
                 <div>
-                  {formData.demoVideo && (
+                  {(formData.demoVideo || demoVideoFile) && (
                     <div className="relative">
                       <div
                         onClick={() =>
