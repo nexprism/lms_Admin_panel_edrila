@@ -373,14 +373,15 @@ const LessonEditor = ({
         }
         return lesson.textLessons || lesson.textLessons || null;
       case "video":
-        console.log("lesson.files", lesson.files);
-        if (lesson.files?._id) return lesson.files._id;
+        if (lesson.files?.[0]?._id) return lesson.files?.[0]._id;
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
               for (const l of mod.lessons) {
-                if (l._id === lesson._id && l.files?._id) {
-                  return l.files._id;
+                if (l._id === lesson?._id && l.files?._id) {
+                  return l.files?.[0]?._id;
+                } else {
+                  return null;
                 }
               }
             }
@@ -583,15 +584,15 @@ const LessonEditor = ({
         );
       }
       case "video-lesson": {
-        let videoLessonData = lesson.videoLesson;
-        let videoLessonId = lesson.videoLesson?._id || lesson.videoLessonId;
+        let videoLessonData = lesson.videoLessons;
+        let videoLessonId = lesson.videoLessons?._id || lesson.videoLessonId;
         if (!videoLessonData && courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
               for (const l of mod.lessons) {
-                if (l._id === lesson._id && l.videoLesson) {
-                  videoLessonData = l.videoLesson;
-                  videoLessonId = l.videoLesson._id;
+                if (l._id === lesson._id && l.videoLessons) {
+                  videoLessonData = l.videoLessons?.[0];
+                  videoLessonId = l.videoLessons?.[0]?._id;
                 }
               }
             }

@@ -6,33 +6,44 @@ import PopupAlert from '../../../components/popUpAlert';
 
 // Fixed interface to match your store structure
 interface RootState {
-    vedio: { // Changed from 'video' to 'vedio' to match your store
-        loading: boolean;
-        error: string | null;
-        data: any;
-    };
+  vedio: {
+    // Changed from 'video' to 'vedio' to match your store
+    loading: boolean;
+    error: string | null;
+    data: any;
+  };
 }
 
 type VideoLessonProps = {
-    lessonId: string;
-    videoId?: string;
-    onClose: () => void;
-    onSaveSuccess?: (data: any) => void;
+  lessonId: string;
+  videoId?: string;
+  onClose: () => void;
+  onSaveSuccess?: (data: any) => void;
 };
 
 const sourcePlatforms = [
-    { value: 'videocypher', label: 'Videocypher' },
-    { value: 'manual', label: 'Manual Upload' },
-    { value: 'youtube', label: 'YouTube' },
-    { value: 'vimeo', label: 'Vimeo' },
-    { value: 'external_link', label: 'External Link' },
+  { value: "videocypher", label: "Videocypher" },
+  { value: "manual", label: "Manual Upload" },
+  { value: "youtube", label: "YouTube" },
+  { value: "vimeo", label: "Vimeo" },
+  { value: "external_link", label: "External Link" },
 ];
 
-const VideoLesson: React.FC<VideoLessonProps> = ({ lessonId, videoId, onClose, onSaveSuccess }) => {
-    const dispatch = useDispatch();
-    
-    // Fixed selector to match store structure and destructure all needed values
-    const { data, loading, error } = useSelector((state: RootState) => state.vedio);
+const VideoLesson: React.FC<VideoLessonProps> = ({
+  lessonId,
+  videoId,
+  fileId,
+  onClose,
+  onSaveSuccess,
+}) => {
+  const dispatch = useDispatch();
+
+  // Fixed selector to match store structure and destructure all needed values
+  const { data, loading, error } = useSelector(
+    (state: RootState) => state.vedio
+  );
+
+  console.log("VideoLesson data:", fileId);
 
     const [form, setForm] = useState({
         title: '',
@@ -48,12 +59,36 @@ const VideoLesson: React.FC<VideoLessonProps> = ({ lessonId, videoId, onClose, o
     const [isEditMode, setIsEditMode] = useState(false);
     const [popup, setPopup] = useState({ isVisible: false, message: '', type: '' });
 
-    useEffect(() => {
-        if (videoId) {
-            setIsEditMode(true);
-            dispatch(fetchVideo({ videoId, accessToken: '', refreshToken: '' }) as any);
-        }
-    }, [videoId, dispatch]);
+  useEffect(() => {
+    if (videoId) {
+      setIsEditMode(true);
+      dispatch(
+        fetchVideo({ fileId, accessToken: "", refreshToken: "" }) as any
+      );
+    }
+  }, [videoId, dispatch]);
+
+  const getData = async () => {
+    setIsEditMode(true);
+    const response = await axiosInstance.get(`/video/${fileId}`);
+    const data = response.data.data;
+    setForm({
+      title: data.title || "",
+      description: data.description || "",
+      sourcePlatform: data.sourcePlatform || "",
+      file: null,
+      videoId: data.secureUrl || "",
+      secureUrl: data.secureUrl || "",
+      embedUrl: data.embedUrl || "",
+      originalUrl: data.originalUrl || "",
+    });
+    console.log("Fetched video data:", data);
+  };
+  useEffect(() => {
+    if (fileId) {
+      getData();
+    }
+  }, [fileId]);
 
     useEffect(() => {
         if (isEditMode && data && !loading && !error) {
@@ -71,24 +106,26 @@ const VideoLesson: React.FC<VideoLessonProps> = ({ lessonId, videoId, onClose, o
         }
     }, [data, isEditMode, loading, error]);
 
-    useEffect(() => {
-        if (!loading && (data || error)) {
-            if (data && !error) {
-                setPopup({
-                    isVisible: true,
-                    message: `Video ${isEditMode ? 'updated' : 'uploaded'} successfully!`,
-                    type: 'success',
-                });
-                if (onSaveSuccess) onSaveSuccess(data);
-            } else if (error) {
-                setPopup({
-                    isVisible: true,
-                    message: `Failed to ${isEditMode ? 'update' : 'upload'} video: ${error}`,
-                    type: 'error',
-                });
-            }
-        }
-    }, [data, error, loading, isEditMode, onSaveSuccess]);
+  useEffect(() => {
+    if (!loading && (data || error)) {
+      if (data && !error) {
+        setPopup({
+          isVisible: true,
+          message: `Video ${isEditMode ? "updated" : "uploaded"} successfully!`,
+          type: "success",
+        });
+        if (onSaveSuccess) onSaveSuccess(data);
+      } else if (error) {
+        setPopup({
+          isVisible: true,
+          message: `Failed to ${
+            isEditMode ? "update" : "upload"
+          } video: ${error}`,
+          type: "error",
+        });
+      }
+    }
+  }, [data, error, loading, isEditMode, onSaveSuccess]);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, files } = e.target as any;
