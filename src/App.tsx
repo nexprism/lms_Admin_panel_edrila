@@ -19,6 +19,7 @@ import EditAssignmentForm from "./pages/courses/components/EditAssignment";
 import EditTextLessonEditor from "./pages/courses/components/EditTextLesson";
 import FileList from "./pages/Files/FileList";
 import AddFile from "./pages/courses/components/AddFile";
+import Session from "./pages/Files/Session";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -87,6 +88,9 @@ export default function App() {
 
               <Route path="/files/all" element={<FileList />} />
               <Route path="/files/add" element={<AddFile />} />
+              <Route path="/files/sessions" element={<Session />} />
+
+              {/* Analytics */}
 
               {/* Nested Routes */}
 
