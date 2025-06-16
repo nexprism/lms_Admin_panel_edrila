@@ -120,7 +120,7 @@ const navItems: NavItem[] = [
   },
   {
     icon: <Files />,
-    name: "Files",
+    name: "Analytics",
     subItems: [
       { name: "All Files", path: "/files/all" },
       { name: "Add File", path: "/files/add" },

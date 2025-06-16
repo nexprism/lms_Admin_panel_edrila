@@ -44,6 +44,7 @@ export default function AddAssignmentForm({
     score: "",
     maxScore: "",
     duration: "",
+    maxAttempts: "",
     materials: "",
     file: null as File | null,
     document: null as File | null,
@@ -72,6 +73,7 @@ export default function AddAssignmentForm({
       duration: data.duration?.toString() || "",
       materials: data.materials || "",
       file: data.attachmentFile || null,
+      maxAttempts: data.maxAttempts || "",
       document: data.documentFile || null,
     });
   };
@@ -100,6 +102,7 @@ export default function AddAssignmentForm({
           maxScore: assignment.maxScore?.toString() || "",
           duration: assignment.duration?.toString() || "",
           materials: assignment.materials || "",
+          maxAttempts: assignment.maxAttempts || "",
           file: null,
           document: null,
         });
@@ -147,6 +150,10 @@ export default function AddAssignmentForm({
     apiFormData.append("subject", formData.subject);
     apiFormData.append("language", formData.language);
     apiFormData.append("description", formData.description);
+    apiFormData.append(
+      "maxAttempts",
+      formData.maxAttempts || "1"
+    );
     if (formData.score) apiFormData.append("score", formData.score);
     if (formData.maxScore) apiFormData.append("maxScore", formData.maxScore);
     if (formData.duration) apiFormData.append("duration", formData.duration);
@@ -333,7 +340,7 @@ export default function AddAssignmentForm({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Max Score
+                  Pass Marks
                 </label>
                 <input
                   type="number"
@@ -360,6 +367,22 @@ export default function AddAssignmentForm({
                   disabled={loading}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Max Number of Attempts
+              </label>
+              <input
+                type="number"
+                name="maxAttempts"
+                value={formData.maxAttempts || ""}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="e.g. 3"
+                min={1}
+                disabled={loading}
+              />
             </div>
 
             {/* Materials */}
