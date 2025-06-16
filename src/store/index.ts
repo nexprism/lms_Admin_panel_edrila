@@ -13,6 +13,7 @@ import quiz from './slices/quiz';
 import file from './slices/files';
 import drip from './slices/drip'
 import vedio from './slices/vedio';
+import anayltics from './slices/anayltics';
 
 
 
@@ -31,6 +32,7 @@ export const store = configureStore({
     drip:drip,
     vedio: vedio,
     file: file,
+    analytics: anayltics,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -36,7 +36,7 @@ export const fetchDashboard = createAsyncThunk(
     'analytics/fetchDashboard',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get('/api/analytics/dashboard',
+            const response = await axiosInstance.get('/analytics/dashboard',
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -44,7 +44,7 @@ export const fetchDashboard = createAsyncThunk(
                 }
                 
             );
-            return response.data;
+            return response.data?.data || {};
         } catch (err: any) {
             return rejectWithValue(err.response?.data?.message || err.message);
         }
@@ -55,7 +55,7 @@ export const fetchVideoMetrics = createAsyncThunk(
     'analytics/fetchVideoMetrics',
     async (videoId: string, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get(`/api/analytics/videos/${videoId}/metrics`,
+            const response = await axiosInstance.get(`/analytics/videos/${videoId}/metrics`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -81,6 +81,23 @@ export const fetchUserAnalytics = createAsyncThunk(
                 }
             );
             return { userId, data: response.data };
+        } catch (err: any) {
+            return rejectWithValue(err.response?.data?.message || err.message);
+        }
+    }
+);
+
+
+export const fetchVideoSessions = createAsyncThunk(
+    'analytics/fetchVideoSessions',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/analytics/videos/sessions', {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            return response.data;
         } catch (err: any) {
             return rejectWithValue(err.response?.data?.message || err.message);
         }
@@ -131,7 +148,25 @@ const analyticsSlice = createSlice({
             .addCase(fetchUserAnalytics.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
+            })
+            .addCase(fetchVideoSessions.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchVideoSessions.fulfilled, (state, action) => {
+                state.loading = false;
+                // Assuming action.payload is an array of video sessions
+                state.videoMetrics = action.payload.reduce((acc: Record<string, VideoMetrics>, session: any) => {
+                    acc[session.videoId] = session.metrics;
+                    return acc;
+                }, {});
+            })
+            .addCase(fetchVideoSessions.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
             });
+            
+
     },
 });
 
