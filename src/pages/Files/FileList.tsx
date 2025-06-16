@@ -111,7 +111,7 @@ const VideoAnalyticsDashboard = () => {
               <h3 className="text-lg font-semibold text-gray-700">Active Users</h3>
               <Users className="text-blue-600" size={28} />
             </div>
-            <p className="text-4xl font-bold text-gray-900">{formatNumber(dashboard.overview.activeUsers || 0)}</p>
+            <p className="text-4xl font-bold text-gray-900">{formatNumber(dashboard?.overview?.activeUsers || 0)}</p>
             <p className="text-sm text-gray-500 mt-1">current period</p>
           </div>
 
@@ -121,7 +121,7 @@ const VideoAnalyticsDashboard = () => {
               <h3 className="text-lg font-semibold text-gray-700">Avg. Completion</h3>
               <TrendingUp className="text-blue-600" size={28} />
             </div>
-            <p className="text-4xl font-bold text-gray-900">{dashboard.overview.avgCompletionRate?.toFixed(1) || '0'}%</p>
+            <p className="text-4xl font-bold text-gray-900">{dashboard.overview?.avgCompletionRate?.toFixed(1) || '0'}%</p>
             <p className="text-sm text-gray-500 mt-1">average for all videos</p>
           </div>
 
@@ -131,7 +131,7 @@ const VideoAnalyticsDashboard = () => {
               <h3 className="text-lg font-semibold text-gray-700">Security Incidents</h3>
               <ShieldAlert className="text-red-500" size={28} />
             </div>
-            <p className="text-4xl font-bold text-gray-900">{formatNumber(dashboard.overview.securityIncidents || 0)}</p>
+            <p className="text-4xl font-bold text-gray-900">{formatNumber(dashboard.overview?.securityIncidents || 0)}</p>
             <p className="text-sm text-gray-500 mt-1">total detected</p>
           </div>
         </div>
@@ -165,8 +165,8 @@ const VideoAnalyticsDashboard = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredVideos.map(video => (
                   <tr key={video.id} className="hover:bg-gray-50 transition-colors duration-200">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">{video.title}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">{formatNumber(video.views)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">{video?.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">{formatNumber(video?.views)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">{video.engagement?.toFixed(2) || '0'}</td>
                   </tr>
                 ))}

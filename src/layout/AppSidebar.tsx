@@ -92,29 +92,28 @@ const navItems: NavItem[] = [
       { name: "Attendance", path: "/students/attendance" },
     ],
   },
-  {
-    icon: <UserCircleIcon />,
-    name: "Instructors",
-    subItems: [
-      { name: "All Instructors", path: "/instructors/all" },
-      { name: "Add Instructor", path: "/instructors/add" },
-    ],
-  },
-  {
-    icon: <TableIcon />,
-    name: "Quizzes",
-    subItems: [
-      { name: "All Quizzes", path: "/quiz/all" },
-      { name: "Add Quiz", path: "/assignments/add" },
-      { name: "Submissions", path: "/assignments/submissions" },
-    ],
-  },
+  // {
+  //   icon: <UserCircleIcon />,
+  //   name: "Instructors",
+  //   subItems: [
+  //     { name: "All Instructors", path: "/instructors/all" },
+  //     { name: "Add Instructor", path: "/instructors/add" },
+  //   ],
+  // },
+  // {
+  //   icon: <TableIcon />,
+  //   name: "Quizzes",
+  //   subItems: [
+  //     { name: "All Quizzes", path: "/quiz/all" },
+  //     { name: "Add Quiz", path: "/assignments/add" },
+  //     { name: "Submissions", path: "/assignments/submissions" },
+  //   ],
+  // },
   {
     icon: <TableIcon />,
     name: "Assignments",
     subItems: [
       { name: "All Assignments", path: "/assignments/all" },
-      { name: "Add Assignment", path: "/assignments/add" },
       { name: "Submissions", path: "/assignments/submissions" },
     ],
   },
@@ -122,8 +121,8 @@ const navItems: NavItem[] = [
     icon: <Files />,
     name: "Analytics",
     subItems: [
-      { name: "All Files", path: "/files/all" },
-      { name: "Add File", path: "/files/add" },
+      { name: "Dashboard", path: "/files/all" },
+      { name: "Vedio logs", path: "/files/sessions" },
     ],
   },
   {

@@ -97,10 +97,12 @@ export const fetchVideoSessions = createAsyncThunk(
                     'Content-Type': 'application/json',
                 },
             });
-            return response.data;
+            console.log('Video Sessions Response:', response.data);
+            return response.data?.data || [];
         } catch (err: any) {
             return rejectWithValue(err.response?.data?.message || err.message);
         }
+        
     }
 );
 
@@ -156,16 +158,13 @@ const analyticsSlice = createSlice({
             .addCase(fetchVideoSessions.fulfilled, (state, action) => {
                 state.loading = false;
                 // Assuming action.payload is an array of video sessions
-                state.videoMetrics = action.payload.reduce((acc: Record<string, VideoMetrics>, session: any) => {
-                    acc[session.videoId] = session.metrics;
-                    return acc;
-                }, {});
+                state.videoMetrics = action.payload;
             })
             .addCase(fetchVideoSessions.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });
-            
+
 
     },
 });
