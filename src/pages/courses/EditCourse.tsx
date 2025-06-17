@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, use } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCourseById, updateCourse } from "../../store/slices/course";
 import CategorySubcategoryDropdowns from "../../components/CategorySubcategoryDropdowns";
@@ -38,8 +38,20 @@ import {
   Edit,
   Trash2,
   Search,
+  Check,
+  Save,
+  Trash,
 } from "lucide-react";
 import ModuleSection from "./ModuleSection";
+import {
+  createPricingPlan,
+  deletePricingPlan,
+  getAllPricingPlans,
+  getAllPricingPlansByCourse,
+  updatePricingPlan,
+} from "../../store/slices/plans";
+import toast from "react-hot-toast";
+import Faqs from "./components/Faqs";
 
 // Rich Text Editor Component
 type RichTextEditorProps = {
@@ -249,7 +261,60 @@ const EditCourse = () => {
     error,
     data: courseData,
   } = useSelector((state: RootState) => state.course);
+  const Plans = useSelector((state: RootState) => state.plan.data);
+  console.log("Plans data:", Plans);
+  const [billingCycle, setBillingCycle] = useState("monthly");
 
+  const plans = [
+    {
+      name: "Lite",
+      icon: "●",
+      price: billingCycle === "monthly" ? 29 : 290,
+      description: "This is our most affordable plan for small teams.",
+      features: [
+        "Unlimited sending",
+        "Email marketing",
+        "Send newsletters",
+        "Up to 5 users",
+      ],
+      buttonStyle: "border border-gray-300 text-gray-700 hover:bg-gray-50",
+    },
+    {
+      name: "Plus",
+      icon: "◆",
+      price: billingCycle === "monthly" ? 89 : 890,
+      description:
+        "Use of our clients choose this plan, and we think it's the best value.",
+      features: [
+        "Unlimited sending",
+        "Email marketing",
+        "Send newsletters",
+        "Up to 25 users",
+      ],
+      buttonStyle: "bg-white text-purple-600 hover:bg-gray-50",
+      popular: true,
+    },
+    {
+      name: "Enterprise",
+      icon: "◆◆",
+      price: billingCycle === "monthly" ? 159 : 1590,
+      description: "For larger businesses or those seeking advanced services.",
+      features: [
+        "Unlimited sending",
+        "Email marketing",
+        "Send newsletters",
+        "Up to 50 users",
+      ],
+      buttonStyle: "border border-gray-300 text-gray-700 hover:bg-gray-50",
+    },
+  ];
+
+  useEffect(() => {
+    if (!Plans || Plans.length === 0) {
+      console.error("Plans data is not available or empty");
+    }
+    dispatch(getAllPricingPlansByCourse(courseId));
+  }, []);
   // Course state
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [customTag, setCustomTag] = useState("");
@@ -262,6 +327,16 @@ const EditCourse = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
   // Store the processed course data separately
   const [processedCourseData, setProcessedCourseData] = useState<any>(null);
+  const [showPlanPopup, setShowPlanPopup] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [currentPlan, setCurrentPlan] = useState({});
+  const [planData, setPlanData] = useState({
+    title: "",
+    startDate: "",
+    endDate: "",
+    discount: 0,
+    capacity: 0,
+  });
 
   const [formData, setFormData] = useState<any>({
     title: "",
@@ -296,6 +371,30 @@ const EditCourse = () => {
     "AI/ML",
     "Web Development",
   ];
+
+  const editPlan = (plan) => {
+    setCurrentPlan(plan);
+    setEditingId(plan.id);
+  };
+
+  const deletePlan = (id) => {
+    setPlans(plans.filter((plan) => plan.id !== id));
+  };
+
+  const cancelEdit = () => {
+    setShowPlanPopup(false);
+    setEditingId(null);
+    setCurrentPlan({
+      name: "",
+      icon: "●",
+      monthlyPrice: 0,
+      yearlyPrice: 0,
+      description: "",
+      features: [""],
+      popular: false,
+      color: "purple",
+    });
+  };
 
   // Fetch course data for editing
   useEffect(() => {
@@ -477,6 +576,61 @@ const EditCourse = () => {
       // Handle success (redirect, show message, etc.)
     } catch (error: any) {
       console.log("Error updating course:", error?.message);
+    }
+  };
+
+  const handelAddPlan = async () => {
+    try {
+      if (editingId) {
+        await dispatch(
+          updatePricingPlan({
+            planId: editingId,
+            updatedData: {
+              title: currentPlan.title,
+              startDate: currentPlan.startDate,
+              endDate: currentPlan.endDate,
+              discount: currentPlan.discount,
+              capacity: currentPlan.capacity,
+            },
+          })
+        ).unwrap();
+        toast.success("Plan updated successfully!");
+        setShowPlanPopup(false);
+        setEditingId(null);
+        setCurrentPlan(null);
+      } else {
+        const payload: any = {
+          course: courseId || "",
+          title: planData.title,
+          startDate: planData.startDate,
+          endDate: planData.endDate,
+          discount: planData.discount,
+          capacity: planData.capacity,
+          language: "English",
+        };
+        await dispatch(createPricingPlan(payload)).unwrap();
+        toast.success("Plan added successfully!");
+        setShowPlanPopup(false);
+        setEditingId(null);
+        setCurrentPlan(null);
+      }
+      dispatch(getAllPricingPlansByCourse(courseId || ""));
+    } catch (error) {
+      console.error("Error adding plan:", error);
+    }
+  };
+
+  const handelDeletePlan = async (planId: string) => {
+    try {
+      await dispatch(deletePricingPlan(planId)).unwrap();
+      toast.success("Plan deleted successfully!");
+      setEditingId(null);
+      setCurrentPlan(null);
+      setShowPlanPopup(false);
+      dispatch(getAllPricingPlansByCourse(courseId || ""));
+    } catch (error) {
+      console.error("Error deleting plan:", error);
+      toast.error("Failed to delete plan");
     }
   };
 
@@ -762,6 +916,288 @@ const EditCourse = () => {
               </div>
             </div>
 
+            {showPlanPopup && (
+              <div className="fixed top-0 left-0 h-screen right-0 bottom-0 bg-black/50 z-9999 flex items-center justify-center">
+                <div className="bg-white rounded-2xl  shadow-xl p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {editingId ? "Edit Plan" : "Create New Plan"}
+                    </h2>
+
+                    <div
+                      onClick={cancelEdit}
+                      className="text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      <X className="w-6 h-6" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Basic Info */}
+                    <div className="grid md:grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Plan Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={
+                            editingId ? currentPlan?.title : planData?.title
+                          }
+                          onChange={(e) =>
+                            editingId
+                              ? setCurrentPlan({
+                                  ...currentPlan,
+                                  title: e.target.value,
+                                })
+                              : setPlanData({
+                                  ...planData,
+                                  title: e.target.value,
+                                })
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                          placeholder="e.g., Basic, Pro, Enterprise"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="grid md:grid-cols-1 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Start Date*
+                          </label>
+                          <input
+                            type="date"
+                            required
+                            value={
+                              editingId
+                                ? currentPlan?.startDate
+                                : planData?.startDate
+                            }
+                            onChange={(e) =>
+                              editingId
+                                ? setCurrentPlan({
+                                    ...currentPlan,
+                                    startDate: e.target.value,
+                                  })
+                                : setPlanData({
+                                    ...planData,
+                                    startDate: e.target.value,
+                                  })
+                            }
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            End Date
+                          </label>
+                          <input
+                            type="date"
+                            required
+                            value={
+                              editingId
+                                ? currentPlan?.endDate
+                                : planData?.endDate
+                            }
+                            onChange={(e) =>
+                              editingId
+                                ? setCurrentPlan({
+                                    ...currentPlan,
+                                    endDate: e.target.value,
+                                  })
+                                : setPlanData({
+                                    ...planData,
+                                    endDate: e.target.value,
+                                  })
+                            }
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                          />
+                        </div>
+
+                        {/* Pricing */}
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Discount
+                            </label>
+                            <input
+                              type="number"
+                              required
+                              min="0"
+                              value={
+                                editingId
+                                  ? currentPlan?.discount
+                                  : planData?.discount
+                              }
+                              onChange={(e) =>
+                                editingId
+                                  ? setCurrentPlan({
+                                      ...currentPlan,
+                                      discount: Number(e.target.value),
+                                    })
+                                  : setPlanData({
+                                      ...planData,
+                                      discount: Number(e.target.value),
+                                    })
+                              }
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              placeholder="29"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Capacity
+                            </label>
+                            <input
+                              type="number"
+                              required
+                              min="0"
+                              value={
+                                editingId
+                                  ? currentPlan?.capacity
+                                  : planData?.capacity
+                              }
+                              onChange={(e) =>
+                                editingId
+                                  ? setCurrentPlan({
+                                      ...currentPlan,
+                                      capacity: Number(e.target.value),
+                                    })
+                                  : setPlanData({
+                                      ...planData,
+                                      capacity: Number(e.target.value),
+                                    })
+                              }
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              placeholder="290"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div
+                        onClick={() => handelDeletePlan(editingId)}
+                        className="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Trash className="w-5 h-5" />
+                        Delete Plan
+                      </div>
+                    </div>
+                    {/* Submit Button */}
+                    <div className="flex gap-3">
+                      <div
+                        onClick={handelAddPlan}
+                        disabled={editingId ? false : !planData.title}
+                        className="flex-1 bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Save className="w-5 h-5" />
+                        {editingId ? "Update Plan" : "Create Plan"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-blue-600" />
+                  Pricing Plans
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setShowPlanPopup(true)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors  bg-blue-600 text-white `}
+                >
+                  <Plus className="w-4 h-4 inline-block mr-1" />
+                  Add Plan
+                </button>
+              </div>
+              <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                {Plans?.data?.map((plan, index) => (
+                  <div
+                    key={plan._id}
+                    className={`relative rounded-2xl p-8 transition-all duration-300 hover:shadow-xl ${
+                      index % 2 !== 0
+                        ? "bg-gradient-to-b from-purple-600 to-purple-700 text-white transform scale-105 shadow-2xl"
+                        : "bg-gray-50 hover:bg-gray-100"
+                    }`}
+                  >
+                    <h2 className="text-2xl  font-semibold mb-6 flex justify-center items-center gap-2">
+                      {plan.title}
+                    </h2>
+
+                    {/* Price */}
+                    <div className="text-center mb-6">
+                      <div className="flex items-baseline justify-center">
+                        <span
+                          className={`text-4xl font-bold ${
+                            index % 2 !== 0 ? "text-white" : "text-gray-900"
+                          }`}
+                        >
+                          ₹{plan.discount}
+                        </span>
+                        <span
+                          className={`ml-1 text-sm ${
+                            index % 2 !== 0
+                              ? "text-purple-200"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          / {billingCycle === "monthly" ? "Month" : "Year"}
+                        </span>
+                      </div>
+                      {billingCycle === "yearly" && (
+                        <div className="text-sm text-green-500 font-medium mt-1">
+                          Save 17%
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-10 grid grid-cols-2 gap-2">
+                      <div>
+                        <h2 className="text-xs">Start</h2>
+                        <h2 className="font-medium">30, May 2023</h2>
+                      </div>
+                      <div>
+                        <h2 className="text-xs">End</h2>
+                        <h2 className="font-medium">30, May 2023</h2>
+                      </div>
+                    </div>
+                    <div className="mt-4 mb-6 grid grid-cols-2 gap-2">
+                      <div>
+                        <h2 className="text-xs">Capacity</h2>
+                        <h2 className="font-medium">100</h2>
+                      </div>
+                    </div>
+
+                    {/* CTA Button */}
+                    <button
+                      onClick={() => {
+                        setShowPlanPopup(true);
+                        setEditingId(plan._id);
+                        setCurrentPlan(plan);
+                      }}
+                      className={`w-full ${
+                        index % 2 === 0
+                          ? "bg-blue-50 text-black"
+                          : "bg-gray-100 text-gray-900"
+                      } py-3 px-6 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 `}
+                    >
+                      Edit Plan
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Course Features */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
@@ -940,6 +1376,8 @@ const EditCourse = () => {
                 </p>
               </div>
             </div>
+
+            <Faqs courseID={courseId} />
 
             {/* Action Buttons */}
             <div className="bg-white rounded-lg shadow-sm p-6">

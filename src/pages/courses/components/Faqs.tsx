@@ -1,0 +1,253 @@
+import { CircleHelp, Delete, Pen, Plus, Save, Trash, X } from "lucide-react";
+import React, { useEffect } from "react";
+import axiosInstance from "../../../services/axiosConfig";
+import { useDispatch } from "react-redux";
+import { all } from "axios";
+import toast from "react-hot-toast";
+
+function Faqs({ courseID }) {
+  const [allFaqs, setAllFaqs] = React.useState([]);
+  const [showPopup, setShowPopup] = React.useState(false);
+  const [faqData, setFaqData] = React.useState({
+    question: "",
+    answer: "",
+  });
+  const [selectedFaq, setSelectedFaq] = React.useState(null);
+  const dispatch = useDispatch();
+
+  const getFaqs = async () => {
+    try {
+      const faqs = await axiosInstance.get(`/faqs/course/${courseID}`);
+      console.log("faqs", faqs.data);
+      setAllFaqs(faqs.data.data);
+    } catch (error) {
+      console.error("Error fetching FAQs:", error);
+    }
+  };
+
+  const handelAddPlan = async () => {
+    // if (
+    //   (!editingId && !planData.title) ||
+    //   !planData.startDate ||
+    //   !planData.endDate
+    // ) {
+    //   alert("Please fill in all required fields.");
+    //   return;
+    // }
+    try {
+      if (selectedFaq) {
+        const payload: any = {
+          question: selectedFaq.question,
+          answer: selectedFaq.answer,
+        };
+        const response = await axiosInstance.put(
+          `/faqs/${selectedFaq._id}`,
+          payload
+        );
+        setShowPopup(false);
+        setSelectedFaq(null);
+        setFaqData({
+          question: "",
+          answer: "",
+        });
+      } else {
+        const payload: any = {
+          courseId: courseID || "",
+          question: selectedFaq ? selectedFaq.question : faqData.question,
+          answer: selectedFaq ? selectedFaq.answer : faqData.answer,
+        };
+        const response = await axiosInstance.post("/faqs", payload);
+        toast.success("FAQ created successfully!");
+        console.log("response", response.data);
+        setShowPopup(false);
+        setSelectedFaq(null);
+        setFaqData({
+          question: "",
+          answer: "",
+        });
+      }
+      getFaqs();
+    } catch (error) {
+      console.error("Error adding plan:", error);
+    }
+  };
+
+  const deleteFaq = async (faqId) => {
+    if (!faqId) {
+      toast.error("FAQ ID is required to delete.");
+      return;
+    }
+    try {
+      const response = await axiosInstance.delete(`/faqs/${faqId}`);
+      toast.success("FAQ deleted successfully!");
+      setShowPopup(false);
+      setSelectedFaq(null);
+      setFaqData({
+        question: "",
+        answer: "",
+      });
+      getFaqs();
+    } catch (error) {
+      console.error("Error deleting FAQ:", error);
+      toast.error("Failed to delete FAQ.");
+    }
+  };
+
+  useEffect(() => {
+    if (courseID) {
+      getFaqs();
+    }
+  }, [courseID]);
+  return (
+    <>
+      {showPopup && (
+        <div className="fixed top-0 left-0 h-screen right-0 bottom-0 bg-black/50 z-9999 flex items-center justify-center">
+          <div className="bg-white rounded-2xl  w-1/3 shadow-xl p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {selectedFaq ? "Edit Plan" : "Create New Plan"}
+              </h2>
+
+              <div
+                onClick={() => {
+                  setShowPopup(false);
+                  setSelectedFaq(null);
+                  setFaqData({
+                    question: "",
+                    answer: "",
+                  });
+                }}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-1 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Question *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={
+                    selectedFaq ? selectedFaq?.question : faqData?.question
+                  }
+                  onChange={(e) =>
+                    selectedFaq
+                      ? setSelectedFaq({
+                          ...selectedFaq,
+                          question: e.target.value,
+                        })
+                      : setFaqData({
+                          ...faqData,
+                          question: e.target.value,
+                        })
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  placeholder="e.g., Basic, Pro, Enterprise"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Answer *
+                </label>
+                <textarea
+                  rows={4}
+                  type="text"
+                  required
+                  value={selectedFaq ? selectedFaq?.answer : faqData?.answer}
+                  onChange={(e) =>
+                    selectedFaq
+                      ? setSelectedFaq({
+                          ...selectedFaq,
+                          answer: e.target.value,
+                        })
+                      : setFaqData({
+                          ...faqData,
+                          answer: e.target.value,
+                        })
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  placeholder="e.g., Basic, Pro, Enterprise"
+                />
+              </div>
+            </div>
+            <div className="mt-4 flex cursor-pointer gap-3">
+              <div
+                onClick={() => deleteFaq(selectedFaq?._id)}
+                // disabled={selectedFaq ? false : !faqData.question}
+                className="flex-1 cursor-pointer bg-red-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash className="w-5 h-5" />
+                Delete FAQ
+              </div>
+            </div>
+            <div className="mt-4 cursor-pointer flex gap-3">
+              <div
+                onClick={() => handelAddPlan()}
+                // disabled={selectedFaq ? false : !faqData.question}
+                className="flex-1 bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                <Save className="w-5 h-5" />
+                {selectedFaq ? "Update FAQ" : "Create FAQ"}
+              </div>
+            </div>
+          </div>{" "}
+        </div>
+      )}
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        {" "}
+        <div className="flex  items-start justify-between mb-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <CircleHelp className="w-5 h-5 text-blue-600" />
+            FAQ'S
+          </h2>
+          <button
+            type="button"
+            onClick={() => setShowPopup(true)}
+            className="px-4 py-2 flex items-center gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add
+          </button>
+        </div>
+        <div className="space-y-4">
+          {allFaqs.length > 0 ? (
+            allFaqs.map((faq, index) => (
+              <div className="px-4 py-3 flex border-2 gap-4 border-black/10 rounded-lg">
+                <h2 className="text-lg font-semibold mb-2">{index + 1}.</h2>
+                <div className="flex-1">
+                  <h2 className="text-lg font-semibold mb-2">
+                    {faq.question || "Question not available"}
+                  </h2>
+                  <p>{faq.answer || "Answer not available"}</p>
+                </div>
+
+                <div
+                  onClick={() => {
+                    setShowPopup(true);
+                    setSelectedFaq(faq);
+                    setFaqData({
+                      question: faq.question,
+                      answer: faq.answer,
+                    });
+                  }}
+                >
+                  <Pen className="w-4 h-4 text-blue-600 mt-2 cursor-pointer" />
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-6">
+              <p>No FAQs available</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default Faqs;
