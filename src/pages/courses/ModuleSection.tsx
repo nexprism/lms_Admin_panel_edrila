@@ -46,19 +46,15 @@ import {
   Package,
 } from "lucide-react";
 
-    import ModulesTabContent from '../../components/course-module/ModulesTabContent';
-import DripTabContent from '../../components/course-module/DripTabContent';
-import AssetsTabContent from '../../components/course-module/AssetsTabContent';
-import Files from './components/Files';
-import TextLesson from './components/TextLesson';
-import Quiz from './components/Quiz';
-import Assignment from './components/Assignment';
-import VedioLesson from './components/VideoLesson';
+import ModulesTabContent from "../../components/course-module/ModulesTabContent";
+import DripTabContent from "../../components/course-module/DripTabContent";
+import AssetsTabContent from "../../components/course-module/AssetsTabContent";
+import Files from "./components/Files";
+import TextLesson from "./components/TextLesson";
+import Quiz from "./components/Quiz";
+import Assignment from "./components/Assignment";
+import VedioLesson from "./components/VideoLesson";
 import { useAppDispatch } from "../../hooks/redux";
-
-
-
-
 
 const Modal = ({
   isOpen,
@@ -388,7 +384,7 @@ const LessonEditor = ({
           }
         }
         return lesson._id || lesson.fileId || null;
-        case "video-lesson":
+      case "video-lesson":
         console.log("lesson.videoLesson", lesson.videoLesson);
         if (lesson.videoLesson?._id) return lesson.videoLesson._id;
         if (courseData?.modules) {
@@ -1280,7 +1276,7 @@ const ModuleSection = ({
         return <DripTabContent />;
 
       case "assets":
-        return <AssetsTabContent />;
+        return <AssetsTabContent courseID={courseId} />;
 
       default:
         return null;
