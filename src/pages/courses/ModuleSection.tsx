@@ -55,6 +55,10 @@ import Quiz from "./components/Quiz";
 import Assignment from "./components/Assignment";
 import VedioLesson from "./components/VideoLesson";
 import { useAppDispatch } from "../../hooks/redux";
+import toast from "react-hot-toast";
+import { fetchCourseById } from "../../store/slices/course";
+import PopupAlert from "../../components/popUpAlert";
+import { useParams } from "react-router";
 
 const Modal = ({
   isOpen,
@@ -161,125 +165,127 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
   };
 
   return (
-    <div className="bg-white border-2 border-blue-200 rounded-2xl p-8 shadow-lg">
-      <div className="text-center mb-8">
-        <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-          <BookOpen className="w-8 h-8 text-blue-600" />
-        </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">
-          Create New Module
-        </h3>
-        <p className="text-gray-600">
-          First, create your module. Then you'll be able to add lessons to it.
-        </p>
-      </div>
-
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Module Title *
-          </label>
-          <input
-            type="text"
-            value={moduleData.title}
-            onChange={(e) =>
-              setModuleData({ ...moduleData, title: e.target.value })
-            }
-            placeholder="e.g., Introduction to React Basics"
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg"
-          />
+    <>
+      <div className="bg-white border-2 border-blue-200 rounded-2xl p-8 shadow-lg">
+        <div className="text-center mb-8">
+          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <BookOpen className="w-8 h-8 text-blue-600" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            Create New Module
+          </h3>
+          <p className="text-gray-600">
+            First, create your module. Then you'll be able to add lessons to it.
+          </p>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Module Description
-          </label>
-          <textarea
-            value={moduleData.description}
-            onChange={(e) =>
-              setModuleData({ ...moduleData, description: e.target.value })
-            }
-            placeholder="Describe what students will learn in this module..."
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
-            rows={4}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Estimated Duration (minutes)
+              Module Title *
             </label>
             <input
-              type="number"
-              value={moduleData.estimatedDuration}
+              type="text"
+              value={moduleData.title}
               onChange={(e) =>
-                setModuleData({
-                  ...moduleData,
-                  estimatedDuration: parseInt(e.target.value) || 60,
-                })
+                setModuleData({ ...moduleData, title: e.target.value })
               }
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-              min="1"
-              placeholder="60"
+              placeholder="e.g., Introduction to React Basics"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg"
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Module Order
+              Module Description
             </label>
-            <input
-              type="number"
-              value={moduleData.order}
+            <textarea
+              value={moduleData.description}
               onChange={(e) =>
-                setModuleData({
-                  ...moduleData,
-                  order: parseInt(e.target.value) || 1,
-                })
+                setModuleData({ ...moduleData, description: e.target.value })
               }
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-              min="1"
+              placeholder="Describe what students will learn in this module..."
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+              rows={4}
             />
           </div>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="isPublished"
-            checked={moduleData.isPublished}
-            onChange={(e) =>
-              setModuleData({ ...moduleData, isPublished: e.target.checked })
-            }
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <label htmlFor="isPublished" className="text-gray-700 font-medium">
-            Publish module immediately
-          </label>
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Estimated Duration (minutes)
+              </label>
+              <input
+                type="number"
+                value={moduleData.estimatedDuration}
+                onChange={(e) =>
+                  setModuleData({
+                    ...moduleData,
+                    estimatedDuration: parseInt(e.target.value) || 60,
+                  })
+                }
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                min="1"
+                placeholder="60"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Module Order
+              </label>
+              <input
+                type="number"
+                value={moduleData.order}
+                onChange={(e) =>
+                  setModuleData({
+                    ...moduleData,
+                    order: parseInt(e.target.value) || 1,
+                  })
+                }
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                min="1"
+              />
+            </div>
+          </div>
 
-        <div className="pt-6">
-          <button
-            onClick={handleCreateModule}
-            disabled={isSaving || !moduleData.title.trim()}
-            className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg font-semibold"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Creating Module...
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5" />
-                Create Module
-                <ArrowRight className="w-5 h-5" />
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isPublished"
+              checked={moduleData.isPublished}
+              onChange={(e) =>
+                setModuleData({ ...moduleData, isPublished: e.target.checked })
+              }
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="isPublished" className="text-gray-700 font-medium">
+              Publish module immediately
+            </label>
+          </div>
+
+          <div className="pt-6">
+            <button
+              onClick={handleCreateModule}
+              disabled={isSaving || !moduleData.title.trim()}
+              className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg font-semibold"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Creating Module...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Create Module
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -299,9 +305,20 @@ const LessonEditor = ({
   const [savedLessonId, setSavedLessonId] = useState(
     lesson._id || lesson.id || null
   );
+  const [popup, setPopup] = useState<{
+    message: string;
+    type: "success" | "error";
+    isVisible: boolean;
+  }>({
+    message: "",
+    type: "success",
+    isVisible: false,
+  });
   const [showContentModal, setShowContentModal] = useState(false);
   const [OpenLessonData, setOpenLessonData] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const params = useParams();
+  const courseIdFromParams = params.courseId;
 
   const getData = async (id) => {
     setShowContentModal(true);
@@ -369,15 +386,13 @@ const LessonEditor = ({
         }
         return lesson.textLessons || lesson.textLessons || null;
       case "video":
-        if (lesson.files?.[0]?._id) return lesson.files?.[0]._id;
+        if (lesson.files?._id) return lesson.files._id;
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
               for (const l of mod.lessons) {
-                if (l._id === lesson?._id && l.files?._id) {
-                  return l.files?.[0]?._id;
-                } else {
-                  return null;
+                if (l._id === lesson?._id && l.files[0]?._id) {
+                  return l.files[0]?._id;
                 }
               }
             }
@@ -386,13 +401,15 @@ const LessonEditor = ({
         return lesson._id || lesson.fileId || null;
       case "video-lesson":
         console.log("lesson.videoLesson", lesson.videoLesson);
+        console.log("courseData.modules", courseData?.modules);
         if (lesson.videoLesson?._id) return lesson.videoLesson._id;
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
               for (const l of mod.lessons) {
-                if (l._id === lesson._id && l.videoLesson?._id) {
-                  return l.videoLesson._id;
+                console.log("Checking lesson:", l);
+                if (l._id === lesson._id && l.videoLessons?.[0]?._id) {
+                  return l.videoLessons[0]?._id;
                 }
               }
             }
@@ -439,7 +456,7 @@ const LessonEditor = ({
 
   const handleSaveLesson = async () => {
     if (!lesson.title.trim()) {
-      alert("Please enter a lesson title");
+      toast.error("Please enter a lesson title");
       return;
     }
 
@@ -488,13 +505,23 @@ const LessonEditor = ({
         onChange(updatedLesson);
       }
 
-      alert("Lesson saved successfully!");
-      window.location.reload();
-      console.log("Lesson saved:", result);
+      // toast.success("Lesson saved successfully!");
+      setPopup({
+        message: "Lesson saved successfully!",
+        type: "success",
+        isVisible: true,
+      });
+      console.log("Lesson saved successfully:", result);
+      dispatch(fetchCourseById({ courseId: courseIdFromParams })); // Refresh course data
       onSave && onSave(result);
     } catch (error) {
       console.error("Error saving lesson:", error);
-      alert("Failed to save lesson");
+      // toast.error("Failed to save lesson");
+      setPopup({
+        message: "Failed to save lesson",
+        type: "error",
+        isVisible: true,
+      });
     } finally {
       setIsSaving(false);
     }
@@ -530,7 +557,17 @@ const LessonEditor = ({
             }
           }
         }
-        return <Quiz {...commonProps} quizId={quizId} quizData={quizData} />;
+        return (
+          <Quiz
+            {...commonProps}
+            quizId={quizId}
+            quizData={quizData}
+            onClose={() => {
+              setShowContentModal(false);
+              setOpenLessonData(null);
+            }}
+          />
+        );
       }
       case "assignment": {
         let assignmentData = lesson.assignment;
@@ -553,6 +590,10 @@ const LessonEditor = ({
             assignmentId={assignmentId}
             fileId={lesson.fileId}
             assignmentData={assignmentData}
+            onClose={() => {
+              setShowContentModal(false);
+              setOpenLessonData(null);
+            }}
           />
         );
       }
@@ -576,6 +617,10 @@ const LessonEditor = ({
             {...commonProps}
             textLessonId={textLessonId}
             textData={textData}
+            onClose={() => {
+              setShowContentModal(false);
+              setOpenLessonData(null);
+            }}
           />
         );
       }
@@ -599,6 +644,10 @@ const LessonEditor = ({
             {...commonProps}
             fileId={videoLessonId}
             videoData={videoLessonData}
+            onClose={() => {
+              setShowContentModal(false);
+              setOpenLessonData(null);
+            }}
           />
         );
       }
@@ -618,7 +667,17 @@ const LessonEditor = ({
             }
           }
         }
-        return <Files {...commonProps} fileId={fileId} videoData={videoData} />;
+        return (
+          <Files
+            {...commonProps}
+            fileId={fileId}
+            videoData={videoData}
+            onClose={() => {
+              setShowContentModal(false);
+              setOpenLessonData(null);
+            }}
+          />
+        );
       }
     }
   };
@@ -682,6 +741,12 @@ const LessonEditor = ({
 
   return (
     <>
+      <PopupAlert
+        message={popup.message}
+        type={popup.type}
+        isVisible={popup.isVisible}
+        onClose={() => setPopup({ ...popup, isVisible: false })}
+      />
       <div className="group relative">
         {/* Main Card */}
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
@@ -1132,7 +1197,7 @@ const ModuleSection = ({
   onModulesChange,
   courseData,
   isEditing = false,
-}) => {
+}: any) => {
   const { loading: moduleLoading, error: moduleError } = useSelector(
     (state) => state.module
   );
@@ -1145,6 +1210,15 @@ const ModuleSection = ({
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [activeTab, setActiveTab] = useState("modules"); // Add this new state
   const dispatch = useAppDispatch();
+  const [popup, setPopup] = useState<{
+    message: string;
+    type: "success" | "error";
+    isVisible: boolean;
+  }>({
+    message: "",
+    type: "success",
+    isVisible: false,
+  });
 
   // Initialize modules from props when component mounts or modules prop changes
   useEffect(() => {
@@ -1157,7 +1231,12 @@ const ModuleSection = ({
     const updatedModules = [...savedModules, { ...newModule, lessons: [] }];
     setSavedModules(updatedModules);
     setShowCreateForm(false);
-
+    setPopup({
+      message: "Module created successfully!",
+      type: "success",
+      isVisible: true,
+    });
+    dispatch(fetchCourseById(courseId));
     // Call parent callback if provided
     if (onModulesChange) {
       onModulesChange(updatedModules);
@@ -1284,77 +1363,85 @@ const ModuleSection = ({
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-xl p-8">
-      <div className="mb-8">
-        {/* Header Section */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-xl">
-                <BookOpen className="w-8 h-8 text-blue-600" />
-              </div>
-              Course Content
-            </h2>
-            <p className="text-gray-600 mt-2">
-              Build and manage your course content
-            </p>
+    <>
+      <PopupAlert
+        message={popup.message}
+        type={popup.type}
+        isVisible={popup.isVisible}
+        onClose={() => setPopup({ ...popup, isVisible: false })}
+      />
+      <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-xl p-8">
+        <div className="mb-8">
+          {/* Header Section */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-xl">
+                  <BookOpen className="w-8 h-8 text-blue-600" />
+                </div>
+                Course Content
+              </h2>
+              <p className="text-gray-600 mt-2">
+                Build and manage your course content
+              </p>
+            </div>
+            {activeTab === "modules" && !showCreateForm && (
+              <button
+                type="button"
+                onClick={() => setShowCreateForm(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <Plus className="w-5 h-5" />
+                Create Module
+              </button>
+            )}
           </div>
-          {activeTab === "modules" && !showCreateForm && (
-            <button
-              type="button"
-              onClick={() => setShowCreateForm(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              <Plus className="w-5 h-5" />
-              Create Module
-            </button>
-          )}
-        </div>
 
-        {/* Tab Navigation */}
-        <div className="mb-6">
-          <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
+          {/* Tab Navigation */}
+          <div className="mb-6">
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
 
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 flex-1 justify-center ${
-                    isActive
-                      ? `bg-white shadow-sm text-${tab.color}-600 border border-${tab.color}-200`
-                      : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{tab.label}</span>
-                  {tab.id === "modules" && totalModules > 0 && (
-                    <span
-                      className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                        isActive
-                          ? `bg-${tab.color}-100 text-${tab.color}-700`
-                          : "bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      {totalModules}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 flex-1 justify-center ${
+                      isActive
+                        ? `bg-white shadow-sm text-${tab.color}-600 border border-${tab.color}-200`
+                        : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span>{tab.label}</span>
+                    {tab.id === "modules" && totalModules > 0 && (
+                      <span
+                        className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                          isActive
+                            ? `bg-${tab.color}-100 text-${tab.color}-700`
+                            : "bg-gray-200 text-gray-600"
+                        }`}
+                      >
+                        {totalModules}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        {/* Tab Content */}
-        <div className="min-h-fit">
-          {/* <div className="min-h-[400px]"> */}
-          {renderTabContent()}
+          {/* Tab Content */}
+          <div className="min-h-fit">
+            {/* <div className="min-h-[400px]"> */}
+            {renderTabContent()}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

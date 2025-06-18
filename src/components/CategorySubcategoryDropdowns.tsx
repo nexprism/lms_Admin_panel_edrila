@@ -186,7 +186,7 @@ export default function CategorySubcategoryDropdowns({
           <div className="bg-white w-2/6 p-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold  flex items-center gap-2">
-                Add New Category{" "}
+                Add New {popupFor === "category" ? "Category" : "Subcategory"}
               </h2>{" "}
               <div onClick={() => setShowPopup(false)}>
                 <Plus className="w-6 h-6 rotate-45" />
@@ -196,7 +196,7 @@ export default function CategorySubcategoryDropdowns({
             <div className="grid grid-cols-1  gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Course Title *
+                  Name *
                 </label>
                 <input
                   type="text"
@@ -204,7 +204,7 @@ export default function CategorySubcategoryDropdowns({
                   value={data.title}
                   onChange={(e) => setData({ ...data, title: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter course title"
+                  placeholder="Enter name"
                   required
                 />
               </div>
@@ -229,7 +229,7 @@ export default function CategorySubcategoryDropdowns({
                 className="px-4 py-3 mt-2 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Add Category
+                Add {popupFor === "category" ? "Category" : "Subcategory"}
               </button>
             </div>
           </div>
@@ -269,7 +269,7 @@ export default function CategorySubcategoryDropdowns({
                 )
             )}
           <option value={"add-new-category"} className="text-blue-500">
-            <Plus /> Add New Category
+            <Plus /> Add New Subcategory
           </option>
         </select>
         {subcategoriesError && (

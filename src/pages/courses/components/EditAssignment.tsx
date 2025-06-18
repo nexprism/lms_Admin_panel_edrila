@@ -71,7 +71,7 @@ export default function EditAssignmentForm({
         file: data.file,
         document: data.documentFile,
       });
-      setCourseId(data.course);
+      setCourseId(data.courseId?._id);
       setLessonId(data.lessonId);
       console.log("Fetched assignment data:", data);
     } catch (error) {
@@ -123,7 +123,7 @@ export default function EditAssignmentForm({
 
     const apiFormData = new FormData();
     apiFormData.append("courseId", courseIds);
-    apiFormData.append("lessonId", lessonIds);
+    apiFormData.append("lessonId", lessonIds._id || lessonIds);
     apiFormData.append("title", formData.title);
     apiFormData.append("subject", formData.subject);
     apiFormData.append("language", formData.language);
@@ -312,7 +312,7 @@ export default function EditAssignmentForm({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-              Pass Marks
+                  Pass Marks
                 </label>
                 <input
                   type="number"

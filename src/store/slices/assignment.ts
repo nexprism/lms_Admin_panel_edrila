@@ -18,7 +18,7 @@ export const createAssignment = createAsyncThunk(
   "assignment/createAssignment",
   async (formData: FormData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         "http://localhost:5000/assignment",
         formData,
         {
@@ -77,7 +77,6 @@ export const updateAssignment = createAsyncThunk(
   }
 );
 
-
 export const fetchAssignmentById = createAsyncThunk(
   "assignment/fetchAssignmentById",
   async (id: string, { rejectWithValue }) => {
@@ -86,7 +85,7 @@ export const fetchAssignmentById = createAsyncThunk(
         `http://localhost:5000/assignment/${id}`,
         {
           headers: {
-            "Content-Type": "application/json",   
+            "Content-Type": "application/json",
           },
         }
       );

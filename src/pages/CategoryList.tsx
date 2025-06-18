@@ -5,7 +5,7 @@ import {
   setSearchQuery,
   setFilters,
   resetFilters,
-  deleteCourseCategory
+  deleteCourseCategory,
 } from "../store/slices/courseCategorySlice";
 import {
   Pencil,
@@ -18,12 +18,13 @@ import {
   ChevronRight,
   RotateCcw,
   X,
-  AlertTriangle
+  AlertTriangle,
 } from "lucide-react";
 import PageBreadcrumb from "../components/common/PageBreadCrumb";
 import PageMeta from "../components/common/PageMeta";
 import EditCategoryModal from "../components/modals/EditCategoryModal"; // Import the modal
 import toast from "react-hot-toast";
+import PopupAlert from "../components/popUpAlert";
 
 interface Category {
   _id: string;
@@ -50,8 +51,11 @@ const DeleteModal: React.FC<{
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-transparent backdrop-blur-xs transition-opacity" onClick={onClose}></div>
-      
+      <div
+        className="fixed inset-0 bg-transparent backdrop-blur-xs transition-opacity"
+        onClick={onClose}
+      ></div>
+
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
@@ -76,13 +80,18 @@ const DeleteModal: React.FC<{
           {/* Content */}
           <div className="p-6">
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Are you sure you want to delete the category <strong className="text-gray-900 dark:text-white">"{category.name}"</strong>?
+              Are you sure you want to delete the category{" "}
+              <strong className="text-gray-900 dark:text-white">
+                "{category.name}"
+              </strong>
+              ?
             </p>
             {category.subCategoryCount > 0 && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3 mb-4">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  <strong>Warning:</strong> This category has {category.subCategoryCount} subcategory(ies). 
-                  Deleting this category may affect related subcategories.
+                  <strong>Warning:</strong> This category has{" "}
+                  {category.subCategoryCount} subcategory(ies). Deleting this
+                  category may affect related subcategories.
                 </p>
               </div>
             )}
@@ -126,23 +135,29 @@ const DeleteModal: React.FC<{
 
 const CategoryList: React.FC = () => {
   const dispatch = useAppDispatch();
-  const {
-    categories,
-    loading,
-    error,
-    pagination,
-    searchQuery,
-    filters
-  } = useAppSelector((state) => state.courseCategory);
+  const { categories, loading, error, pagination, searchQuery, filters } =
+    useAppSelector((state) => state.courseCategory);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
-  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
+    null
+  );
   const [isDeleting, setIsDeleting] = useState(false);
 
   const [searchInput, setSearchInput] = useState(searchQuery);
   const [localFilters, setLocalFilters] = useState<Record<string, any>>({});
+
+  const [popup, setPopup] = useState<{
+    message: string;
+    type: "success" | "error";
+    isVisible: boolean;
+  }>({
+    message: "",
+    type: "success",
+    isVisible: false,
+  });
 
   // Debounce search input
   useEffect(() => {
@@ -158,44 +173,50 @@ const CategoryList: React.FC = () => {
   useEffect(() => {
     const activeFilters = {
       isDeleted: false,
-      ...(localFilters.status ? { status: localFilters.status } : {})
+      ...(localFilters.status ? { status: localFilters.status } : {}),
     };
 
-    dispatch(fetchCourseCategories({
-      page: pagination.page,
-      limit: pagination.limit,
-      filters: activeFilters,
-      searchFields: searchQuery ? { name: searchQuery } : {},
-      sort: { createdAt: 'desc' }
-    }));
+    dispatch(
+      fetchCourseCategories({
+        page: pagination.page,
+        limit: pagination.limit,
+        filters: activeFilters,
+        searchFields: searchQuery ? { name: searchQuery } : {},
+        sort: { createdAt: "desc" },
+      })
+    );
   }, [dispatch, pagination.page, pagination.limit, searchQuery, localFilters]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
-      dispatch(fetchCourseCategories({
-        page: newPage,
-        limit: pagination.limit,
-        filters: {
-          isDeleted: false,
-          ...(localFilters.status ? { status: localFilters.status } : {})
-        },
-        searchFields: searchQuery ? { name: searchQuery } : {},
-        sort: { createdAt: 'desc' }
-      }));
+      dispatch(
+        fetchCourseCategories({
+          page: newPage,
+          limit: pagination.limit,
+          filters: {
+            isDeleted: false,
+            ...(localFilters.status ? { status: localFilters.status } : {}),
+          },
+          searchFields: searchQuery ? { name: searchQuery } : {},
+          sort: { createdAt: "desc" },
+        })
+      );
     }
   };
 
   const handleLimitChange = (newLimit: number) => {
-    dispatch(fetchCourseCategories({
-      page: 1,
-      limit: newLimit,
-      filters: {
-        isDeleted: false,
-        ...(localFilters.status ? { status: localFilters.status } : {})
-      },
-      searchFields: searchQuery ? { name: searchQuery } : {},
-      sort: { createdAt: 'desc' }
-    }));
+    dispatch(
+      fetchCourseCategories({
+        page: 1,
+        limit: newLimit,
+        filters: {
+          isDeleted: false,
+          ...(localFilters.status ? { status: localFilters.status } : {}),
+        },
+        searchFields: searchQuery ? { name: searchQuery } : {},
+        sort: { createdAt: "desc" },
+      })
+    );
   };
 
   const handleFilterChange = (key: string, value: string) => {
@@ -224,16 +245,23 @@ const CategoryList: React.FC = () => {
     // Refresh the categories list after successful edit
     const activeFilters = {
       isDeleted: false,
-      ...(localFilters.status ? { status: localFilters.status } : {})
+      ...(localFilters.status ? { status: localFilters.status } : {}),
     };
-    
-    dispatch(fetchCourseCategories({
-      page: pagination.page,
-      limit: pagination.limit,
-      filters: activeFilters,
-      searchFields: searchQuery ? { name: searchQuery } : {},
-      sort: { createdAt: 'desc' }
-    }));
+
+    setPopup({
+      message: "Category updated successfully",
+      type: "success",
+      isVisible: true,
+    });
+    dispatch(
+      fetchCourseCategories({
+        page: pagination.page,
+        limit: pagination.limit,
+        filters: activeFilters,
+        searchFields: searchQuery ? { name: searchQuery } : {},
+        sort: { createdAt: "desc" },
+      })
+    );
   };
 
   const openDeleteModal = (category: Category) => {
@@ -254,40 +282,40 @@ const CategoryList: React.FC = () => {
         // Dispatch the delete action
         await dispatch(deleteCourseCategory(categoryToDelete._id)).unwrap();
 
-        toast.success(`Category "${categoryToDelete.name}" deleted successfully`,
-          {
-            position: "top-right",
-            duration: 3000,
-            style: {
-              background: "#10B981",
-              color: "#fff"
-            }
-          }
-        );
-        
+        setPopup({
+          message: `Category "${categoryToDelete.name}" deleted successfully`,
+          type: "success",
+          isVisible: true,
+        });
+
         // Close modal and reset state
         closeDeleteModal();
-        
+
         // Refresh the categories list
         const activeFilters = {
           isDeleted: false,
-          ...(localFilters.status ? { status: localFilters.status } : {})
+          ...(localFilters.status ? { status: localFilters.status } : {}),
         };
-        
-        dispatch(fetchCourseCategories({
-          page: pagination.page,
-          limit: pagination.limit,
-          filters: activeFilters,
-          searchFields: searchQuery ? { name: searchQuery } : {},
-          sort: { createdAt: 'desc' }
-        }));
-        
+
+        dispatch(
+          fetchCourseCategories({
+            page: pagination.page,
+            limit: pagination.limit,
+            filters: activeFilters,
+            searchFields: searchQuery ? { name: searchQuery } : {},
+            sort: { createdAt: "desc" },
+          })
+        );
+
         // Optional: Show success message
         console.log(`Category "${categoryToDelete.name}" deleted successfully`);
-        
       } catch (error) {
         console.error("Failed to delete category:", error);
-        toast.error("Failed to delete category");
+        setPopup({
+          message: "Failed to delete category. Please try again.",
+          type: "error",
+          isVisible: true,
+        });
         setIsDeleting(false);
       }
     }
@@ -302,9 +330,9 @@ const CategoryList: React.FC = () => {
     const start = Math.max(1, current - Math.floor(maxPages / 2));
     const end = Math.min(totalPages, start + maxPages - 1);
 
-    if (start > 1) pages.push(1, '...');
+    if (start > 1) pages.push(1, "...");
     for (let i = start; i <= end; i++) pages.push(i);
-    if (end < totalPages) pages.push('...', totalPages);
+    if (end < totalPages) pages.push("...", totalPages);
 
     return pages;
   };
@@ -318,8 +346,12 @@ const CategoryList: React.FC = () => {
       <PageBreadcrumb pageTitle="Category List" />
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">Course Categories</h1>
-          <span className="text-gray-500 text-sm dark:text-gray-400">Total: {pagination.total}</span>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
+            Course Categories
+          </h1>
+          <span className="text-gray-500 text-sm dark:text-gray-400">
+            Total: {pagination.total}
+          </span>
         </div>
 
         {/* Search & Filter */}
@@ -393,34 +425,57 @@ const CategoryList: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">#</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Image</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Subcategories</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Created</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  #
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Image
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Subcategories
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Created
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
               {categories.map((cat, idx) => (
-                <tr key={cat._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <tr
+                  key={cat._id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
                   <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                     {(pagination.page - 1) * pagination.limit + idx + 1}
                   </td>
-                   <td className="px-6 py-4">
+                  <td className="px-6 py-4">
                     <img
                       src={
                         cat?.image
-                        ? `${import.meta.env.VITE_IMAGE_URL}/${cat.image}`
-                        : `https://placehold.co/40x40?text=${cat?.name?.charAt(0) || "C"}`
+                          ? `${import.meta.env.VITE_IMAGE_URL}/${cat.image}`
+                          : `https://placehold.co/40x40?text=${
+                              cat?.name?.charAt(0) || "C"
+                            }`
                       }
                       alt={cat?.image ? cat?.name : "No image"}
                       className="w-10 h-10 rounded-full object-cover"
                     />
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{cat.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{cat.subCategoryCount}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                    {cat.name}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                    {cat.subCategoryCount}
+                  </td>
                   <td className="px-6 py-4 text-sm">
                     {cat.status === "active" ? (
                       <CheckCircle className="text-green-500 h-5 w-5" />
@@ -428,15 +483,17 @@ const CategoryList: React.FC = () => {
                       <XCircle className="text-red-500 h-5 w-5" />
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{new Date(cat.createdAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    {new Date(cat.createdAt).toLocaleDateString()}
+                  </td>
                   <td className="px-6 py-4 text-right space-x-2">
-                    <button 
+                    <button
                       onClick={() => openEditModal(cat)}
                       className="text-blue-500 hover:text-blue-700 transition-colors"
                     >
                       <Pencil className="h-5 w-5" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => openDeleteModal(cat)}
                       className="text-red-500 hover:text-red-700 transition-colors"
                     >
@@ -451,8 +508,8 @@ const CategoryList: React.FC = () => {
 
         {/* Pagination */}
         <div className="flex justify-end gap-2 mt-4">
-          <button 
-            onClick={() => handlePageChange(pagination.page - 1)} 
+          <button
+            onClick={() => handlePageChange(pagination.page - 1)}
             disabled={pagination.page === 1}
             className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800"
           >
@@ -464,8 +521,8 @@ const CategoryList: React.FC = () => {
                 key={idx}
                 onClick={() => handlePageChange(page)}
                 className={`px-3 py-1 rounded ${
-                  pagination.page === page 
-                    ? "bg-indigo-500 text-white" 
+                  pagination.page === page
+                    ? "bg-indigo-500 text-white"
                     : "bg-gray-100 dark:bg-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
                 }`}
               >
@@ -477,8 +534,8 @@ const CategoryList: React.FC = () => {
               </span>
             )
           )}
-          <button 
-            onClick={() => handlePageChange(pagination.page + 1)} 
+          <button
+            onClick={() => handlePageChange(pagination.page + 1)}
             disabled={pagination.page === pagination.totalPages}
             className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800"
           >
@@ -494,7 +551,12 @@ const CategoryList: React.FC = () => {
         categoryId={categoryToEdit?._id || null}
         onSuccess={handleEditSuccess}
       />
-
+      <PopupAlert
+        message={popup.message}
+        type={popup.type}
+        isVisible={popup.isVisible}
+        onClose={() => setPopup({ ...popup, isVisible: false })}
+      />
       {/* Delete Modal */}
       <DeleteModal
         isOpen={deleteModalOpen}

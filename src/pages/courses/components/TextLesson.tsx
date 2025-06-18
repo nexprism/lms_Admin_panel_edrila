@@ -14,6 +14,7 @@ const TextLessonEditor = ({
   courseId,
   lessonId,
   textLessonId,
+  onClose,
 }) => {
   const dispatch = useDispatch();
   const { loading, error, data } = useSelector((state) => state.textLesson);
@@ -201,6 +202,8 @@ const TextLessonEditor = ({
         await dispatch(createTextLesson(apiFormData)).unwrap();
       }
       // Show success popup
+      
+      onClose();
       setPopup({
         isVisible: true,
         message: "Text Lesson created successfully!",

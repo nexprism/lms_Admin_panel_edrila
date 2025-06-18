@@ -175,6 +175,7 @@ export default function AddAssignmentForm({
         (isEditMode && updateAssignment.fulfilled.match(result)) ||
         (!isEditMode && createAssignment.fulfilled.match(result))
       ) {
+        
         setPopup({
           isVisible: true,
           message: `Assignment ${

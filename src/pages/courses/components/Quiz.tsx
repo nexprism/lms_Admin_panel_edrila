@@ -330,6 +330,7 @@ const Quiz = ({
       };
       dispatch(createQuiz(payload) as any);
     }
+    handleClose();
   };
 
   const handleClose = () => {
@@ -781,8 +782,13 @@ const QuestionBuilder = ({
   onClose,
 }: QuestionBuilderProps) => {
   const [questionText, setQuestionText] = useState(question?.question || "");
-  const [options, setOptions] = useState<string[]>(
-    question?.options || ["", "", "", ""]
+  const [options, setOptions] = useState<OptionType[]>(
+    question?.options || [
+      { label: "A", text: "" },
+      { label: "B", text: "" },
+      { label: "C", text: "" },
+      { label: "D", text: "" },
+    ]
   );
   const [correctAnswer, setCorrectAnswer] = useState(
     question?.correctAnswer || ""
@@ -790,18 +796,19 @@ const QuestionBuilder = ({
 
   const handleOptionChange = (index: number, value: string) => {
     const updatedOptions = [...options];
-    updatedOptions[index] = value;
+    updatedOptions[index].text = value;
     setOptions(updatedOptions);
   };
 
   const addOption = () => {
-    setOptions([...options, ""]);
+    const newLabel = String.fromCharCode(65 + options.length); // A, B, C, ...
+    setOptions([...options, { label: newLabel, text: "" }]);
   };
 
   const removeOption = (index: number) => {
     const updatedOptions = options.filter((_, i) => i !== index);
     setOptions(updatedOptions);
-    if (correctAnswer === options[index]) {
+    if (correctAnswer === options[index]?.label) {
       setCorrectAnswer("");
     }
   };
@@ -812,20 +819,20 @@ const QuestionBuilder = ({
       return;
     }
     const filteredOptions = options
-      .map((opt) => opt.trim())
+      .map((opt) => opt.text.trim())
       .filter((opt) => opt !== "");
     if (filteredOptions.length < 2) {
       alert("Please provide at least two options.");
       return;
     }
-    if (!correctAnswer || !filteredOptions.includes(correctAnswer)) {
+    if (!correctAnswer || !options.some((opt) => opt.label === correctAnswer)) {
       alert("Please select a valid correct answer.");
       return;
     }
     onSave({
       question: questionText.trim(),
-      options: filteredOptions,
-      correctAnswer,
+      options: options,
+      correctAnswer, // Pass the label (A, B, C, D) as the correct answer
     });
   };
 
@@ -856,9 +863,9 @@ const QuestionBuilder = ({
             <div key={index} className="flex items-center gap-2 mb-2">
               <input
                 type="text"
-                value={option}
+                value={option.text}
                 onChange={(e) => handleOptionChange(index, e.target.value)}
-                placeholder={`Option ${index + 1}`}
+                placeholder={`Option ${option.label}`}
                 className="flex-grow px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
@@ -895,9 +902,9 @@ const QuestionBuilder = ({
           >
             <option value="">Select correct answer</option>
             {options.map((option, index) =>
-              option.trim() ? (
-                <option key={index} value={option}>
-                  {option}
+              option.text.trim() ? (
+                <option key={index} value={option.label}>
+                  {option.label}: {option.text}
                 </option>
               ) : null
             )}
@@ -1084,7 +1091,7 @@ const QuestionCard = ({
               <ul className="list-disc list-inside">
                 {question.options.map((option, optionIndex) => (
                   <li key={optionIndex} className="text-gray-700">
-                    {option}
+                    {option.label}: {option.text}
                   </li>
                 ))}
               </ul>

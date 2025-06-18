@@ -208,7 +208,8 @@ export default function FileUploadForm({
           };
           return dispatch(uploadFile(payload));
         });
-        await Promise.all(uploadPromises);
+        const result = await Promise.all(uploadPromises);
+        handleClose();
       }
     } catch (error) {
       setPopup({

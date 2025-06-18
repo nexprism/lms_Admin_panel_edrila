@@ -52,6 +52,7 @@ import {
 } from "../../store/slices/plans";
 import toast from "react-hot-toast";
 import Faqs from "./components/Faqs";
+import PopupAlert from "../../components/popUpAlert";
 
 // Rich Text Editor Component
 type RichTextEditorProps = {
@@ -337,7 +338,15 @@ const EditCourse = () => {
     discount: 0,
     capacity: 0,
   });
-
+  const [popup, setPopup] = useState<{
+    message: string;
+    type: "success" | "error";
+    isVisible: boolean;
+  }>({
+    message: "",
+    type: "success",
+    isVisible: false,
+  });
   const [formData, setFormData] = useState<any>({
     title: "",
     subtitle: "",
@@ -371,15 +380,6 @@ const EditCourse = () => {
     "AI/ML",
     "Web Development",
   ];
-
-  const editPlan = (plan) => {
-    setCurrentPlan(plan);
-    setEditingId(plan.id);
-  };
-
-  const deletePlan = (id) => {
-    setPlans(plans.filter((plan) => plan.id !== id));
-  };
 
   const cancelEdit = () => {
     setShowPlanPopup(false);
@@ -594,7 +594,11 @@ const EditCourse = () => {
             },
           })
         ).unwrap();
-        toast.success("Plan updated successfully!");
+        setPopup({
+          message: "Plan added successfully!",
+          type: "success",
+          isVisible: true,
+        });
         setShowPlanPopup(false);
         setEditingId(null);
         setCurrentPlan(null);
@@ -609,13 +613,24 @@ const EditCourse = () => {
           language: "English",
         };
         await dispatch(createPricingPlan(payload)).unwrap();
-        toast.success("Plan added successfully!");
+
         setShowPlanPopup(false);
         setEditingId(null);
         setCurrentPlan(null);
+        setPopup({
+          message: "Plan added successfully!",
+          type: "success",
+          isVisible: true,
+        });
       }
+      setShowPlanPopup(false);
       dispatch(getAllPricingPlansByCourse(courseId || ""));
     } catch (error) {
+      setPopup({
+        message: "Error adding plan. Please try again.",
+        type: "error",
+        isVisible: true,
+      });
       console.error("Error adding plan:", error);
     }
   };
@@ -623,14 +638,22 @@ const EditCourse = () => {
   const handelDeletePlan = async (planId: string) => {
     try {
       await dispatch(deletePricingPlan(planId)).unwrap();
-      toast.success("Plan deleted successfully!");
+      setPopup({
+        message: "Plan deleted successfully!",
+        type: "success",
+        isVisible: true,
+      });
       setEditingId(null);
       setCurrentPlan(null);
       setShowPlanPopup(false);
       dispatch(getAllPricingPlansByCourse(courseId || ""));
     } catch (error) {
       console.error("Error deleting plan:", error);
-      toast.error("Failed to delete plan");
+      setPopup({
+        message: "Failed to delete plan",
+        type: "error",
+        isVisible: true,
+      });
     }
   };
 
@@ -652,767 +675,778 @@ const EditCourse = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h1 className="text-3xl font-bold flex items-center gap-3 text-gray-900">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Edit className="w-8 h-8 text-blue-600" />
-            </div>
-            Edit Course
-          </h1>
-          <p className="text-gray-600 mt-2">Update your course details below</p>
-          {formData.title && (
-            <p className="text-sm text-gray-500 mt-1">
-              Currently editing: <strong>{formData.title}</strong>
+    <>
+      <PopupAlert
+        message={popup.message}
+        type={popup.type}
+        isVisible={popup.isVisible}
+        onClose={() => setPopup({ ...popup, isVisible: false })}
+      />
+      <div className="min-h-screen bg-gray-50">
+        <div className="mx-auto py-8 px-4">
+          {/* Header */}
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h1 className="text-3xl font-bold flex items-center gap-3 text-gray-900">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Edit className="w-8 h-8 text-blue-600" />
+              </div>
+              Edit Course
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Update your course details below
             </p>
-          )}
-        </div>
-
-        {/* Error/Success Messages */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-red-500" />
-            <span className="text-red-700">
-              {typeof error === "string" ? error : "An error occurred"}
-            </span>
+            {formData.title && (
+              <p className="text-sm text-gray-500 mt-1">
+                Currently editing: <strong>{formData.title}</strong>
+              </p>
+            )}
           </div>
-        )}
 
-        <form onSubmit={(e) => handleSubmit(e, false)}>
-          <div className="space-y-6">
-            {/* Basic Information */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Type className="w-5 h-5 text-blue-600" />
-                Basic Information
-              </h2>
-              <div className="space-y-4">
+          {/* Error/Success Messages */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <span className="text-red-700">
+                {typeof error === "string" ? error : "An error occurred"}
+              </span>
+            </div>
+          )}
+
+          <form onSubmit={(e) => handleSubmit(e, false)}>
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Type className="w-5 h-5 text-blue-600" />
+                  Basic Information
+                </h2>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Course Title *
+                      </label>
+                      <input
+                        type="text"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter course title"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Course Subtitle
+                      </label>
+                      <input
+                        type="text"
+                        name="subtitle"
+                        value={formData.subtitle}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter course subtitle"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Course Description *
+                    </label>
+                    <RichTextEditor
+                      value={description}
+                      onChange={setDescription}
+                      placeholder="Describe your course in detail..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Course Details */}
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-blue-600" />
+                  Course Details
+                </h2>
+                <div className="space-y-4">
+                  <CategorySubcategoryDropdowns
+                    selectedCategoryId={formData.categoryId}
+                    selectedSubcategoryId={formData.subCategoryId}
+                    onCategoryChange={handleCategoryChange}
+                    onSubcategoryChange={handleSubcategoryChange}
+                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Level
+                    </label>
+                    <select
+                      name="level"
+                      value={formData.level}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                      <option value="all">All Levels</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Duration (hours)
+                    </label>
+                    <input
+                      type="number"
+                      name="duration"
+                      value={formData.duration}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Course duration"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Media Files */}
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Image className="w-5 h-5 text-blue-600" />
+                  Media Files
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FileUpload
+                    label="Course Thumbnail"
+                    accept="image/*"
+                    onFileChange={setThumbnailFile}
+                    currentFile={thumbnailFile}
+                    icon={Image}
+                  />
+                  <FileUpload
+                    label="Cover Image"
+                    accept="image/*"
+                    onFileChange={setCoverImageFile}
+                    currentFile={coverImageFile}
+                    icon={Image}
+                  />
+                  <FileUpload
+                    label="Demo Video"
+                    accept="video/*"
+                    onFileChange={setDemoVideoFile}
+                    currentFile={demoVideoFile}
+                    icon={Video}
+                  />
+                </div>
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    {(formData.thumbnail || thumbnailFile) && (
+                      <div className="relative">
+                        <div
+                          onClick={() =>
+                            setFormData({ ...formData, thumbnail: "" })
+                          }
+                          className="absolute top-2 cursor-pointer  right-2 p-1 rounded-sm bg-red-500/50"
+                        >
+                          <Plus className="h-4 w-4 rotate-[45deg]" />
+                        </div>
+                        <img
+                          className="h-40 w-full"
+                          src={
+                            thumbnailFile
+                              ? getUrlFrommFile(thumbnailFile)
+                              : `http://localhost:5000/${formData?.thumbnail}`
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    {(formData.coverImage || coverImageFile) && (
+                      <div className="relative">
+                        <div
+                          onClick={() =>
+                            setFormData({ ...formData, coverImage: "" })
+                          }
+                          className="absolute top-2 cursor-pointer  right-2 p-1 rounded-sm bg-red-500/50"
+                        >
+                          <Plus className="h-4 w-4 rotate-[45deg]" />
+                        </div>
+                        <img
+                          className="h-40 w-full"
+                          src={
+                            coverImageFile
+                              ? getUrlFrommFile(coverImageFile)
+                              : `http://localhost:5000/${formData?.coverImage}`
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    {(formData.demoVideo || demoVideoFile) && (
+                      <div className="relative">
+                        <div
+                          onClick={() =>
+                            setFormData({ ...formData, demoVideo: "" })
+                          }
+                          className="absolute z-50 top-2 cursor-pointer  right-2 p-1 rounded-sm bg-red-500/50"
+                        >
+                          <Plus className="h-4 w-4 rotate-[45deg]" />
+                        </div>
+                        <video className="h-40 w-full" controls width="800">
+                          <source
+                            src={
+                              getUrlFrommFile(demoVideoFile) ||
+                              `http://localhost:5000/${formData?.demoVideo}`
+                            }
+                            type="video/mp4"
+                          />
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Pricing */}
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-blue-600" />
+                  Pricing
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Course Title *
+                      Price
                     </label>
                     <input
-                      type="text"
-                      name="title"
-                      value={formData.title}
+                      type="number"
+                      name="price"
+                      value={formData.price}
                       onChange={handleInputChange}
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter course title"
-                      required
+                      placeholder="Course price"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Course Subtitle
+                      Currency
                     </label>
-                    <input
-                      type="text"
-                      name="subtitle"
-                      value={formData.subtitle}
+                    <select
+                      name="currency"
+                      value={formData.currency}
                       onChange={handleInputChange}
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter course subtitle"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Course Description *
-                  </label>
-                  <RichTextEditor
-                    value={description}
-                    onChange={setDescription}
-                    placeholder="Describe your course in detail..."
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Course Details */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-600" />
-                Course Details
-              </h2>
-              <div className="space-y-4">
-                <CategorySubcategoryDropdowns
-                  selectedCategoryId={formData.categoryId}
-                  selectedSubcategoryId={formData.subCategoryId}
-                  onCategoryChange={handleCategoryChange}
-                  onSubcategoryChange={handleSubcategoryChange}
-                />
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Level
-                  </label>
-                  <select
-                    name="level"
-                    value={formData.level}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                    <option value="all">All Levels</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Duration (hours)
-                  </label>
-                  <input
-                    type="number"
-                    name="duration"
-                    value={formData.duration}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Course duration"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Media Files */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Image className="w-5 h-5 text-blue-600" />
-                Media Files
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FileUpload
-                  label="Course Thumbnail"
-                  accept="image/*"
-                  onFileChange={setThumbnailFile}
-                  currentFile={thumbnailFile}
-                  icon={Image}
-                />
-                <FileUpload
-                  label="Cover Image"
-                  accept="image/*"
-                  onFileChange={setCoverImageFile}
-                  currentFile={coverImageFile}
-                  icon={Image}
-                />
-                <FileUpload
-                  label="Demo Video"
-                  accept="video/*"
-                  onFileChange={setDemoVideoFile}
-                  currentFile={demoVideoFile}
-                  icon={Video}
-                />
-              </div>
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  {(formData.thumbnail || thumbnailFile) && (
-                    <div className="relative">
-                      <div
-                        onClick={() =>
-                          setFormData({ ...formData, thumbnail: "" })
-                        }
-                        className="absolute top-2 cursor-pointer  right-2 p-1 rounded-sm bg-red-500/50"
-                      >
-                        <Plus className="h-4 w-4 rotate-[45deg]" />
-                      </div>
-                      <img
-                        className="h-40 w-full"
-                        src={
-                          thumbnailFile
-                            ? getUrlFrommFile(thumbnailFile)
-                            : `http://localhost:5000/${formData?.thumbnail}`
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  {(formData.coverImage || coverImageFile) && (
-                    <div className="relative">
-                      <div
-                        onClick={() =>
-                          setFormData({ ...formData, coverImage: "" })
-                        }
-                        className="absolute top-2 cursor-pointer  right-2 p-1 rounded-sm bg-red-500/50"
-                      >
-                        <Plus className="h-4 w-4 rotate-[45deg]" />
-                      </div>
-                      <img
-                        className="h-40 w-full"
-                        src={
-                          coverImageFile
-                            ? getUrlFrommFile(coverImageFile)
-                            : `http://localhost:5000/${formData?.coverImage}`
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  {(formData.demoVideo || demoVideoFile) && (
-                    <div className="relative">
-                      <div
-                        onClick={() =>
-                          setFormData({ ...formData, demoVideo: "" })
-                        }
-                        className="absolute z-50 top-2 cursor-pointer  right-2 p-1 rounded-sm bg-red-500/50"
-                      >
-                        <Plus className="h-4 w-4 rotate-[45deg]" />
-                      </div>
-                      <video className="h-40 w-full" controls width="800">
-                        <source
-                          src={
-                            getUrlFrommFile(demoVideoFile) ||
-                            `http://localhost:5000/${formData?.demoVideo}`
-                          }
-                          type="video/mp4"
-                        />
-                        Your browser does not support the video tag.
-                      </video>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Pricing */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-blue-600" />
-                Pricing
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Price
-                  </label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Course price"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Currency
-                  </label>
-                  <select
-                    name="currency"
-                    value={formData.currency}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="INR">INR (₹)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="GBP">GBP (£)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {showPlanPopup && (
-              <div className="fixed top-0 left-0 h-screen right-0 bottom-0 bg-black/50 z-9999 flex items-center justify-center">
-                <div className="bg-white rounded-2xl  shadow-xl p-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      {editingId ? "Edit Plan" : "Create New Plan"}
-                    </h2>
-
-                    <div
-                      onClick={cancelEdit}
-                      className="text-gray-500 hover:text-gray-700 transition-colors"
                     >
-                      <X className="w-6 h-6" />
-                    </div>
+                      <option value="INR">INR (₹)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                      <option value="GBP">GBP (£)</option>
+                    </select>
                   </div>
+                </div>
+              </div>
 
-                  <div className="space-y-6">
-                    {/* Basic Info */}
-                    <div className="grid md:grid-cols-1 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Plan Name *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={
-                            editingId ? currentPlan?.title : planData?.title
-                          }
-                          onChange={(e) =>
-                            editingId
-                              ? setCurrentPlan({
-                                  ...currentPlan,
-                                  title: e.target.value,
-                                })
-                              : setPlanData({
-                                  ...planData,
-                                  title: e.target.value,
-                                })
-                          }
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                          placeholder="e.g., Basic, Pro, Enterprise"
-                        />
+              {showPlanPopup && (
+                <div className="fixed top-0 left-0 h-screen right-0 bottom-0 bg-black/50 z-9999 flex items-center justify-center">
+                  <div className="bg-white rounded-2xl  shadow-xl p-8">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-2xl font-bold text-gray-900">
+                        {editingId ? "Edit Plan" : "Create New Plan"}
+                      </h2>
+
+                      <div
+                        onClick={cancelEdit}
+                        className="text-gray-500 hover:text-gray-700 transition-colors"
+                      >
+                        <X className="w-6 h-6" />
                       </div>
                     </div>
 
-                    <div>
+                    <div className="space-y-6">
+                      {/* Basic Info */}
                       <div className="grid md:grid-cols-1 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Start Date*
+                            Plan Name *
                           </label>
                           <input
-                            type="date"
+                            type="text"
                             required
                             value={
-                              editingId
-                                ? currentPlan?.startDate
-                                : planData?.startDate
+                              editingId ? currentPlan?.title : planData?.title
                             }
                             onChange={(e) =>
                               editingId
                                 ? setCurrentPlan({
                                     ...currentPlan,
-                                    startDate: e.target.value,
+                                    title: e.target.value,
                                   })
                                 : setPlanData({
                                     ...planData,
-                                    startDate: e.target.value,
+                                    title: e.target.value,
                                   })
                             }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                            placeholder="e.g., Basic, Pro, Enterprise"
                           />
                         </div>
+                      </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            End Date
-                          </label>
-                          <input
-                            type="date"
-                            required
-                            value={
-                              editingId
-                                ? currentPlan?.endDate
-                                : planData?.endDate
-                            }
-                            onChange={(e) =>
-                              editingId
-                                ? setCurrentPlan({
-                                    ...currentPlan,
-                                    endDate: e.target.value,
-                                  })
-                                : setPlanData({
-                                    ...planData,
-                                    endDate: e.target.value,
-                                  })
-                            }
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                          />
-                        </div>
-
-                        {/* Pricing */}
-                        <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <div className="grid md:grid-cols-1 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Discount
+                              Start Date*
                             </label>
                             <input
-                              type="number"
+                              type="date"
                               required
-                              min="0"
                               value={
                                 editingId
-                                  ? currentPlan?.discount
-                                  : planData?.discount
+                                  ? currentPlan?.startDate
+                                  : planData?.startDate
                               }
                               onChange={(e) =>
                                 editingId
                                   ? setCurrentPlan({
                                       ...currentPlan,
-                                      discount: Number(e.target.value),
+                                      startDate: e.target.value,
                                     })
                                   : setPlanData({
                                       ...planData,
-                                      discount: Number(e.target.value),
+                                      startDate: e.target.value,
                                     })
                               }
                               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                              placeholder="29"
                             />
                           </div>
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Capacity
+                              End Date
                             </label>
                             <input
-                              type="number"
+                              type="date"
                               required
-                              min="0"
                               value={
                                 editingId
-                                  ? currentPlan?.capacity
-                                  : planData?.capacity
+                                  ? currentPlan?.endDate
+                                  : planData?.endDate
                               }
                               onChange={(e) =>
                                 editingId
                                   ? setCurrentPlan({
                                       ...currentPlan,
-                                      capacity: Number(e.target.value),
+                                      endDate: e.target.value,
                                     })
                                   : setPlanData({
                                       ...planData,
-                                      capacity: Number(e.target.value),
+                                      endDate: e.target.value,
                                     })
                               }
                               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                              placeholder="290"
                             />
+                          </div>
+
+                          {/* Pricing */}
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Discount
+                              </label>
+                              <input
+                                type="number"
+                                required
+                                min="0"
+                                value={
+                                  editingId
+                                    ? currentPlan?.discount
+                                    : planData?.discount
+                                }
+                                onChange={(e) =>
+                                  editingId
+                                    ? setCurrentPlan({
+                                        ...currentPlan,
+                                        discount: Number(e.target.value),
+                                      })
+                                    : setPlanData({
+                                        ...planData,
+                                        discount: Number(e.target.value),
+                                      })
+                                }
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                placeholder="29"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Capacity
+                              </label>
+                              <input
+                                type="number"
+                                required
+                                min="0"
+                                value={
+                                  editingId
+                                    ? currentPlan?.capacity
+                                    : planData?.capacity
+                                }
+                                onChange={(e) =>
+                                  editingId
+                                    ? setCurrentPlan({
+                                        ...currentPlan,
+                                        capacity: Number(e.target.value),
+                                      })
+                                    : setPlanData({
+                                        ...planData,
+                                        capacity: Number(e.target.value),
+                                      })
+                                }
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                placeholder="290"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <div
-                        onClick={() => handelDeletePlan(editingId)}
-                        className="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Trash className="w-5 h-5" />
-                        Delete Plan
+                      <div className="flex gap-3">
+                        <div
+                          onClick={() => handelDeletePlan(editingId)}
+                          className="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Trash className="w-5 h-5" />
+                          Delete Plan
+                        </div>
                       </div>
-                    </div>
-                    {/* Submit Button */}
-                    <div className="flex gap-3">
-                      <div
-                        onClick={handelAddPlan}
-                        disabled={editingId ? false : !planData.title}
-                        className="flex-1 bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Save className="w-5 h-5" />
-                        {editingId ? "Update Plan" : "Create Plan"}
+                      {/* Submit Button */}
+                      <div className="flex gap-3">
+                        <div
+                          onClick={handelAddPlan}
+                          disabled={editingId ? false : !planData.title}
+                          className="flex-1 bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Save className="w-5 h-5" />
+                          {editingId ? "Update Plan" : "Create Plan"}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-blue-600" />
-                  Pricing Plans
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setShowPlanPopup(true)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors  bg-blue-600 text-white `}
-                >
-                  <Plus className="w-4 h-4 inline-block mr-1" />
-                  Add Plan
-                </button>
-              </div>
-              <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                {Plans?.data?.map((plan, index) => (
-                  <div
-                    key={plan._id}
-                    className={`relative rounded-2xl p-8 transition-all duration-300 hover:shadow-xl ${
-                      index % 2 !== 0
-                        ? "bg-gradient-to-b from-purple-600 to-purple-700 text-white transform scale-105 shadow-2xl"
-                        : "bg-gray-50 hover:bg-gray-100"
-                    }`}
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-blue-600" />
+                    Pricing Plans
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setShowPlanPopup(true)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors  bg-blue-600 text-white `}
                   >
-                    <h2 className="text-2xl  font-semibold mb-6 flex justify-center items-center gap-2">
-                      {plan.title}
-                    </h2>
-
-                    {/* Price */}
-                    <div className="text-center mb-6">
-                      <div className="flex items-baseline justify-center">
-                        <span
-                          className={`text-4xl font-bold ${
-                            index % 2 !== 0 ? "text-white" : "text-gray-900"
-                          }`}
-                        >
-                          ₹{plan.discount}
-                        </span>
-                        <span
-                          className={`ml-1 text-sm ${
-                            index % 2 !== 0
-                              ? "text-purple-200"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          / {billingCycle === "monthly" ? "Month" : "Year"}
-                        </span>
-                      </div>
-                      {billingCycle === "yearly" && (
-                        <div className="text-sm text-green-500 font-medium mt-1">
-                          Save 17%
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="mt-10 grid grid-cols-2 gap-2">
-                      <div>
-                        <h2 className="text-xs">Start</h2>
-                        <h2 className="font-medium">30, May 2023</h2>
-                      </div>
-                      <div>
-                        <h2 className="text-xs">End</h2>
-                        <h2 className="font-medium">30, May 2023</h2>
-                      </div>
-                    </div>
-                    <div className="mt-4 mb-6 grid grid-cols-2 gap-2">
-                      <div>
-                        <h2 className="text-xs">Capacity</h2>
-                        <h2 className="font-medium">100</h2>
-                      </div>
-                    </div>
-
-                    {/* CTA Button */}
-                    <button
-                      onClick={() => {
-                        setShowPlanPopup(true);
-                        setEditingId(plan._id);
-                        setCurrentPlan(plan);
-                      }}
-                      className={`w-full ${
-                        index % 2 === 0
-                          ? "bg-blue-50 text-black"
-                          : "bg-gray-100 text-gray-900"
-                      } py-3 px-6 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 `}
+                    <Plus className="w-4 h-4 inline-block mr-1" />
+                    Add Plan
+                  </button>
+                </div>
+                <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                  {Plans?.data?.map((plan, index) => (
+                    <div
+                      key={plan._id}
+                      className={`relative rounded-2xl p-8 transition-all duration-300 hover:shadow-xl ${
+                        index % 2 !== 0
+                          ? "bg-gradient-to-b from-purple-600 to-purple-700 text-white transform scale-105 shadow-2xl"
+                          : "bg-gray-100 hover:bg-gray-100"
+                      }`}
                     >
-                      Edit Plan
+                      <h2 className="text-2xl  font-semibold mb-6 flex justify-center items-center gap-2">
+                        {plan.title}
+                      </h2>
+
+                      {/* Price */}
+                      <div className="text-center mb-6">
+                        <div className="flex items-baseline justify-center">
+                          <span
+                            className={`text-4xl font-bold ${
+                              index % 2 !== 0 ? "text-white" : "text-gray-900"
+                            }`}
+                          >
+                            ₹{plan.discount}
+                          </span>
+                          <span
+                            className={`ml-1 text-sm ${
+                              index % 2 !== 0
+                                ? "text-purple-200"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            / {billingCycle === "monthly" ? "Month" : "Year"}
+                          </span>
+                        </div>
+                        {billingCycle === "yearly" && (
+                          <div className="text-sm text-green-500 font-medium mt-1">
+                            Save 17%
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-10 grid grid-cols-2 gap-2">
+                        <div>
+                          <h2 className="text-xs">Start</h2>
+                          <h2 className="font-medium">30, May 2023</h2>
+                        </div>
+                        <div>
+                          <h2 className="text-xs">End</h2>
+                          <h2 className="font-medium">30, May 2023</h2>
+                        </div>
+                      </div>
+                      <div className="mt-4 mb-6 grid grid-cols-2 gap-2">
+                        <div>
+                          <h2 className="text-xs">Capacity</h2>
+                          <h2 className="font-medium">100</h2>
+                        </div>
+                      </div>
+
+                      {/* CTA Button */}
+                      <button
+                        onClick={() => {
+                          setShowPlanPopup(true);
+                          setEditingId(plan._id);
+                          setCurrentPlan(plan);
+                        }}
+                        className={`w-full ${
+                          index % 2 === 0
+                            ? "bg-white text-black"
+                            : "bg-gray-100 text-gray-900"
+                        } py-3 px-6 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 `}
+                      >
+                        Edit Plan
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Course Features */}
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-blue-600" />
+                  Course Features
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {[
+                    {
+                      key: "certificateTemplate",
+                      label: "Certificate",
+                      icon: Award,
+                    },
+                    {
+                      key: "isDownloadable",
+                      label: "Downloadable",
+                      icon: Download,
+                    },
+                    { key: "courseForum", label: "Forum", icon: MessageCircle },
+                    {
+                      key: "isSubscription",
+                      label: "Subscription",
+                      icon: Calendar,
+                    },
+                    { key: "isPrivate", label: "Private", icon: Lock },
+                    { key: "enableWaitlist", label: "Waitlist", icon: Users },
+                  ].map(({ key, label, icon: Icon }) => (
+                    <label
+                      key={key}
+                      className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        name={key}
+                        checked={formData[key]}
+                        onChange={handleInputChange}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <Icon className="w-5 h-5 text-gray-600" />
+                      <span className="text-sm font-medium text-gray-700">
+                        {label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Tag className="w-5 h-5 text-blue-600" />
+                  Tags
+                </h2>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {predefinedTags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => addTag(tag)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                          selectedTags.includes(tag)
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customTag}
+                      onChange={(e) => setCustomTag(e.target.value)}
+                      placeholder="Add custom tag"
+                      className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onKeyDown={(e) =>
+                        e.key === "Enter" &&
+                        (e.preventDefault(), addCustomTag())
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomTag}
+                      className="px-4 py-2  flex  items-center   gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Tag
                     </button>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Course Features */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Award className="w-5 h-5 text-blue-600" />
-                Course Features
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {[
-                  {
-                    key: "certificateTemplate",
-                    label: "Certificate",
-                    icon: Award,
-                  },
-                  {
-                    key: "isDownloadable",
-                    label: "Downloadable",
-                    icon: Download,
-                  },
-                  { key: "courseForum", label: "Forum", icon: MessageCircle },
-                  {
-                    key: "isSubscription",
-                    label: "Subscription",
-                    icon: Calendar,
-                  },
-                  { key: "isPrivate", label: "Private", icon: Lock },
-                  { key: "enableWaitlist", label: "Waitlist", icon: Users },
-                ].map(({ key, label, icon: Icon }) => (
-                  <label
-                    key={key}
-                    className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                  >
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {selectedTags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center gap-1"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => removeTag(tag)}
+                          className="text-blue-500 hover:text-blue-700"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* SEO Content */}
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Search className="w-5 h-5 text-blue-600" />
+                  SEO Content
+                </h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      SEO Meta Description
+                    </label>
+                    <textarea
+                      name="seoMetaDescription"
+                      value={formData.seoMetaDescription}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={3}
+                      placeholder="Enter SEO meta description"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      SEO Content
+                    </label>
+                    <RichTextEditor
+                      value={seoContent}
+                      onChange={setSeoContent}
+                      placeholder="Enter SEO-friendly content..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Course Modules */}
+              <ModuleSection
+                modules={modules}
+                onModulesChange={handleModulesChange}
+                courseId={courseId || ""}
+                courseData={courseData}
+                isEditing={true}
+              />
+
+              {/* Publication Status */}
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Eye className="w-5 h-5 text-blue-600" />
+                  Publication Status
+                </h2>
+                <div className="space-y-4">
+                  <label className="flex items-center gap-3">
                     <input
                       type="checkbox"
-                      name={key}
-                      checked={formData[key]}
+                      name="isPublished"
+                      checked={formData.isPublished}
                       onChange={handleInputChange}
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
-                    <Icon className="w-5 h-5 text-gray-600" />
                     <span className="text-sm font-medium text-gray-700">
-                      {label}
+                      Publish Course (Make it visible to students)
                     </span>
                   </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Tags */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Tag className="w-5 h-5 text-blue-600" />
-                Tags
-              </h2>
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {predefinedTags.map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => addTag(tag)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                        selectedTags.includes(tag)
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      {tag}
-                    </button>
-                  ))}
+                  <p className="text-sm text-gray-600">
+                    When published, this course will be visible to students and
+                    available for enrollment.
+                  </p>
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={customTag}
-                    onChange={(e) => setCustomTag(e.target.value)}
-                    placeholder="Add custom tag"
-                    className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    onKeyDown={(e) =>
-                      e.key === "Enter" && (e.preventDefault(), addCustomTag())
-                    }
-                  />
+              </div>
+
+              <Faqs courseID={courseId} />
+
+              {/* Action Buttons */}
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex flex-col sm:flex-row gap-4 justify-end">
                   <button
                     type="button"
-                    onClick={addCustomTag}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    onClick={(e) => handleSubmit(e, true)}
+                    disabled={loading}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    <Plus className="w-4 h-4" />
-                    Add Tag
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <FileText className="w-4 h-4" />
+                    )}
+                    Save as Draft
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4" />
+                    )}
+                    Update Course
                   </button>
                 </div>
-
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {selectedTags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center gap-1"
-                    >
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => removeTag(tag)}
-                        className="text-blue-500 hover:text-blue-700"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
               </div>
             </div>
-
-            {/* SEO Content */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Search className="w-5 h-5 text-blue-600" />
-                SEO Content
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    SEO Meta Description
-                  </label>
-                  <textarea
-                    name="seoMetaDescription"
-                    value={formData.seoMetaDescription}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows={3}
-                    placeholder="Enter SEO meta description"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    SEO Content
-                  </label>
-                  <RichTextEditor
-                    value={seoContent}
-                    onChange={setSeoContent}
-                    placeholder="Enter SEO-friendly content..."
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Course Modules */}
-            <ModuleSection
-              modules={modules}
-              onModulesChange={handleModulesChange}
-              courseId={courseId || ""}
-              courseData={courseData}
-              isEditing={true}
-            />
-
-            {/* Publication Status */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Eye className="w-5 h-5 text-blue-600" />
-                Publication Status
-              </h2>
-              <div className="space-y-4">
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    name="isPublished"
-                    checked={formData.isPublished}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm font-medium text-gray-700">
-                    Publish Course (Make it visible to students)
-                  </span>
-                </label>
-                <p className="text-sm text-gray-600">
-                  When published, this course will be visible to students and
-                  available for enrollment.
-                </p>
-              </div>
-            </div>
-
-            <Faqs courseID={courseId} />
-
-            {/* Action Buttons */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex flex-col sm:flex-row gap-4 justify-end">
-                <button
-                  type="button"
-                  onClick={(e) => handleSubmit(e, true)}
-                  disabled={loading}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <FileText className="w-4 h-4" />
-                  )}
-                  Save as Draft
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Upload className="w-4 h-4" />
-                  )}
-                  Update Course
-                </button>
-              </div>
-            </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

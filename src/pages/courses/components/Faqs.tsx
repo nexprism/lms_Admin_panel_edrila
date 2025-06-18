@@ -1,9 +1,10 @@
 import { CircleHelp, Delete, Pen, Plus, Save, Trash, X } from "lucide-react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axiosInstance from "../../../services/axiosConfig";
 import { useDispatch } from "react-redux";
 import { all } from "axios";
 import toast from "react-hot-toast";
+import PopupAlert from "../../../components/popUpAlert";
 
 function Faqs({ courseID }) {
   const [allFaqs, setAllFaqs] = React.useState([]);
@@ -11,6 +12,15 @@ function Faqs({ courseID }) {
   const [faqData, setFaqData] = React.useState({
     question: "",
     answer: "",
+  });
+  const [popup, setPopup] = useState<{
+    message: string;
+    type: "success" | "error";
+    isVisible: boolean;
+  }>({
+    message: "",
+    type: "success",
+    isVisible: false,
   });
   const [selectedFaq, setSelectedFaq] = React.useState(null);
   const dispatch = useDispatch();
@@ -26,14 +36,6 @@ function Faqs({ courseID }) {
   };
 
   const handelAddPlan = async () => {
-    // if (
-    //   (!editingId && !planData.title) ||
-    //   !planData.startDate ||
-    //   !planData.endDate
-    // ) {
-    //   alert("Please fill in all required fields.");
-    //   return;
-    // }
     try {
       if (selectedFaq) {
         const payload: any = {
@@ -44,6 +46,11 @@ function Faqs({ courseID }) {
           `/faqs/${selectedFaq._id}`,
           payload
         );
+        setPopup({
+          message: "FAQ updated successfully!",
+          type: "success",
+          isVisible: true,
+        });
         setShowPopup(false);
         setSelectedFaq(null);
         setFaqData({
@@ -57,7 +64,11 @@ function Faqs({ courseID }) {
           answer: selectedFaq ? selectedFaq.answer : faqData.answer,
         };
         const response = await axiosInstance.post("/faqs", payload);
-        toast.success("FAQ created successfully!");
+        setPopup({
+          message: "FAQ added successfully!",
+          type: "success",
+          isVisible: true,
+        });
         console.log("response", response.data);
         setShowPopup(false);
         setSelectedFaq(null);
@@ -68,6 +79,11 @@ function Faqs({ courseID }) {
       }
       getFaqs();
     } catch (error) {
+      setPopup({
+        message: "Failed to add or update FAQ.",
+        type: "error",
+        isVisible: true,
+      });
       console.error("Error adding plan:", error);
     }
   };
@@ -79,7 +95,11 @@ function Faqs({ courseID }) {
     }
     try {
       const response = await axiosInstance.delete(`/faqs/${faqId}`);
-      toast.success("FAQ deleted successfully!");
+      setPopup({
+        message: "FAQ deleted successfully!",
+        type: "success",
+        isVisible: true,
+      });
       setShowPopup(false);
       setSelectedFaq(null);
       setFaqData({
@@ -89,7 +109,11 @@ function Faqs({ courseID }) {
       getFaqs();
     } catch (error) {
       console.error("Error deleting FAQ:", error);
-      toast.error("Failed to delete FAQ.");
+      setPopup({
+        message: "Failed to delete FAQ.",
+        type: "error",
+        isVisible: true,
+      });
     }
   };
 
@@ -100,6 +124,12 @@ function Faqs({ courseID }) {
   }, [courseID]);
   return (
     <>
+      <PopupAlert
+        message={popup.message}
+        type={popup.type}
+        isVisible={popup.isVisible}
+        onClose={() => setPopup({ ...popup, isVisible: false })}
+      />
       {showPopup && (
         <div className="fixed top-0 left-0 h-screen right-0 bottom-0 bg-black/50 z-9999 flex items-center justify-center">
           <div className="bg-white rounded-2xl  w-1/3 shadow-xl p-8">

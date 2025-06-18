@@ -86,7 +86,7 @@ const pricingPlanSlice = createSlice({
       })
       .addCase(createPricingPlan.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload;
+        // state.data = action.payload;
       })
       .addCase(createPricingPlan.rejected, (state, action) => {
         state.loading = false;
