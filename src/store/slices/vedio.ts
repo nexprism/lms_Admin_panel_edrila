@@ -1,212 +1,215 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import axios from 'axios';
-import axiosInstance from '../../services/axiosConfig';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
+import axiosInstance from "../../services/axiosConfig";
 
 interface VideoState {
-    loading: boolean;
-    error: string | null;
-    data: any;
+  loading: boolean;
+  error: string | null;
+  data: any;
 }
 
 const initialState: VideoState = {
-    loading: false,
-    error: null,
-    data: null,
+  loading: false,
+  error: null,
+  data: null,
 };
 
 export const uploadVideo = createAsyncThunk(
-    'video/uploadVideo',
-    async (
+  "video/uploadVideo",
+  async (
+    {
+      file,
+      lessonId,
+      sourcePlatform,
+      title,
+      description,
+      youtubeUrl = "",
+      accessToken,
+      refreshToken,
+    }: {
+      file: File;
+      lessonId: string;
+      sourcePlatform: string;
+      title: string;
+      description: string;
+      youtubeUrl?: string;
+      accessToken: string;
+      refreshToken: string;
+    },
+    { rejectWithValue, signal }
+  ) => {
+    try {
+      const formData = new FormData();
+      if (file) {
+        formData.append("video", file);
+      }
+      formData.append("lessonId", lessonId);
+      formData.append("sourcePlatform", sourcePlatform);
+      formData.append("title", title);
+      formData.append("description", description);
+      if (youtubeUrl) {
+        formData.append("embedUrl", youtubeUrl);
+      }
+
+      const response = await axiosInstance.post(
+        "http://localhost:5000/video/",
+        formData,
         {
-            file,
-            lessonId,
-            sourcePlatform,
-            title,
-            description,
-            youtubeUrl = '',
-            accessToken,
-            refreshToken,
-        }: {
-            file: File;
-            lessonId: string;
-            sourcePlatform: string;
-            title: string;
-            description: string;
-            youtubeUrl?: string;
-            accessToken: string;
-            refreshToken: string;
-        },
-        { rejectWithValue, signal }
-    ) => {
-        try {
-            const formData = new FormData();
-            if (file) {
-                formData.append('video', file);
-            }
-            formData.append('lessonId', lessonId);
-            formData.append('sourcePlatform', sourcePlatform);
-            formData.append('title', title);
-            formData.append('description', description);
-            if (youtubeUrl) {
-                formData.append('embedUrl', youtubeUrl);
-            }
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          // Increase timeout for video uploads (10 minutes)
+          timeout: 600000, // 10 minutes in milliseconds
 
-            const response = await axiosInstance.post(
-                'http://localhost:5000/video/',
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                    // Increase timeout for video uploads (10 minutes)
-                    timeout: 600000, // 10 minutes in milliseconds
-                    
-                    // Handle upload progress
-                    onUploadProgress: (progressEvent) => {
-                        const percentCompleted = Math.round(
-                            (progressEvent.loaded * 100) / (progressEvent.total || 1)
-                        );
-                        console.log(`Upload Progress: ${percentCompleted}%`);
-                    },
-                    
-                    // Pass the abort signal from Redux Toolkit
-                    signal: signal,
-                }
+          // Handle upload progress
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / (progressEvent.total || 1)
             );
+            console.log(`Upload Progress: ${percentCompleted}%`);
+          },
 
-            return response.data;
-        } catch (error: any) {
-            // Handle different types of errors
-            if (error.code === 'ECONNABORTED') {
-                return rejectWithValue('Upload timeout - please try again');
-            }
-            if (error.name === 'AbortError') {
-                return rejectWithValue('Upload was cancelled');
-            }
-            return rejectWithValue(error.response?.data || error.message);
+          // Pass the abort signal from Redux Toolkit
+          signal: signal,
         }
+      );
+      window.location.reload();
+
+      return response.data;
+    } catch (error: any) {
+      // Handle different types of errors
+      if (error.code === "ECONNABORTED") {
+        return rejectWithValue("Upload timeout - please try again");
+      }
+      if (error.name === "AbortError") {
+        return rejectWithValue("Upload was cancelled");
+      }
+      return rejectWithValue(error.response?.data || error.message);
     }
+  }
 );
 
 export const fetchVideo = createAsyncThunk(
-    'video/fetchVideo',
-    async (
+  "video/fetchVideo",
+  async (
+    {
+      videoId,
+    }: {
+      videoId: string;
+      accessToken: string;
+      refreshToken: string;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/video/${videoId}`,
         {
-            videoId,
-      
-        }: {
-            videoId: string;
-            accessToken: string;
-            refreshToken: string;
-        },
-        { rejectWithValue }
-    ) => {
-        try {
-            const response = await axios.get(`http://localhost:5000/video/${videoId}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data || error.message);
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
+      );
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || error.message);
     }
+  }
 );
 
-
-
 export const updateVideo = createAsyncThunk(
-    'video/updateVideo',
-    async (
-        {
-            videoId,
-            file,
-            lessonId,
-            sourcePlatform,
-            title,
-            description,
-            accessToken,
-            refreshToken,
-        }: {
-            videoId: string;
-            file: File;
-            lessonId: string;
-            sourcePlatform: string;
-            title: string;
-            description: string;
-            accessToken: string;
-            refreshToken: string;
-        },
-        { rejectWithValue }
-    ) => {
-        try {
-            const formData = new FormData();
-            formData.append('video', file);
-            formData.append('lessonId', lessonId);
-            formData.append('sourcePlatform', sourcePlatform);
-            formData.append('title', title);
-            formData.append('description', description);
+  "video/updateVideo",
+  async (
+    {
+      videoId,
+      file,
+      lessonId,
+      sourcePlatform,
+      title,
+      description,
+      accessToken,
+      refreshToken,
+    }: {
+      videoId: string;
+      file: File;
+      lessonId: string;
+      sourcePlatform: string;
+      title: string;
+      description: string;
+      accessToken: string;
+      refreshToken: string;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const formData = new FormData();
+      formData.append("video", file);
+      formData.append("lessonId", lessonId);
+      formData.append("sourcePlatform", sourcePlatform);
+      formData.append("title", title);
+      formData.append("description", description);
 
-            const response = await axios.put(
-                `http://localhost:5000/video/${videoId}`,
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                }
-            );
-            return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data || error.message);
+      const response = await axios.put(
+        `http://localhost:5000/video/${videoId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
+      );
+      window.location.reload();
+
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || error.message);
     }
+  }
 );
 
 const videoSlice = createSlice({
-    name: 'video',
-    initialState,
-    reducers: {},
-    extraReducers: (builder) => {
-        builder
-            .addCase(uploadVideo.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(uploadVideo.fulfilled, (state, action) => {
-                state.loading = false;
-                state.data = action.payload;
-            })
-            .addCase(uploadVideo.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload as string;
-            })
-            .addCase(fetchVideo.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(fetchVideo.fulfilled, (state, action) => {
-                state.loading = false;
-                state.data = action.payload;
-            })
-            .addCase(fetchVideo.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload as string;
-            })
-            .addCase(updateVideo.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(updateVideo.fulfilled, (state, action) => {
-                state.loading = false;
-                state.data = action.payload;
-            })
-            .addCase(updateVideo.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload as string;
-            });
-    },
+  name: "video",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(uploadVideo.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(uploadVideo.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
+      })
+      .addCase(uploadVideo.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchVideo.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchVideo.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
+      })
+      .addCase(fetchVideo.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(updateVideo.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateVideo.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
+      })
+      .addCase(updateVideo.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+  },
 });
 
 export default videoSlice.reducer;

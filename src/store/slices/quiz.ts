@@ -42,6 +42,7 @@ export const createQuiz = createAsyncThunk(
           },
         }
       );
+      window.location.reload();
       return response.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || err.message);
@@ -104,6 +105,8 @@ export const upadateQuiz = createAsyncThunk(
           },
         }
       );
+      window.location.reload();
+
       return response.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || err.message);

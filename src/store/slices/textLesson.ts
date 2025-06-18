@@ -30,6 +30,8 @@ export const createTextLesson = createAsyncThunk(
           },
         }
       );
+      window.location.reload();
+
       return response.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data || err.message);
@@ -66,6 +68,8 @@ export const updateTextLesson = createAsyncThunk(
         `/text-lesson/${lessonId}`,
         formData
       );
+      window.location.reload();
+
       return response.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data || err.message);

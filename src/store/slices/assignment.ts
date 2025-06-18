@@ -27,6 +27,8 @@ export const createAssignment = createAsyncThunk(
           },
         }
       );
+      window.location.reload();
+
       return response.data;
     } catch (err: any) {
       console.log("Error creating assignment:", err?.message);
@@ -49,6 +51,8 @@ export const fetchAssignments = createAsyncThunk(
           },
         }
       );
+      window.location.reload();
+
       return response.data;
     } catch (err: any) {
       console.log("Error fetching assignments:", err?.message);

@@ -52,6 +52,7 @@ export const uploadFile = createAsyncThunk(
           },
         }
       );
+      window.location.reload();
 
       return response.data;
     } catch (error: any) {
@@ -79,7 +80,6 @@ export const fetchFiles = createAsyncThunk(
   }
 );
 
-
 export const fetchFileById = createAsyncThunk(
   "files/fetchFileById",
   async (fileId: string, { rejectWithValue }) => {
@@ -94,7 +94,6 @@ export const fetchFileById = createAsyncThunk(
     }
   }
 );
-
 
 interface FileUpdatePayload {
   fileId: string;
@@ -113,14 +112,21 @@ export const updateFile = createAsyncThunk(
   async (payload: FileUpdatePayload, { rejectWithValue }) => {
     try {
       const formData = new FormData();
-      if (payload.language !== undefined) formData.append("language", payload.language);
-      if (payload.fileType !== undefined) formData.append("fileType", payload.fileType);
-      if (payload.downloadable !== undefined) formData.append("downloadable", String(payload.downloadable));
-      if (payload.active !== undefined) formData.append("active", String(payload.active));
-      if (payload.isPublic !== undefined) formData.append("isPublic", String(payload.isPublic));
+      if (payload.language !== undefined)
+        formData.append("language", payload.language);
+      if (payload.fileType !== undefined)
+        formData.append("fileType", payload.fileType);
+      if (payload.downloadable !== undefined)
+        formData.append("downloadable", String(payload.downloadable));
+      if (payload.active !== undefined)
+        formData.append("active", String(payload.active));
+      if (payload.isPublic !== undefined)
+        formData.append("isPublic", String(payload.isPublic));
       if (payload.file !== undefined) formData.append("file", payload.file);
-      if (payload.lessonId !== undefined) formData.append("lessonId", payload.lessonId);
-      if (payload.courseId !== undefined) formData.append("courseId", payload.courseId);
+      if (payload.lessonId !== undefined)
+        formData.append("lessonId", payload.lessonId);
+      if (payload.courseId !== undefined)
+        formData.append("courseId", payload.courseId);
 
       const response = await axiosInstance.put(
         `/files/${payload.fileId}`,
@@ -131,6 +137,8 @@ export const updateFile = createAsyncThunk(
           },
         }
       );
+      window.location.reload();
+
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
@@ -139,7 +147,6 @@ export const updateFile = createAsyncThunk(
     }
   }
 );
-
 
 const filesSlice = createSlice({
   name: "files",

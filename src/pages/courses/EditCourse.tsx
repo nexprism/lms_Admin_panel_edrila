@@ -1383,6 +1383,7 @@ const EditCourse = () => {
                 courseData={courseData}
                 isEditing={true}
               />
+              <Faqs courseID={courseId} />
 
               {/* Publication Status */}
               <div className="bg-white rounded-lg shadow-sm p-6">
@@ -1409,8 +1410,6 @@ const EditCourse = () => {
                   </p>
                 </div>
               </div>
-
-              <Faqs courseID={courseId} />
 
               {/* Action Buttons */}
               <div className="bg-white rounded-lg shadow-sm p-6">
