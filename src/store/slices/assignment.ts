@@ -14,20 +14,15 @@ const initialState: AssignmentState = {
   data: null,
 };
 
-
 export const createAssignment = createAsyncThunk(
   "assignment/createAssignment",
   async (formData: FormData, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post(
-        "/assignment",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axiosInstance.post("/assignment", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       window.location.reload();
 
       return response.data;
@@ -42,16 +37,13 @@ export const fetchAssignments = createAsyncThunk(
   "assignment/fetchAssignments",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(
-        "/assignment",
-        {
-          headers: {
-            "Content-Type": "application/json",
-            // Add Authorization header if needed
-            // 'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axiosInstance.get("/assignment", {
+        headers: {
+          "Content-Type": "application/json",
+          // Add Authorization header if needed
+          // 'Authorization': `Bearer ${token}`,
+        },
+      });
       window.location.reload();
 
       return response.data;
@@ -74,6 +66,8 @@ export const updateAssignment = createAsyncThunk(
           "Content-Type": "multipart/form-data",
         },
       });
+      window.location.reload();
+
       return response.data;
     } catch (err: any) {
       console.log("Error updating assignment:", err?.message);
@@ -86,14 +80,11 @@ export const fetchAssignmentById = createAsyncThunk(
   "assignment/fetchAssignmentById",
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(
-        `/assignment/${id}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axiosInstance.get(`/assignment/${id}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       return response.data;
     } catch (err: any) {
       console.log("Error fetching assignment by id:", err?.message);

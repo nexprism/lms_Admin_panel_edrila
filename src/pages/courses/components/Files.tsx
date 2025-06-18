@@ -34,6 +34,8 @@ export default function FileUploadForm({
   });
   console.log("FileUploadForm rendered with fileId:", fileId);
   console.log("lessonId:", lessonId);
+  console.log("courseId:", courseId);
+
   const [isEditMode, setIsEditMode] = useState(false);
 
   const fileInputRef = useRef(null);
@@ -240,7 +242,7 @@ export default function FileUploadForm({
   };
 
   return (
-    <div className="mx-auto p-6 bg-white">
+    <div className="mx-auto p-6 bg-white h-[90%] overflow-y-auto">
       <div className="space-y-6">
         <div className="border-b border-gray-200 pb-4 flex justify-between items-center">
           <h2 className="text-lg font-medium text-gray-900 mb-4">
