@@ -6,6 +6,7 @@ import {
   updateTextLesson,
 } from "../../../store/slices/textLesson"; // Adjust import path as needed
 import PopupAlert from "../../../components/popUpAlert";
+const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:5000/";
 
 const TextLessonEditor = ({
   section,
@@ -450,7 +451,7 @@ const TextLessonEditor = ({
                   >
                     <a
                       href={
-                        "http://localhost:5000/uploads/" + file.name ||
+                        `${baseUrl}/uploads/${file.name}` ||
                         file.fileName
                       }
                       target="_blank"

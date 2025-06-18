@@ -15,6 +15,7 @@ import {
   fetchAssignmentById,
 } from "../../../store/slices/assignment";
 import PopupAlert from "../../../components/popUpAlert";
+const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:5000/";
 
 interface AddAssignmentFormProps {
   courseId: string;
@@ -414,7 +415,7 @@ export default function AddAssignmentForm({
                   {formData.file ? (
                     <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
                       <a
-                        href={"http://localhost:5000/" + formData.file}
+                        href={`${baseUrl}/${formData.file}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -464,7 +465,7 @@ export default function AddAssignmentForm({
                   {formData.document ? (
                     <div className="flex items-center justify-between bg-green-50 p-3 rounded-lg">
                       <a
-                        href={"http://localhost:5000/" + formData.document}
+                        href={`${baseUrl}/${formData.document}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >

@@ -38,7 +38,7 @@ export const createModule = createAsyncThunk(
     ) => {
         try {
             const response = await axiosInstance.post(
-                'http://localhost:5000/module/',
+                '/module/',
                 {
                     courseId,
                     title,

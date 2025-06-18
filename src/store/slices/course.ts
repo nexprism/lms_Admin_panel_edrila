@@ -38,7 +38,7 @@ export const fetchCourses = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(
-        "http://localhost:5000/courses/",
+        "/courses/",
         {
           headers: {
             "Content-Type": "application/json",
@@ -61,7 +61,7 @@ export const fetchCourseById = createAsyncThunk(
   ) => {
     try {
       const response = await axiosInstance.get(
-        `http://localhost:5000/courses/${courseId}`,
+        `/courses/${courseId}`,
         {
           headers: {
             "Content-Type": "application/json",

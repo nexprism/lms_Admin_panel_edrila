@@ -18,7 +18,7 @@ export const createCourseBundle = createAsyncThunk(
     'courseBundle/create',
     async (formData: FormData, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.post('http://localhost:5000/bundle', formData, {
+            const response = await axiosInstance.post('/bundle', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -36,7 +36,7 @@ export const fetchCourseBundles = createAsyncThunk(
     'courseBundle/fetchAll',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get('http://localhost:5000/bundle', {
+            const response = await axiosInstance.get('/bundle', {
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -54,7 +54,7 @@ export const fetchCourseBundleById = createAsyncThunk(
     'courseBundle/fetchById',
     async (id: string, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get(`http://localhost:5000/bundle/${id}`, {
+            const response = await axiosInstance.get(`/bundle/${id}`, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -71,7 +71,7 @@ export const updateCourseBundle = createAsyncThunk(
     'courseBundle/update',
     async ({ id, formData }: { id: string; formData: FormData }, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.put(`http://localhost:5000/bundle/${id}`, formData, {
+            const response = await axiosInstance.put(`/bundle/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

@@ -73,7 +73,7 @@ export const updateLessonMobileOnly = createAsyncThunk(
   ) => {
     try {
       const response = await axiosInstance.patch(
-        `http://localhost:5000/lesson/${lessonId}/mobile-only`,
+        `/lesson/${lessonId}/mobile-only`,
         { ismobileOnly },
         {
           headers: {

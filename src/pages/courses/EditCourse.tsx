@@ -54,6 +54,8 @@ import toast from "react-hot-toast";
 import Faqs from "./components/Faqs";
 import PopupAlert from "../../components/popUpAlert";
 
+const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:5000/";
+
 // Rich Text Editor Component
 type RichTextEditorProps = {
   value: string;
@@ -854,7 +856,7 @@ const EditCourse = () => {
                           src={
                             thumbnailFile
                               ? getUrlFrommFile(thumbnailFile)
-                              : `http://localhost:5000/${formData?.thumbnail}`
+                              : `${baseUrl}/${formData?.thumbnail}`
                           }
                         />
                       </div>
@@ -876,7 +878,7 @@ const EditCourse = () => {
                           src={
                             coverImageFile
                               ? getUrlFrommFile(coverImageFile)
-                              : `http://localhost:5000/${formData?.coverImage}`
+                              : `${baseUrl}/${formData?.coverImage}`
                           }
                         />
                       </div>
@@ -897,7 +899,7 @@ const EditCourse = () => {
                           <source
                             src={
                               getUrlFrommFile(demoVideoFile) ||
-                              `http://localhost:5000/${formData?.demoVideo}`
+                              `${baseUrl}/${formData?.demoVideo}`
                             }
                             type="video/mp4"
                           />

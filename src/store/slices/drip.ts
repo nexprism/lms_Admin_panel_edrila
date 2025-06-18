@@ -28,7 +28,7 @@ export const createDripRule = createAsyncThunk(
     async (payload: DripRulePayload, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.post(
-                'http://localhost:5000/drip/drip-rule',
+                '/drip/drip-rule',
                 payload,
                 {
                     headers: {
@@ -48,7 +48,7 @@ export const fetchDripRules = createAsyncThunk(
     'drip/fetchDripRules',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get('http://localhost:5000/drip/drip-rules', {
+            const response = await axiosInstance.get('/drip/drip-rules', {
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -66,7 +66,7 @@ export const deleteDripRule = createAsyncThunk(
     async (dripRuleId: string, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.delete(
-                `http://localhost:5000/drip/drip-rule/${dripRuleId}`,
+                `/drip/drip-rule/${dripRuleId}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export const fetchCourseContents = createAsyncThunk(
     'drip/fetchCourseContents',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get('http://localhost:5000/courses/contents', {
+            const response = await axiosInstance.get('/courses/contents', {
                 headers: {
                     'Content-Type': 'application/json',
                 },

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import axiosInstance from '../../services/axiosConfig';
+const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:5000/";
 
 interface FilterState {
     data: any;
@@ -65,7 +66,7 @@ export const fetchFilter = createAsyncThunk<
         }
 
         const response = await axios.get(
-            `http://localhost:5000/filter/?${queryParams.toString()}`
+            `${baseUrl}/filter/?${queryParams.toString()}`
         );
 
         console.log('Response from fetchFilter:', response.data);
@@ -92,7 +93,7 @@ export const fetchSubcategoriesByCategory = createAsyncThunk<
 >('filter/fetchSubcategoriesByCategory', async (categoryId, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get(
-            `http://localhost:5000/filter/subcategories/by-category/${categoryId}`
+            `${baseUrl}/filter/subcategories/by-category/${categoryId}`
         );
         return response.data?.data || [];
     } catch (error: any) {
@@ -109,7 +110,7 @@ export const updateFilter = createAsyncThunk(
     ) => {
         try {
             const response = await axiosInstance.put(
-                `http://localhost:5000/filter/${id}`,
+                `${baseUrl}/filter/${id}`,
                 data,
                 {
                     headers: {
@@ -133,7 +134,7 @@ export const deleteFilter = createAsyncThunk(
     ) => {
         try {
             const response = await axiosInstance.delete(
-                `http://localhost:5000/filter/${id}`,
+                `${baseUrl}/filter/${id}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -153,7 +154,7 @@ export const postFilter = createAsyncThunk(
     async (payload: FilterPayload, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.post(
-                'http://localhost:5000/filter/',
+                `${baseUrl}/filter/`,
                 payload,
                 {
                     headers: {

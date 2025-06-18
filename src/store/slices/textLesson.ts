@@ -21,15 +21,11 @@ export const createTextLesson = createAsyncThunk(
       if (formData.has("lessonId")) {
         formData.append("lesson", formData.get("lessonId") as string);
       }
-      const response = await axios.post(
-        "http://localhost:5000/text-lesson",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axiosInstance.post("/text-lesson", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       window.location.reload();
 
       return response.data;
@@ -43,7 +39,7 @@ export const fetchTextLessons = createAsyncThunk(
   "textLesson/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("http://localhost:5000/text-lesson", {
+      const response = await axiosInstance.get("/text-lesson", {
         headers: {
           "Content-Type": "application/json",
           // Add Authorization header if needed
@@ -81,15 +77,12 @@ export const fetchTextLessonById = createAsyncThunk(
   "textLesson/fetchById",
   async (lessonId: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `http://localhost:5000/text-lesson/${lessonId}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          // withCredentials: true, // Uncomment if you need to send cookies
-        }
-      );
+      const response = await axiosInstance.get(`/text-lesson/${lessonId}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // withCredentials: true, // Uncomment if you need to send cookies
+      });
       return response.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data || err.message);

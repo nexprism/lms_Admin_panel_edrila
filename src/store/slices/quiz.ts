@@ -32,7 +32,7 @@ export const createQuiz = createAsyncThunk(
   async (payload: QuizPayload, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.post(
-        "http://localhost:5000/quiz",
+        "/quiz",
         payload,
         {
           headers: {
@@ -54,7 +54,7 @@ export const fetchQuiz = createAsyncThunk(
   "quiz/fetchQuiz",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get("http://localhost:5000/quiz", {
+      const response = await axiosInstance.get("/quiz", {
         headers: {
           "Content-Type": "application/json",
           // Add Authorization header if needed
@@ -73,7 +73,7 @@ export const fetchQuizById = createAsyncThunk(
   async (quizId: string, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(
-        `http://localhost:5000/quiz/${quizId}`,
+        `/quiz/${quizId}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -95,7 +95,7 @@ export const upadateQuiz = createAsyncThunk(
   async (payload: QuizPayload, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.put(
-        `http://localhost:5000/quiz/${payload.id}`,
+        `/quiz/${payload.id}`,
         payload,
         {
           headers: {

@@ -44,7 +44,7 @@ export const uploadFile = createAsyncThunk(
       console.log("Uploading file with payload:", payload);
 
       const response = await axiosInstance.post(
-        "http://localhost:5000/files",
+        "/files",
         formData,
         {
           headers: {

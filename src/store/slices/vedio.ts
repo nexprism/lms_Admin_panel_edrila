@@ -51,28 +51,24 @@ export const uploadVideo = createAsyncThunk(
         formData.append("embedUrl", youtubeUrl);
       }
 
-      const response = await axiosInstance.post(
-        "http://localhost:5000/video/",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          // Increase timeout for video uploads (10 minutes)
-          timeout: 600000, // 10 minutes in milliseconds
+      const response = await axiosInstance.post("/video/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        // Increase timeout for video uploads (10 minutes)
+        timeout: 600000, // 10 minutes in milliseconds
 
-          // Handle upload progress
-          onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / (progressEvent.total || 1)
-            );
-            console.log(`Upload Progress: ${percentCompleted}%`);
-          },
+        // Handle upload progress
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / (progressEvent.total || 1)
+          );
+          console.log(`Upload Progress: ${percentCompleted}%`);
+        },
 
-          // Pass the abort signal from Redux Toolkit
-          signal: signal,
-        }
-      );
+        // Pass the abort signal from Redux Toolkit
+        signal: signal,
+      });
       window.location.reload();
 
       return response.data;
@@ -102,14 +98,11 @@ export const fetchVideo = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axios.get(
-        `http://localhost:5000/video/${videoId}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axiosInstance.get(`/video/${videoId}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message);
@@ -149,15 +142,11 @@ export const updateVideo = createAsyncThunk(
       formData.append("title", title);
       formData.append("description", description);
 
-      const response = await axios.put(
-        `http://localhost:5000/video/${videoId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axios.put(`/video/${videoId}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       window.location.reload();
 
       return response.data;
