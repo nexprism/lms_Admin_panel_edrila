@@ -390,15 +390,20 @@ const LessonEditor = ({
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
+              let nu = 1;
               for (const l of mod.lessons) {
-                if (l._id === lesson?._id && l.files[0]?._id) {
+                if (l._id === lesson._id && l.files?.[0]?._id) {
+                  console.log("Checking lesson ====  : " + nu + "  ", l);
                   return l.files[0]?._id;
                 }
+                nu++;
               }
             }
+
           }
+          return null;
         }
-        return lesson._id || lesson.fileId || null;
+        return lesson._id || lesson.files || null;
       case "video-lesson":
         console.log("lesson.videoLesson", lesson.videoLesson);
         console.log("courseData.modules", courseData?.modules);
