@@ -20,6 +20,8 @@ import EditTextLessonEditor from "./pages/courses/components/EditTextLesson";
 import FileList from "./pages/Files/FileList";
 import AddFile from "./pages/courses/components/AddFile";
 import Session from "./pages/Files/Session";
+import { useSelector } from "react-redux";
+import { selectIsAuthenticated } from "./store/slices/authslice";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -44,6 +46,16 @@ const AppLayout = lazy(() => import("./layout/AppLayout"));
 const Home = lazy(() => import("./pages/Dashboard/Home"));
 
 export default function App() {
+  const user = useSelector(selectIsAuthenticated);
+
+  if (
+    !user &&
+    !window.location.pathname.includes("/signin") &&
+    !window.location.pathname.includes("/signup")
+  ) {
+    window.location.href = "/signin";
+  }
+
   return (
     <Router>
       <ScrollToTop />

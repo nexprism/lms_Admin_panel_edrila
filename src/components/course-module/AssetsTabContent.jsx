@@ -30,7 +30,7 @@ const AssetsTabContent = ({ courseID }) => {
     try {
       Object.keys(data).forEach(async (key) => {
         const response = await axiosInstance.get(
-          `/courses/${courseID}/attachments?type=${key}`
+          `/courses/${courseID}/attachments`
         );
         console.log(`Fetched ------------- ${key} data:`, response.data.data);
         setData((prevData) => ({
@@ -448,19 +448,20 @@ const AssetsTabContent = ({ courseID }) => {
     }));
   };
 
-  const filteredData = data[activeFilter];
-  //   ?.map((module) => ({
-  //     ...module,
-  //     lessons: module.lessons
-  //       ?.map((lesson) => ({
-  //         ...lesson,
-  //         assets: lesson.assets.filter((asset) =>
-  //           asset.name.toLowerCase().includes(searchTerm.toLowerCase())
-  //         ),
-  //       }))
-  //       ?.filter((lesson) => lesson?.assets?.length > 0),
-  //   }))
-  //   ?.filter((module) => module?.lessons?.length > 0) || [];
+  const filteredData =
+    courseData[activeFilter]
+      ?.map((module) => ({
+        ...module,
+        lessons: module.lessons
+          ?.map((lesson) => ({
+            ...lesson,
+            assets: lesson.assets.filter((asset) =>
+              asset.name.toLowerCase().includes(searchTerm.toLowerCase())
+            ),
+          }))
+          ?.filter((lesson) => lesson?.assets?.length > 0),
+      }))
+      ?.filter((module) => module?.lessons?.length > 0) || [];
 
   const getAssetTypeColor = (type) => {
     const colors = {
