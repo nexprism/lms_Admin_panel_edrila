@@ -44,6 +44,7 @@ const AddCategory = lazy(() => import("./pages/AddCategory"));
 const CategoryList = lazy(() => import("./pages/CategoryList"));
 const AppLayout = lazy(() => import("./layout/AppLayout"));
 const Home = lazy(() => import("./pages/Dashboard/Home"));
+const CreateCertificateTemplate = lazy(() => import("./pages/Certification/CreateCertificateTemplate"));
 
 export default function App() {
   const user = useSelector(selectIsAuthenticated);
@@ -85,6 +86,10 @@ export default function App() {
               <Route path="/quiz/all" element={<QuizList />} />
               <Route path="/quiz/edit/:quizId" element={<EditQuiz />} />
               <Route path="/assignments/all" element={<AssignmentList />} />
+              <Route
+                path="/certificates/add"
+                element={<CreateCertificateTemplate />}
+              />
               <Route
                 path="/assignments/edit/:assignmentId"
                 element={<EditAssignmentForm />}
