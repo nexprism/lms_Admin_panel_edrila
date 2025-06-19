@@ -203,7 +203,7 @@ const TextLessonEditor = ({
         await dispatch(createTextLesson(apiFormData)).unwrap();
       }
       // Show success popup
-      
+
       onClose();
       setPopup({
         isVisible: true,
@@ -221,21 +221,20 @@ const TextLessonEditor = ({
   };
 
   const handleCancel = () => {
-    if (confirm("Are you sure you want to cancel? All changes will be lost.")) {
-      setFormData({
-        language: "English",
-        title: "",
-        bookTitle: "",
-        accessibility: "free",
-        attachments: [],
-        summary: "",
-        content: "",
-      });
-      setTitleCharCount(0);
-      setBookTitleCharCount(0);
-      if (quillRef.current) {
-        quillRef.current.setContents([]);
-      }
+    setFormData({
+      language: "English",
+      title: "",
+      bookTitle: "",
+      accessibility: "free",
+      attachments: [],
+      summary: "",
+      content: "",
+    });
+    setTitleCharCount(0);
+    setBookTitleCharCount(0);
+    onClose();
+    if (quillRef.current) {
+      quillRef.current.setContents([]);
     }
   };
 
@@ -450,10 +449,7 @@ const TextLessonEditor = ({
                     className="flex items-center justify-between bg-gray-50 p-2 rounded"
                   >
                     <a
-                      href={
-                        `${baseUrl}/uploads/${file.name}` ||
-                        file.fileName
-                      }
+                      href={`${baseUrl}/uploads/${file.name}` || file.fileName}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1"
@@ -542,13 +538,13 @@ const TextLessonEditor = ({
             </div>
 
             <div className="flex gap-3">
-              <button
+              <div
                 onClick={handleCancel}
                 disabled={loading}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 cursor-pointer py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
-              </button>
+              </div>
               <button
                 onClick={handleSave}
                 disabled={loading}

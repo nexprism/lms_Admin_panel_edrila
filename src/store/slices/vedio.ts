@@ -142,7 +142,7 @@ export const updateVideo = createAsyncThunk(
       formData.append("title", title);
       formData.append("description", description);
 
-      const response = await axios.put(`/video/${videoId}`, formData, {
+      const response = await axiosInstance.put(`/video/${videoId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

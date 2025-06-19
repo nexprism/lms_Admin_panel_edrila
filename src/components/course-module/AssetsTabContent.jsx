@@ -15,6 +15,8 @@ import axiosInstance from "../../services/axiosConfig"; // Adjust the import pat
 import Quiz from "../../pages/courses/components/Quiz"; // Adjust the import path as necessary
 import Assignment from "../../pages/courses/components/Assignment"; // Adjust the import path as necessary
 import Files from "../../pages/courses/components/Files"; // Adjust the import path as necessary
+import TextLesson from "../../pages/courses/components/TextLesson"; // Adjust the import path as necessary
+import VedioLesson from "../../pages/courses/components/VideoLesson"; // Adjust the import path as necessary
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 const AssetsTabContent = ({ courseID }) => {
@@ -26,6 +28,8 @@ const AssetsTabContent = ({ courseID }) => {
   const [openQuiz, setOpenQuiz] = useState(null);
   const [openAssignment, setOpenAssignment] = useState(null);
   const [openVideo, setOpenVideo] = useState(null);
+  const [openVideoLessons, setVideoLessons] = useState(null);
+  const [textLessons, setTextLessons] = useState(null);
 
   const getData = async () => {
     try {
@@ -63,15 +67,15 @@ const AssetsTabContent = ({ courseID }) => {
     },
     {
       id: "videos",
-      label: "Videos",
+      label: "Videos Lessons",
       icon: Video,
       count: data?.videos?.length || 0,
     },
     {
-      id: "external_links",
-      label: "External Links",
+      id: "texts",
+      label: "Text Lessons",
       icon: Download,
-      count: data?.external_link?.length || 0,
+      count: data?.texts?.length || 0,
     },
   ];
 
@@ -93,6 +97,7 @@ const AssetsTabContent = ({ courseID }) => {
       files: "bg-green-50 text-green-700 border-green-200",
       assignments: "bg-purple-50 text-purple-700 border-purple-200",
       videos: "bg-orange-50 text-orange-700 border-orange-200",
+      texts: "bg-gray-50 text-gray-700 border-gray-200",
     };
     return colors[type] || "bg-gray-50 text-gray-700 border-gray-200";
   };
@@ -103,6 +108,7 @@ const AssetsTabContent = ({ courseID }) => {
       files: Download,
       assignments: FileText,
       videos: Video,
+      texts: BookOpen,
     };
     const IconComponent = icons[type] || FileText;
     return <IconComponent className="w-5 h-5" />;
@@ -111,12 +117,19 @@ const AssetsTabContent = ({ courseID }) => {
   const getActionButton = (type) => {
     const actions = {
       quizzes: { text: "View Quiz", color: "bg-blue-600 hover:bg-blue-700" },
-      files: { text: "View", color: "bg-green-600 hover:bg-green-700" },
+      files: { text: "View File", color: "bg-green-600 hover:bg-green-700" },
       assignments: {
-        text: "Submit",
+        text: "View Assignment",
         color: "bg-purple-600 hover:bg-purple-700",
       },
-      videos: { text: "Watch", color: "bg-orange-600 hover:bg-orange-700" },
+      videos: {
+        text: "View Video Lesson",
+        color: "bg-orange-600 hover:bg-orange-700",
+      },
+      texts: {
+        text: "View Text Lesson",
+        color: "bg-gray-600 hover:bg-gray-700",
+      },
     };
     return (
       actions[type] || {
@@ -176,6 +189,34 @@ const AssetsTabContent = ({ courseID }) => {
               videoData={openVideo}
               onClose={() => {
                 setOpenVideo(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+      {textLessons && (
+        <div className="fixed w-full inset-0 bg-black/10 backdrop-blur-sm z-99999 flex items-center justify-center">
+          <div className="w-1/2">
+            <TextLesson
+              courseId={courseID}
+              lessonId={textLessons?.lessonId}
+              textLessonId={textLessons?.id}
+              onClose={() => {
+                setTextLessons(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+      {openVideoLessons && (
+        <div className="fixed w-full inset-0 bg-black/10 backdrop-blur-sm z-99999 flex items-center justify-center">
+          <div className="w-1/2">
+            <VedioLesson
+              lessonId={openVideoLessons?.lessonId}
+              videoId={openVideoLessons?.id}
+              fileId={openVideoLessons?.id} 
+              onClose={() => {
+                setVideoLessons(null);
               }}
             />
           </div>
@@ -275,7 +316,7 @@ const AssetsTabContent = ({ courseID }) => {
                   {activeFilter === "files" && "File"}
                   {activeFilter === "assignments" && "Assignment"}
                   {activeFilter === "videos" && "Video"}
-                  {activeFilter === "external_links" && "External Link"}
+                  {activeFilter === "texts" && "Text Lesson"}
                 </span>
               </div>
 
@@ -342,6 +383,10 @@ const AssetsTabContent = ({ courseID }) => {
                       setOpenVideo(item);
                     } else if (activeFilter === "assignments") {
                       setOpenAssignment(item);
+                    } else if (activeFilter === "videos") {
+                      setVideoLessons(item);
+                    } else if (activeFilter === "texts") {
+                      setTextLessons(item);
                     }
                   }}
                   className={`w-full text-white py-2 rounded-lg font-medium transition-all duration-200 group-hover:shadow-lg ${

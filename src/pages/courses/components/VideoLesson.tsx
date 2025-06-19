@@ -16,6 +16,7 @@ import {
   updateVideo,
 } from "../../../store/slices/vedio";
 import PopupAlert from "../../../components/popUpAlert";
+import axiosInstance from "../../../services/axiosConfig";
 
 // Fixed interface to match your store structure
 interface RootState {
@@ -57,6 +58,8 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
   );
 
   console.log("VideoLesson data:", fileId);
+  console.log("VideoLesson videoId:", videoId);
+  console.log("lessonId:", lessonId);
 
   const [form, setForm] = useState({
     title: "",
@@ -76,14 +79,14 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
     type: "",
   });
 
-  useEffect(() => {
-    if (videoId) {
-      setIsEditMode(true);
-      dispatch(
-        fetchVideo({ fileId, accessToken: "", refreshToken: "" }) as any
-      );
-    }
-  }, [videoId, dispatch]);
+  // useEffect(() => {
+  //   if (videoId) {
+  //     setIsEditMode(true);
+  //     dispatch(
+  //       fetchVideo({ fileId, accessToken: "", refreshToken: "" }) as any
+  //     );
+  //   }
+  // }, [videoId, dispatch]);
 
   const getData = async () => {
     setIsEditMode(true);
@@ -96,8 +99,9 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
       file: null,
       videoId: data.secureUrl || "",
       secureUrl: data.secureUrl || "",
-      embedUrl: data.embedUrl || "",
-      originalUrl: data.originalUrl || "",
+      embedUrl: data.secureUrl || "",
+      originalUrl: data.secureUrl || "",
+      youtubeUrl: data.youtubeUrl || data.secureUrl || "",
     });
     console.log("Fetched video data:", data);
   };
