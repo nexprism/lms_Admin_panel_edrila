@@ -88,8 +88,8 @@ const navItems: NavItem[] = [
     name: "Students",
     subItems: [
       { name: "All Students", path: "/students/all" },
-      { name: "Enrollments", path: "/students/enrollments" },
-      { name: "Attendance", path: "/students/attendance" },
+      // { name: "Enrollments", path: "/students/enrollments" },
+      // { name: "Attendance", path: "/students/attendance" },
     ],
   },
   // {

@@ -22,6 +22,8 @@ import AddFile from "./pages/courses/components/AddFile";
 import Session from "./pages/Files/Session";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "./store/slices/authslice";
+import StudentList from "./pages/students/StudenList";
+import StudentDetail from "./pages/students/StudentDetail";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -44,7 +46,9 @@ const AddCategory = lazy(() => import("./pages/AddCategory"));
 const CategoryList = lazy(() => import("./pages/CategoryList"));
 const AppLayout = lazy(() => import("./layout/AppLayout"));
 const Home = lazy(() => import("./pages/Dashboard/Home"));
-const CreateCertificateTemplate = lazy(() => import("./pages/Certification/CreateCertificateTemplate"));
+const CreateCertificateTemplate = lazy(
+  () => import("./pages/Certification/CreateCertificateTemplate")
+);
 
 export default function App() {
   const user = useSelector(selectIsAuthenticated);
@@ -111,7 +115,10 @@ export default function App() {
 
               {/* Nested Routes */}
 
-              {/* Dashboard */}
+              {/* students */}
+              <Route path="/students/all" element={<StudentList />} />
+              {/* <Route path="/students/add" element={<AddStudent />} /> */}
+              <Route path="/students/:studentId" element={<StudentDetail />} />
 
               {/* Forms */}
               <Route path="/form-elements" element={<FormElements />} />

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import PopupAlert from "../../components/popUpAlert";
 import { BookOpen } from "lucide-react";
 import Draggable from "react-draggable"; // Import the draggable library
+import { motion } from "framer-motion";
 
 const CreateCertificateTemplate = () => {
   const dispatch = useDispatch();
@@ -14,16 +15,19 @@ const CreateCertificateTemplate = () => {
     title: "This certificate awarded to [student]",
     fontSize: 24,
     fontColor: "#000",
-    position: { x: 0, y: 0 },
+    position: { x: 180, y: 250 },
   });
   const [body, setBody] = useState({
     content: "regarding completing [course]",
     fontSize: 16,
     fontColor: "#000",
-    position: { x: 0, y: 0 },
+    position: { x: 250, y: 300 },
   });
+
   const [signature, setSignature] = useState(null);
   const [stamp, setStamp] = useState(null);
+  const [signaturePosition, setSignaturePosition] = useState({ x: 0, y: 0 });
+  const [stampPosition, setStampPosition] = useState({ x: 0, y: 0 });
   const [backgroundImage, setBackgroundImage] = useState(null);
   const [studentName, setStudentName] = useState("[student_name]");
   const [instructorName, setInstructorName] = useState("[instructor_name]");
@@ -34,10 +38,12 @@ const CreateCertificateTemplate = () => {
     type: "",
   });
 
+  const containerRef = useRef(null);
+
   const handleFileChange = (e, setter) => {
     const file = e.target.files[0];
     setter(file);
-    setBackgroundImage(file);
+    // setBackgroundImage(file);
   };
 
   const getUrlFromFile = (file) => {
@@ -244,49 +250,111 @@ const CreateCertificateTemplate = () => {
             </div>
           </form>
 
-          <div className="relative bg-red-400 w-5/6 h-fit ">
-            <img
-              className="w-full h-fit"
-              src={getUrlFromFile(backgroundImage)}
-              alt=""
-            />
+          <div
+            className="relative bg-red-400 w-[800px] h-[600px] overflow-hidden"
+            ref={containerRef}
+          >
+            {backgroundImage ? (
+              <img
+                className="w-full h-full object-cover"
+                src={getUrlFromFile(backgroundImage)}
+                alt=""
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white">
+                Upload Background Image
+              </div>
+            )}
             {backgroundImage && (
-              <div className="absolute flex inset-0">
-                <Draggable
-                  position={title.position}
-                  onStop={(e, data) =>
-                    setTitle({ ...title, position: { x: data.x, y: data.y } })
-                  }
-                >
-                  <div
-                    style={{ fontSize: title.fontSize, color: title.fontColor }}
+              // <div className="absolute flex inset-0 z-999 ">
+              // <div className="relative flex inset-0 z-999 bg-red-500">
+              <>
+                {containerRef.current && (
+                  <motion.div
+                    drag
+                    dragConstraints={containerRef}
+                    dragMomentum={false}
+                    initial={false}
+                    style={{
+                      position: "absolute",
+                      left: title.position.x,
+                      top: title.position.y,
+                      fontSize: title.fontSize,
+                      color: title.fontColor,
+                      cursor: "grab",
+                    }}
+                    onDragEnd={(event, info) => {
+                      const containerRect =
+                        containerRef.current.getBoundingClientRect();
+                      const x = info.point.x - containerRect.left;
+                      const y = info.point.y - containerRect.top;
+
+                      setTitle({ ...title, position: { x, y } });
+                    }}
                   >
                     {title.title}
-                  </div>
-                </Draggable>
+                  </motion.div>
+                )}
 
-                <Draggable
-                  position={body.position}
-                  onStop={(e, data) =>
-                    setBody({ ...body, position: { x: data.x, y: data.y } })
-                  }
+                <motion.div
+                  drag
+                  dragConstraints={containerRef}
+                  dragMomentum={false}
+                  style={{
+                    position: "absolute",
+                    left: body.position.x,
+                    top: body.position.y,
+                    fontSize: body.fontSize,
+                    color: body.fontColor,
+                  }}
+                  onDragEnd={(_, info) => {
+                    if (!containerRef.current) return;
+                    const containerRect =
+                      containerRef.current.getBoundingClientRect();
+                    const x = info.point.x - containerRect.left;
+                    const y = info.point.y - containerRect.top;
+
+                    setBody({
+                      ...body,
+                      position: {
+                        x,
+                        y,
+                      },
+                    });
+                  }}
                 >
-                  <div className="w-2/3 text-center">
-                    {body.content
-                      .replace("[student_name]", studentName)
-                      .replace("[instructor_name]", instructorName)}
-                  </div>
-                </Draggable>
+                  {body.content}
+                </motion.div>
+
                 {signature && (
-                  <Draggable>
-                    <div>
-                      <img
-                        src={getUrlFromFile(signature)}
-                        alt="Signature"
-                        className="w-1/4"
-                      />
-                    </div>
-                  </Draggable>
+                  <motion.div
+                    drag
+                    dragConstraints={containerRef}
+                    dragMomentum={false}
+                    style={{
+                      position: "absolute",
+                      left: signaturePosition.x,
+                      top: signaturePosition.y,
+                    }}
+                    onDragEnd={(_, info) => {
+                      if (!containerRef.current) return;
+                      const containerRect =
+                        containerRef.current.getBoundingClientRect();
+                      const x = info.point.x - containerRect.left;
+                      const y = info.point.y - containerRect.top;
+
+                      setSignaturePosition({
+                        x,
+                        y,
+                      });
+                    }}
+                  >
+                    <img
+                      src={getUrlFromFile(signature)}
+                      alt="Signature"
+                      className="w-1/4"
+                    />
+                  </motion.div>
                 )}
                 {stamp && (
                   <Draggable>
@@ -299,7 +367,7 @@ const CreateCertificateTemplate = () => {
                     </div>
                   </Draggable>
                 )}
-              </div>
+              </>
             )}
           </div>
         </div>
