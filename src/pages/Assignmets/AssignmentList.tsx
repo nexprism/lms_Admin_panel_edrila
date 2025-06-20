@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { fetchAssignments } from "../../store/slices/assignment";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -18,6 +18,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router";
 
+// Debug counter to track renders
+let renderCount = 0;
+
 interface Course {
   _id: string;
   title: string;
@@ -28,13 +31,12 @@ interface Lesson {
   title: string;
 }
 
-// Updated interface to match the actual API response
 interface Assignment {
   _id: string;
-  courseId?: Course | null; // Some assignments have courseId
-  course?: string; // Some have course as string ID
-  lessonId?: Lesson | null; // Some assignments have lessonId
-  sectionId?: string; // Some have sectionId
+  courseId?: Course | null;
+  course?: string;
+  lessonId?: Lesson | null;
+  sectionId?: string;
   title: string;
   description: string;
   subject?: string;
@@ -44,8 +46,8 @@ interface Assignment {
   duration: number;
   grade?: number;
   passGrade?: number;
-  deadline?: string; // Some have deadline
-  dueDate?: string; // Your component expects dueDate
+  deadline?: string;
+  dueDate?: string;
   attempts?: number;
   attachments?: string[];
   attachmentFile?: string;
@@ -73,13 +75,12 @@ const DeleteModal: React.FC<{
 }> = ({ isOpen, onClose, onConfirm, assignment, isDeleting }) => {
   if (!isOpen || !assignment) return null;
 
-  // Handle different course name structures
   const courseName = assignment.courseId?.title || "No Course";
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div
-        className="fixed inset-0 bg-transparent backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={onClose}
       ></div>
       <div className="flex min-h-full items-center justify-center p-4">
@@ -153,7 +154,11 @@ const DeleteModal: React.FC<{
   );
 };
 
-const AssignmentList: React.FC = () => {
+// Simple component without React.memo to avoid potential issues
+const AssignmentList = () => {
+  renderCount++;
+  console.log(`🔄 AssignmentList render #${renderCount}`);
+
   const dispatch = useAppDispatch();
   const {
     data: assignments,
@@ -161,61 +166,92 @@ const AssignmentList: React.FC = () => {
     error,
   } = useAppSelector((state) => state.assignment);
 
-  const [searchInput, setSearchInput] = useState("");
-  const [filteredAssignments, setFilteredAssignments] = useState<Assignment[]>(
-    []
-  );
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [assignmentToDelete, setAssignmentToDelete] =
-    useState<Assignment | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const navigate = useNavigate();
+  // Debug: Log selector values
+  console.log('🔍 Selector values:', {
+    assignments: assignments?.data?.length || 0,
+    loading,
+    error,
+    hasData: !!assignments?.data
+  });
 
-  // Pagination
+  const [searchInput, setSearchInput] = useState("");
+  const [filteredAssignments, setFilteredAssignments] = useState<Assignment[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [assignmentToDelete, setAssignmentToDelete] = useState<Assignment | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [page, setPage] = useState(1);
+  
+  const navigate = useNavigate();
+  const hasFetched = useRef(false);
   const limit = 10;
 
+  // Debug: Track when useEffects run
   useEffect(() => {
-    dispatch(fetchAssignments());
-  }, [dispatch]);
+    console.log('🎯 Mount useEffect running');
+    return () => console.log('🎯 Mount useEffect cleanup');
+  }, []);
 
+  // Simplified fetch logic - only fetch once
   useEffect(() => {
-    if (Array.isArray(assignments?.data)) {
-      let filtered = assignments.data;
-      if (searchInput) {
-        filtered = filtered.filter((a: Assignment) => {
-          const courseName = a.courseId?.title || "";
-          const lessonName = a.lessonId?.title || "";
-          const title = a.title || "";
-          const subject = a.subject || "";
-          const searchTerm = searchInput.toLowerCase();
+    console.log('📡 Fetch useEffect:', {
+      hasFetched: hasFetched.current,
+      loading,
+      hasAssignments: !!assignments?.data
+    });
+
+    if (!hasFetched.current) {
+      console.log('📡 Dispatching fetchAssignments');
+      hasFetched.current = true;
+      dispatch(fetchAssignments());
+    }
+  }, []); // Empty dependency array - only run once
+
+  // Simple filter logic without useCallback
+  useEffect(() => {
+    console.log('🔍 Filter useEffect running');
+    if (assignments?.data) {
+      let filtered = [...assignments.data];
+      
+      if (searchInput.trim()) {
+        const searchTerm = searchInput.toLowerCase().trim();
+        filtered = filtered.filter((assignment: Assignment) => {
+          const courseName = assignment.courseId?.title?.toLowerCase() || "";
+          const lessonName = assignment.lessonId?.title?.toLowerCase() || "";
+          const title = assignment.title?.toLowerCase() || "";
+          const subject = assignment.subject?.toLowerCase() || "";
+          
           return (
-            courseName.toLowerCase().includes(searchTerm) ||
-            lessonName.toLowerCase().includes(searchTerm) ||
-            title.toLowerCase().includes(searchTerm) ||
-            subject.toLowerCase().includes(searchTerm)
+            courseName.includes(searchTerm) ||
+            lessonName.includes(searchTerm) ||
+            title.includes(searchTerm) ||
+            subject.includes(searchTerm)
           );
         });
       }
+      
+      console.log('🔍 Filtered assignments:', filtered.length);
       setFilteredAssignments(filtered);
+      setPage(1);
     }
-  }, [assignments, searchInput]);
+  }, [assignments?.data, searchInput]);
 
+  // Simple event handlers without useCallback
   const handlePageChange = (newPage: number) => {
-    if (
-      newPage >= 1 &&
-      newPage <= Math.ceil(filteredAssignments.length / limit)
-    ) {
+    const totalPages = Math.ceil(filteredAssignments.length / limit);
+    if (newPage >= 1 && newPage <= totalPages) {
+      console.log('📄 Page change:', newPage);
       setPage(newPage);
     }
   };
 
   const openDeleteModal = (assignment: Assignment) => {
+    console.log('🗑️ Opening delete modal');
     setAssignmentToDelete(assignment);
     setDeleteModalOpen(true);
   };
 
   const closeDeleteModal = () => {
+    console.log('🗑️ Closing delete modal');
     setAssignmentToDelete(null);
     setDeleteModalOpen(false);
     setIsDeleting(false);
@@ -225,12 +261,15 @@ const AssignmentList: React.FC = () => {
     if (assignmentToDelete) {
       setIsDeleting(true);
       try {
-        // TODO: Dispatch deleteAssignment action here
+        console.log('🗑️ Deleting assignment');
+        // TODO: Implement deleteAssignment action
         // await dispatch(deleteAssignment(assignmentToDelete._id)).unwrap();
         toast.success("Assignment deleted successfully");
-        closeDeleteModal();
+        hasFetched.current = false;
         dispatch(fetchAssignments());
+        closeDeleteModal();
       } catch (error) {
+        console.error('🗑️ Delete error:', error);
         toast.error("Failed to delete assignment");
         setIsDeleting(false);
       }
@@ -243,24 +282,48 @@ const AssignmentList: React.FC = () => {
     const maxPages = 5;
     const start = Math.max(1, page - Math.floor(maxPages / 2));
     const end = Math.min(totalPages, start + maxPages - 1);
-    if (start > 1) pages.push(1, "...");
-    for (let i = start; i <= end; i++) pages.push(i);
-    if (end < totalPages) pages.push("...", totalPages);
+    
+    if (start > 1) {
+      pages.push(1);
+      if (start > 2) pages.push("...");
+    }
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    
+    if (end < totalPages) {
+      if (end < totalPages - 1) pages.push("...");
+      pages.push(totalPages);
+    }
+    
     return pages;
   };
 
-  // Helper function to get due date from different possible fields
   const getDueDate = (assignment: Assignment) => {
     return assignment.deadline || assignment.dueDate;
   };
 
-  // Helper function to determine status
   const getStatus = (assignment: Assignment) => {
     if (assignment.status) return assignment.status;
     if (assignment.active !== undefined)
       return assignment.active ? "active" : "inactive";
-    return "active"; // default
+    return "active";
   };
+
+  const handleEditClick = (assignmentId: string) => {
+    console.log('✏️ Edit click:', assignmentId);
+    navigate(`/assignments/edit/${assignmentId}`);
+  };
+
+  // Debug render info
+  console.log('🎨 Rendering with:', {
+    searchInput,
+    filteredCount: filteredAssignments.length,
+    page,
+    loading,
+    error: !!error
+  });
 
   return (
     <div>
@@ -269,6 +332,15 @@ const AssignmentList: React.FC = () => {
         description="List of all assignments"
       />
       <PageBreadcrumb pageTitle="Assignment List" />
+      
+      {/* Debug info - remove in production */}
+      <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+        <strong>Debug Info:</strong> Render #{renderCount} | 
+        Assignments: {filteredAssignments.length} | 
+        Loading: {loading.toString()} | 
+        Error: {error ? 'Yes' : 'No'}
+      </div>
+
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
@@ -286,13 +358,19 @@ const AssignmentList: React.FC = () => {
               <input
                 type="text"
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                onChange={(e) => {
+                  console.log('🔍 Search input:', e.target.value);
+                  setSearchInput(e.target.value);
+                }}
                 placeholder="Search by course, lesson, title, or subject..."
                 className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               />
             </div>
             <button
-              onClick={() => setSearchInput("")}
+              onClick={() => {
+                console.log('🔄 Reset search');
+                setSearchInput("");
+              }}
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800"
             >
               <RotateCcw className="h-4 w-4" />
@@ -321,28 +399,13 @@ const AssignmentList: React.FC = () => {
                   #
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-                  Course
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-                  Lesson
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                   Title
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-                  Subject
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-                  Score
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-                  Due Date
+                  Course
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                   Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-                  Created
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                   Actions
@@ -361,68 +424,25 @@ const AssignmentList: React.FC = () => {
                       {(page - 1) * limit + idx + 1}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                      {assignment.courseId?.title || (
-                        <span className="text-gray-400 italic">No Course</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                      {assignment.lessonId?.title || (
-                        <span className="text-gray-400 italic">No Lesson</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                       {assignment.title}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                      {assignment.subject || "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                      <div className="flex flex-col">
-                        <span>
-                          {assignment.score}/{assignment.maxScore}
-                        </span>
-                        {assignment.grade && (
-                          <span className="text-xs text-gray-500">
-                            Grade: {assignment.grade}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                      {getDueDate(assignment)
-                        ? new Date(getDueDate(assignment)!).toLocaleDateString()
-                        : "-"}
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                      {assignment.courseId?.title || "No Course"}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       {getStatus(assignment) === "active" ? (
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="text-green-500 h-5 w-5" />
-                          <span className="text-green-600 dark:text-green-400">
-                            Active
-                          </span>
-                        </div>
+                        <span className="text-green-600 dark:text-green-400">Active</span>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <XCircle className="text-red-500 h-5 w-5" />
-                          <span className="text-red-600 dark:text-red-400">
-                            Inactive
-                          </span>
-                        </div>
+                        <span className="text-red-600 dark:text-red-400">Inactive</span>
                       )}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(assignment.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <button
-                        onClick={() =>
-                          navigate(`/assignments/edit/${assignment._id}`)
-                        }
+                        onClick={() => handleEditClick(assignment._id)}
                         className="text-blue-500 hover:text-blue-700 transition-colors"
                         title="Edit Assignment"
                       >
                         <Pencil className="h-5 w-5" />
-                        {}
                       </button>
                       <button
                         onClick={() => openDeleteModal(assignment)}
@@ -436,6 +456,7 @@ const AssignmentList: React.FC = () => {
                 ))}
             </tbody>
           </table>
+          
           {filteredAssignments.length === 0 && !loading && (
             <div className="text-center py-8">
               <p className="text-gray-500 dark:text-gray-400">
@@ -447,7 +468,6 @@ const AssignmentList: React.FC = () => {
           )}
         </div>
 
-        {/* Pagination */}
         {filteredAssignments.length > 0 && (
           <div className="flex justify-between items-center mt-6">
             <div className="text-sm text-gray-700 dark:text-gray-300">
@@ -464,6 +484,7 @@ const AssignmentList: React.FC = () => {
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
+              
               {generatePageNumbers().map((p, idx) =>
                 typeof p === "number" ? (
                   <button
@@ -486,11 +507,10 @@ const AssignmentList: React.FC = () => {
                   </span>
                 )
               )}
+              
               <button
                 onClick={() => handlePageChange(page + 1)}
-                disabled={
-                  page === Math.ceil(filteredAssignments.length / limit)
-                }
+                disabled={page === Math.ceil(filteredAssignments.length / limit)}
                 className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 <ChevronRight className="w-5 h-5" />

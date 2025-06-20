@@ -16,7 +16,6 @@ import {
   Underline,
   List,
   Link,
-  Code,
   Award,
   Download,
   MessageCircle,
@@ -26,7 +25,6 @@ import {
   Eye,
   Save,
   Loader2,
-  CheckCircle,
   AlertCircle,
   Type,
   AlignLeft,
@@ -41,12 +39,69 @@ import { createCourse } from "../../store/slices/course";
 import CategorySubcategoryDropdowns from "../../components/CategorySubcategoryDropdowns";
 import PopupAlert from "../../components/popUpAlert";
 
+// Validation schema
+const validateForm = (formData, description, seoContent, selectedTags, files) => {
+  const errors = {};
+
+  if (!formData.title.trim()) {
+    errors.title = "Course title is required";
+  } else if (formData.title.length > 100) {
+    errors.title = "Title must be less than 100 characters";
+  }
+
+  if (!description.trim()) {
+    errors.description = "Course description is required";
+  } else if (description.length > 5000) {
+    errors.description = "Description must be less than 5000 characters";
+  }
+
+  if (!formData.categoryId) {
+    errors.categoryId = "Category is required";
+  }
+
+  if (!formData.subCategoryId) {
+    errors.subCategoryId = "Subcategory is required";
+  }
+
+  if (!formData.duration) {
+    errors.duration = "Duration is required";
+  } else if (isNaN(formData.duration) || formData.duration <= 0) {
+    errors.duration = "Duration must be a positive number";
+  } else if (formData.duration > 1000) {
+    errors.duration = "Duration cannot exceed 1000 hours";
+  }
+
+  if (!formData.price) {
+    errors.price = "Price is required";
+  } else if (isNaN(formData.price) || formData.price < 0) {
+    errors.price = "Price must be a non-negative number";
+  } else if (formData.price > 100000) {
+    errors.price = "Price cannot exceed 100,000";
+  }
+
+  if (formData.seoMetaDescription.length > 160) {
+    errors.seoMetaDescription = "Meta description must be less than 160 characters";
+  }
+
+  if (seoContent.length > 10000) {
+    errors.seoContent = "SEO content must be less than 10,000 characters";
+  }
+
+  if (selectedTags.length === 0) {
+    errors.tags = "At least one tag is required";
+  } else if (selectedTags.length > 10) {
+    errors.tags = "Cannot add more than 10 tags";
+  }
+
+  if (!files.thumbnailFile) {
+    errors.thumbnailFile = "Thumbnail image is required";
+  }
+
+  return errors;
+};
+
 // Rich Text Editor Component
-const RichTextEditor = ({
-  value,
-  onChange,
-  placeholder = "Start typing...",
-}) => {
+const RichTextEditor = ({ value, onChange, placeholder = "Start typing..." }) => {
   const editorRef = useRef(null);
   const [isPreview, setIsPreview] = useState(false);
 
@@ -65,15 +120,19 @@ const RichTextEditor = ({
 
   const insertLink = () => {
     const url = prompt("Enter URL:");
-    if (url) {
+    if (url && /^https?:\/\/[^\s]+$/.test(url)) {
       execCommand("createLink", url);
+    } else {
+      alert("Please enter a valid URL");
     }
   };
 
   const insertImage = () => {
     const url = prompt("Enter image URL:");
-    if (url) {
+    if (url && /\.(jpg|jpeg|png|gif)$/i.test(url)) {
       execCommand("insertImage", url);
+    } else {
+      alert("Please enter a valid image URL");
     }
   };
 
@@ -88,61 +147,54 @@ const RichTextEditor = ({
     { icon: AlignCenter, command: "justifyCenter", title: "Align Center" },
     { icon: AlignRight, command: "justifyRight", title: "Align Right" },
     { icon: List, command: "insertUnorderedList", title: "Bullet List" },
-    {
-      icon: Quote,
-      command: "formatBlock",
-      value: "blockquote",
-      title: "Quote",
-    },
+    { icon: Quote, command: "formatBlock", value: "blockquote", title: "Quote" },
   ];
 
   return (
-    <div className="border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
-      <div className="border-b bg-gray-50 p-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          {toolbarButtons.map((button, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => execCommand(button.command, button.value)}
-              className="p-2 rounded hover:bg-gray-200 transition-colors"
-              title={button.title}
-            >
-              <button.icon className="w-4 h-4" />
-            </button>
-          ))}
-          <div className="w-px h-6 bg-gray-300 mx-2" />
+    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-lg">
+      <div className="border-b bg-gray-50 p-3 flex flex-wrap gap-2">
+        {toolbarButtons.map((button, index) => (
+          <button
+            key={index}
+            type="button"
+            onClick={() => execCommand(button.command, button.value)}
+            className="p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+            title={button.title}
+          >
+            <button.icon className="w-5 h-5 text-gray-600" />
+          </button>
+        ))}
+        <div className="w-px h-6 bg-gray-200 mx-2" />
+        <button
+          type="button"
+          onClick={insertLink}
+          className="p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+          title="Insert Link"
+        >
+          <Link className="w-5 h-5 text-gray-600" />
+        </button>
+        <button
+          type="button"
+          onClick={insertImage}
+          className="p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+          title="Insert Image"
+        >
+          <Image className="w-5 h-5 text-gray-600" />
+        </button>
+        <div className="ml-auto">
           <button
             type="button"
-            onClick={insertLink}
-            className="p-2 rounded hover:bg-gray-200 transition-colors"
-            title="Insert Link"
+            onClick={() => setIsPreview(!isPreview)}
+            className="p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+            title="Toggle Preview"
           >
-            <Link className="w-4 h-4" />
+            <Eye className="w-5 h-5 text-gray-600" />
           </button>
-          <button
-            type="button"
-            onClick={insertImage}
-            className="p-2 rounded hover:bg-gray-200 transition-colors"
-            title="Insert Image"
-          >
-            <Image className="w-4 h-4" />
-          </button>
-          <div className="ml-auto">
-            <button
-              type="button"
-              onClick={() => setIsPreview(!isPreview)}
-              className="p-2 rounded hover:bg-gray-200 transition-colors"
-              title="Toggle Preview"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-          </div>
         </div>
       </div>
       {isPreview ? (
         <div
-          className="p-4 min-h-[200px] prose max-w-none"
+          className="p-6 min-h-[250px] prose max-w-none bg-gray-50"
           dangerouslySetInnerHTML={{ __html: value }}
         />
       ) : (
@@ -150,8 +202,8 @@ const RichTextEditor = ({
           ref={editorRef}
           contentEditable
           onInput={handleInput}
-          className="p-4 min-h-[200px] outline-none prose max-w-none"
-          style={{ minHeight: "200px" }}
+          className="p-6 min-h-[250px] outline-none prose max-w-none bg-white"
+          style={{ minHeight: "250px" }}
           suppressContentEditableWarning={true}
           dangerouslySetInnerHTML={{ __html: value }}
         />
@@ -161,101 +213,124 @@ const RichTextEditor = ({
 };
 
 // File Upload Component
-type FileUploadProps = {
-  label: string;
-  accept: string;
-  onFileChange: (file: File | null) => void;
-  currentFile: File | null;
-  icon: React.ElementType;
-};
-
-const FileUpload: React.FC<FileUploadProps> = ({
-  label,
-  accept,
-  onFileChange,
-  currentFile,
-  icon: Icon,
-}) => {
+const FileUpload = ({ label, accept, onFileChange, currentFile, icon: Icon }) => {
   const [dragOver, setDragOver] = useState(false);
+  const [error, setError] = useState("");
+
+  const validateFile = (file) => {
+    if (!file) return "";
+    if (file.size > 5 * 1024 * 1024) {
+      return "File size must be less than 5MB";
+    }
+    if (accept === "image/*" && !file.type.startsWith("image/")) {
+      return "Please upload a valid image file";
+    }
+    if (accept === "video/*" && !file.type.startsWith("video/")) {
+      return "Please upload a valid video file";
+    }
+    return "";
+  };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
     const files = e.dataTransfer.files;
     if (files.length > 0) {
-      onFileChange(files[0]);
+      const fileError = validateFile(files[0]);
+      if (fileError) {
+        setError(fileError);
+      } else {
+        setError("");
+        onFileChange(files[0]);
+      }
     }
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    setDragOver(false);
+  const handleChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    const fileError = validateFile(file);
+    if (fileError) {
+      setError(fileError);
+    } else {
+      setError("");
+      onFileChange(file);
+    }
   };
 
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
-        <Icon className="w-4 h-4" />
+    <div className="space-y-3">
+      <label className="block text-sm font-semibold text-gray-800 flex items-center gap-2">
+        <Icon className="w-5 h-5 text-blue-600" />
         {label}
       </label>
       <div
-        className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
-          dragOver ? "border-blue-400 bg-blue-50" : "border-gray-300"
-        }`}
+        className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors duration-200 ${
+          dragOver ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-white"
+        } ${error ? "border-red-400" : ""}`}
         onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
       >
         <input
           type="file"
           accept={accept}
-          onChange={(e) => onFileChange(e.target.files?.[0] || null)}
+          onChange={handleChange}
           className="hidden"
           id={`file-${label}`}
         />
         <label htmlFor={`file-${label}`} className="cursor-pointer">
-          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+          <Upload className="w-10 h-10 mx-auto mb-3 text-gray-400" />
           <p className="text-sm text-gray-600">
             Drop file here or{" "}
             <span className="text-blue-600 hover:underline">browse</span>
           </p>
         </label>
         {currentFile && (
-          <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-700">
-            {currentFile.name} ({(currentFile.size / 1024 / 1024).toFixed(2)}{" "}
-            MB)
+          <div className="mt-3 p-2 bg-gray-100 rounded-lg text-xs text-gray-700">
+            {currentFile.name} ({(currentFile.size / 1024 / 1024).toFixed(2)} MB)
           </div>
+        )}
+        {error && (
+          <p className="mt-2 text-xs text-red-600">{error}</p>
         )}
       </div>
     </div>
   );
 };
 
-import { RootState, AppDispatch } from "../../store"; // <-- add this import
-
 const AddCourse = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { loading, error, data } = useSelector(
-    (state: RootState) => state.course
-  );
+  const dispatch = useDispatch();
+  const { loading, error, data } = useSelector((state) => state.course);
 
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState([]);
   const [customTag, setCustomTag] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [coverImageFile, setCoverImageFile] = useState(null);
   const [demoVideoFile, setDemoVideoFile] = useState(null);
   const [description, setDescription] = useState("");
+  const [seoContent, setSeoContent] = useState("");
+  type FormErrors = {
+    title?: string;
+    description?: string;
+    categoryId?: string;
+    subCategoryId?: string;
+    duration?: string;
+    price?: string;
+    seoMetaDescription?: string;
+    seoContent?: string;
+    tags?: string;
+    thumbnailFile?: string;
+  };
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [popup, setPopup] = useState({
     isVisible: false,
     message: "",
     type: "",
   });
 
-  const [seoContent, setSeoContent] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     subtitle: "",
@@ -289,134 +364,166 @@ const AddCourse = () => {
     "Web Development",
   ];
 
-  const getUrlFrommFile = (file: File | null) => {
+  const getUrlFromFile = (file) => {
     if (!file) return "";
     return URL.createObjectURL(file);
   };
 
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+    // Clear error for this field
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const addTag = (tag: any) => {
-    if (!selectedTags.includes(tag)) {
+  const addTag = (tag) => {
+    if (!selectedTags.includes(tag) && selectedTags.length < 10) {
       setSelectedTags([...selectedTags, tag]);
+      setFormErrors((prev) => ({ ...prev, tags: "" }));
     }
   };
-  const handleCategoryChange = (categoryId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      categoryId,
-      subCategoryId: "", // Reset subcategory when category changes
-    }));
-  };
 
-  const handleSubcategoryChange = (subCategoryId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      subCategoryId,
-    }));
-  };
-
-  const removeTag = (tagToRemove: any) => {
+  const removeTag = (tagToRemove) => {
     setSelectedTags(selectedTags.filter((tag) => tag !== tagToRemove));
   };
 
   const addCustomTag = () => {
-    if (customTag.trim() && !selectedTags.includes(customTag.trim())) {
+    if (customTag.trim() && !selectedTags.includes(customTag.trim()) && selectedTags.length < 10) {
       setSelectedTags([...selectedTags, customTag.trim()]);
       setCustomTag("");
+      setFormErrors((prev) => ({ ...prev, tags: "" }));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
+  const handleCategoryChange = (categoryId) => {
+    setFormData((prev) => ({
+      ...prev,
+      categoryId,
+      subCategoryId: "",
+    }));
+    setFormErrors((prev) => ({ ...prev, categoryId: "", subCategoryId: "" }));
+  };
+
+  const handleSubcategoryChange = (subCategoryId) => {
+    setFormData((prev) => ({
+      ...prev,
+      subCategoryId,
+    }));
+    setFormErrors((prev) => ({ ...prev, subCategoryId: "" }));
+  };
+
+  const handleSubmit = async (e, isDraft = false) => {
     e.preventDefault();
 
-    const submitFormData = new FormData();
-    console.log("Submitting form data:", formData);
+    const files = { thumbnailFile, coverImageFile, demoVideoFile };
+    const errors = validateForm(formData, description, seoContent, selectedTags, files);
 
-    // Append form data
-    (Object.keys(formData) as (keyof typeof formData)[]).forEach((key) => {
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      setPopup({
+        isVisible: true,
+        message: "Please fix the errors in the form",
+        type: "error",
+      });
+      return;
+    }
+
+    const submitFormData = new FormData();
+    Object.keys(formData).forEach((key) => {
       submitFormData.append(key, String(formData[key]));
     });
 
-    // Append additional data
     submitFormData.append("description", description);
     submitFormData.append("seoContent", seoContent);
     submitFormData.append("tags", JSON.stringify(selectedTags));
     submitFormData.append("isPublished", (!isDraft).toString());
 
-    // Append files
     if (thumbnailFile) submitFormData.append("thumbnail", thumbnailFile);
     if (coverImageFile) submitFormData.append("coverImage", coverImageFile);
     if (demoVideoFile) submitFormData.append("demoVideo", demoVideoFile);
 
-    // Helper to log FormData contents
-    for (const [key, value] of submitFormData.entries()) {
-      console.log(`${key}:`, value);
-    }
-
     try {
       await dispatch(createCourse(submitFormData)).unwrap();
-
-      // Show success popup
       setPopup({
         isVisible: true,
-        message: "Course created successfully!",
+        message: isDraft ? "Course saved as draft!" : "Course published successfully!",
         type: "success",
       });
-    } catch (error: any) {
-      console.log("Error creating course:", error?.message);
-      console.error("Failed to create course:", error);
-
-      // Show error popup
+      // Reset form after successful submission
+      setFormData({
+        title: "",
+        subtitle: "",
+        seoMetaDescription: "",
+        categoryId: "",
+        subCategoryId: "",
+        level: "beginner",
+        price: "",
+        currency: "INR",
+        duration: "",
+        instructorId: "",
+        isPublished: false,
+        enrollmentType: "open",
+        maxStudents: "",
+        certificateTemplate: false,
+        isDownloadable: false,
+        courseForum: false,
+        isSubscription: false,
+        isPrivate: false,
+        enableWaitlist: false,
+      });
+      setDescription("");
+      setSeoContent("");
+      setSelectedTags([]);
+      setThumbnailFile(null);
+      setCoverImageFile(null);
+      setDemoVideoFile(null);
+    } catch (error) {
       setPopup({
         isVisible: true,
-        message: "Failed to create course. Please try again.",
+        message: error.message || "Failed to create course. Please try again.",
         type: "error",
       });
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+      <div className="mx-auto py-12 px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h1 className="text-3xl font-bold flex items-center gap-3 text-gray-900">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <BookOpen className="w-8 h-8 text-blue-600" />
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <h1 className="text-4xl font-extrabold flex items-center gap-3 text-gray-900">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <BookOpen className="w-10 h-10 text-blue-600" />
             </div>
             Create New Course
           </h1>
-          <p className="text-gray-600 mt-2">
-            Fill in the details below to create your new course
+          <p className="text-gray-600 mt-3 text-lg">
+            Build an engaging course by filling in the details below
           </p>
         </div>
 
         {/* Error/Success Messages */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-red-500" />
-            <span className="text-red-700">{error}</span>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-8 flex items-center gap-3">
+            <AlertCircle className="w-6 h-6 text-red-500" />
+            <span className="text-red-700 text-sm">{error}</span>
           </div>
         )}
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Basic Information */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <Type className="w-5 h-5 text-blue-600" />
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Type className="w-6 h-6 text-blue-600" />
               Basic Information
             </h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
                     Course Title *
                   </label>
                   <input
@@ -424,15 +531,20 @@ const AddCourse = () => {
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                      formErrors.title ? "border-red-400" : "border-gray-200"
+                    }`}
                     placeholder="Enter course title"
                     required
                   />
+                  {formErrors.title && (
+                    <p className="mt-1 text-xs text-red-600">{formErrors.title}</p>
+                  )}
                 </div>
+            
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
                   Course Description *
                 </label>
                 <RichTextEditor
@@ -440,336 +552,366 @@ const AddCourse = () => {
                   onChange={setDescription}
                   placeholder="Describe your course in detail..."
                 />
+                {formErrors.description && (
+                  <p className="mt-2 text-xs text-red-600">{formErrors.description}</p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Course Details */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-blue-600" />
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <FileText className="w-6 h-6 text-blue-600" />
               Course Details
             </h2>
-            <CategorySubcategoryDropdowns
-              selectedCategoryId={formData.categoryId}
-              selectedSubcategoryId={formData.subCategoryId}
-              onCategoryChange={handleCategoryChange}
-              onSubcategoryChange={handleSubcategoryChange}
-            />
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Level
-              </label>
-              <select
-                name="level"
-                value={formData.level}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-                <option value="all">All Levels</option>
-              </select>
+            <div className="space-y-6">
+              <CategorySubcategoryDropdowns
+                selectedCategoryId={formData.categoryId}
+                selectedSubcategoryId={formData.subCategoryId}
+                onCategoryChange={handleCategoryChange}
+                onSubcategoryChange={handleSubcategoryChange}
+              />
+              {formErrors.categoryId && (
+                <p className="mt-1 text-xs text-red-600">{formErrors.categoryId}</p>
+              )}
+              {formErrors.subCategoryId && (
+                <p className="mt-1 text-xs text-red-600">{formErrors.subCategoryId}</p>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    Level
+                  </label>
+                  <select
+                    name="level"
+                    value={formData.level}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                  >
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                    <option value="all">All Levels</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    Duration (hours) *
+                  </label>
+                  <input
+                    type="number"
+                    name="duration"
+                    value={formData.duration}
+                    onChange={handleInputChange}
+                    className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                      formErrors.duration ? "border-red-400" : "border-gray-200"
+                    }`}
+                    placeholder="Course duration"
+                    required
+                  />
+                  {formErrors.duration && (
+                    <p className="mt-1 text-xs text-red-600">{formErrors.duration}</p>
+                  )}
+                </div>
+              </div>
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Duration (hours)
-              </label>
-              <input
-                type="number"
-                name="duration"
-                value={formData.duration}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Course duration"
+          {/* Media Files */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Image className="w-6 h-6 text-blue-600" />
+              Media Files
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <FileUpload
+                label="Course Thumbnail *"
+                accept="image/*"
+                onFileChange={setThumbnailFile}
+                currentFile={thumbnailFile}
+                icon={Image}
+              />
+              <FileUpload
+                label="Cover Image"
+                accept="image/*"
+                onFileChange={setCoverImageFile}
+                currentFile={coverImageFile}
+                icon={Image}
+              />
+              <FileUpload
+                label="Demo Video"
+                accept="video/*"
+                onFileChange={setDemoVideoFile}
+                currentFile={demoVideoFile}
+                icon={Video}
               />
             </div>
-          </div>
-        </div>
-
-        {/* Media Files */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Image className="w-5 h-5 text-blue-600" />
-            Media Files
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FileUpload
-              label="Course Thumbnail"
-              accept="image/*"
-              onFileChange={setThumbnailFile}
-              currentFile={thumbnailFile}
-              icon={Image}
-            />
-            <FileUpload
-              label="Cover Image"
-              accept="image/*"
-              onFileChange={setCoverImageFile}
-              currentFile={coverImageFile}
-              icon={Image}
-            />
-            <FileUpload
-              label="Demo Video"
-              accept="video/*"
-              onFileChange={setDemoVideoFile}
-              currentFile={demoVideoFile}
-              icon={Video}
-            />
-          </div>
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
+            {formErrors.thumbnailFile && (
+              <p className="mt-2 text-xs text-red-600">{formErrors.thumbnailFile}</p>
+            )}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
               {thumbnailFile && (
                 <div className="relative">
-                  <div
+                  <button
                     onClick={() => setThumbnailFile(null)}
-                    className="absolute top-2 cursor-pointer  right-2 p-1 rounded-sm bg-red-500/50"
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200"
                   >
-                    <Plus className="h-4 w-4 rotate-[45deg]" />
-                  </div>
+                    <X className="h-4 w-4" />
+                  </button>
                   <img
-                    className="h-40 w-full"
-                    src={getUrlFrommFile(thumbnailFile)}
+                    className="h-48 w-full object-cover rounded-xl"
+                    src={getUrlFromFile(thumbnailFile)}
+                    alt="Thumbnail Preview"
                   />
                 </div>
               )}
-            </div>
-            <div>
               {coverImageFile && (
                 <div className="relative">
-                  <div
+                  <button
                     onClick={() => setCoverImageFile(null)}
-                    className="absolute top-2 cursor-pointer  right-2 p-1 rounded-sm bg-red-500/50"
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200"
                   >
-                    <Plus className="h-4 w-4 rotate-[45deg]" />
-                  </div>
+                    <X className="h-4 w-4" />
+                  </button>
                   <img
-                    className="h-40 w-full"
-                    src={getUrlFrommFile(coverImageFile)}
+                    className="h-48 w-full object-cover rounded-xl"
+                    src={getUrlFromFile(coverImageFile)}
+                    alt="Cover Image Preview"
                   />
                 </div>
               )}
-            </div>
-            <div>
               {demoVideoFile && (
                 <div className="relative">
-                  <div
+                  <button
                     onClick={() => setDemoVideoFile(null)}
-                    className="absolute z-50 top-2 cursor-pointer  right-2 p-1 rounded-sm bg-red-500/50"
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200"
                   >
-                    <Plus className="h-4 w-4 rotate-[45deg]" />
-                  </div>
-                  <video className="h-40 w-full" controls width="800">
-                    <source
-                      src={getUrlFrommFile(demoVideoFile)}
-                      type="video/mp4"
-                    />
+                    <X className="h-4 w-4" />
+                  </button>
+                  <video className="h-48 w-full rounded-xl" controls>
+                    <source src={getUrlFromFile(demoVideoFile)} type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
                 </div>
               )}
             </div>
           </div>
-        </div>
 
-        {/* Pricing */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-blue-600" />
-            Pricing
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price
-              </label>
-              <input
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Course price"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Currency
-              </label>
-              <select
-                name="currency"
-                value={formData.currency}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="INR">INR (₹)</option>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Course Features */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Award className="w-5 h-5 text-blue-600" />
-            Course Features
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              { key: "certificateTemplate", label: "Certificate", icon: Award },
-              { key: "isDownloadable", label: "Downloadable", icon: Download },
-              { key: "courseForum", label: "Forum", icon: MessageCircle },
-              { key: "isSubscription", label: "Subscription", icon: Calendar },
-              { key: "isPrivate", label: "Private", icon: Lock },
-              { key: "enableWaitlist", label: "Waitlist", icon: Users },
-            ].map(({ key, label, icon: Icon }) => (
-              <label
-                key={key}
-                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-              >
+          {/* Pricing */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <DollarSign className="w-6 h-6 text-blue-600" />
+              Pricing
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Price *
+                </label>
                 <input
-                  type="checkbox"
-                  name={key}
-                  checked={formData[key]}
+                  type="number"
+                  name="price"
+                  value={formData.price}
                   onChange={handleInputChange}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <Icon className="w-5 h-5 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">
-                  {label}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Tags */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Tag className="w-5 h-5 text-blue-600" />
-            Tags
-          </h2>
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              {predefinedTags.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => addTag(tag)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedTags.includes(tag)
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                    formErrors.price ? "border-red-400" : "border-gray-200"
                   }`}
+                  placeholder="Course price"
+                  required
+                />
+                {formErrors.price && (
+                  <p className="mt-1 text-xs text-red-600">{formErrors.price}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Currency
+                </label>
+                <select
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                 >
-                  {tag}
-                </button>
+                  <option value="INR">INR (₹)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Course Features */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Award className="w-6 h-6 text-blue-600" />
+              Course Features
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[
+                { key: "certificateTemplate", label: "Certificate", icon: Award },
+                { key: "isDownloadable", label: "Downloadable", icon: Download },
+                { key: "courseForum", label: "Forum", icon: MessageCircle },
+                { key: "isSubscription", label: "Subscription", icon: Calendar },
+                { key: "isPrivate", label: "Private", icon: Lock },
+                { key: "enableWaitlist", label: "Waitlist", icon: Users },
+              ].map(({ key, label, icon: Icon }) => (
+                <label
+                  key={key}
+                  className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+                >
+                  <input
+                    type="checkbox"
+                    name={key}
+                    checked={formData[key]}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <Icon className="w-5 h-5 text-gray-600" />
+                  <span className="text-sm font-semibold text-gray-700">{label}</span>
+                </label>
               ))}
             </div>
+          </div>
 
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={customTag}
-                onChange={(e) => setCustomTag(e.target.value)}
-                placeholder="Add custom tag"
-                className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                onKeyDown={(e) =>
-                  e.key === "Enter" && (e.preventDefault(), addCustomTag())
-                }
-              />
-              <button
-                type="button"
-                onClick={addCustomTag}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-
-            {selectedTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {selectedTags.map((tag) => (
-                  <span
+          {/* Tags */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Tag className="w-6 h-6 text-blue-600" />
+              Tags
+            </h2>
+            <div className="space-y-6">
+              <div className="flex flex-wrap gap-3">
+                {predefinedTags.map((tag) => (
+                  <button
                     key={tag}
-                    className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                    type="button"
+                    onClick={() => addTag(tag)}
+                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors duration-200 ${
+                      selectedTags.includes(tag)
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
                   >
                     {tag}
-                    <X
-                      className="w-4 h-4 cursor-pointer hover:text-blue-600"
-                      onClick={() => removeTag(tag)}
-                    />
-                  </span>
+                  </button>
                 ))}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* SEO */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4">SEO Settings</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Meta Description
-              </label>
-              <textarea
-                name="seoMetaDescription"
-                value={formData.seoMetaDescription}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                rows={2}
-                placeholder="Brief description for search engines"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                SEO Content
-              </label>
-              <RichTextEditor
-                value={seoContent}
-                onChange={setSeoContent}
-                placeholder="Additional SEO content..."
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Submit Buttons */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex gap-4 justify-end">
-            <button
-              type="button"
-              onClick={(e) => handleSubmit(e, true)}
-              disabled={loading}
-              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={customTag}
+                  onChange={(e) => setCustomTag(e.target.value)}
+                  placeholder="Add custom tag"
+                  className="flex-1 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomTag())}
+                />
+                <button
+                  type="button"
+                  onClick={addCustomTag}
+                  className="px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  Add
+                </button>
+              </div>
+              {formErrors.tags && (
+                <p className="mt-1 text-xs text-red-600">{formErrors.tags}</p>
               )}
-              Save as Draft
-            </button>
-            <button
-              type="button"
-              onClick={(e) => handleSubmit(e, false)}
-              disabled={loading}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <BookOpen className="w-4 h-4" />
+              {selectedTags.length > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {selectedTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium"
+                    >
+                      {tag}
+                      <button onClick={() => removeTag(tag)}>
+                        <X className="w-4 h-4 hover:text-blue-600" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
               )}
-              Publish Course
-            </button>
+            </div>
+          </div>
+
+          {/* SEO */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Tag className="w-6 h-6 text-blue-600" />
+              SEO Settings
+            </h2>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Meta Description
+                </label>
+                <textarea
+                  name="seoMetaDescription"
+                  value={formData.seoMetaDescription}
+                  onChange={handleInputChange}
+                  className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                    formErrors.seoMetaDescription ? "border-red-400" : "border-gray-200"
+                  }`}
+                  rows={3}
+                  placeholder="Brief description for search engines (max 160 characters)"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  {formData.seoMetaDescription.length}/160 characters
+                </p>
+                {formErrors.seoMetaDescription && (
+                  <p className="mt-1 text-xs text-red-600">{formErrors.seoMetaDescription}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  SEO Content
+                </label>
+                <RichTextEditor
+                  value={seoContent}
+                  onChange={setSeoContent}
+                  placeholder="Additional SEO content..."
+                />
+                {formErrors.seoContent && (
+                  <p className="mt-2 text-xs text-red-600">{formErrors.seoContent}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Buttons */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="flex gap-4 justify-end">
+              <button
+                type="button"
+                onClick={(e) => handleSubmit(e, true)}
+                disabled={loading}
+                className="px-8 py-4 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm font-semibold"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Save className="w-5 h-5" />
+                )}
+                Save as Draft
+              </button>
+              <button
+                type="button"
+                onClick={(e) => handleSubmit(e, false)}
+                disabled={loading}
+                className="px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm font-semibold"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <BookOpen className="w-5 h-5" />
+                )}
+                Publish Course
+              </button>
+            </div>
           </div>
         </div>
       </div>

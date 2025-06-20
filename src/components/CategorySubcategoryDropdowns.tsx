@@ -5,7 +5,7 @@ import {
   createSubCategory,
   fetchCourseCategories,
 } from "../store/slices/courseCategorySlice";
-import { fetchSubcategoriesByCategory } from "../store/slices/filter"; // import your thunk
+import { fetchSubcategoriesByCategory } from "../store/slices/filter";
 import { Plus } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -43,23 +43,22 @@ export default function CategorySubcategoryDropdowns({
   const [popupFor, setPopupFor] = React.useState<
     "category" | "subcategory" | null
   >(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const {
     categories,
     loading: categoriesLoading,
     error,
   } = useAppSelector((state) => state.courseCategory);
-  const [data, setData] = React.useState({
-    title: "",
-    image: null,
-  });
-
-  // Get subcategories and loading/error from filter slice
   const {
     data: filterData,
     loading: subcategoriesLoading,
     error: subcategoriesError,
   } = useAppSelector((state) => state.filter);
   const subcategories: SubCategory[] = filterData?.subcategories || [];
+  const [data, setData] = React.useState({
+    title: "",
+    image: null as File | null,
+  });
 
   // Fetch categories on mount
   useEffect(() => {
@@ -119,9 +118,17 @@ export default function CategorySubcategoryDropdowns({
 
   const handleSubmit = async () => {
     try {
+      if (!data.title) {
+        toast.error("Please enter a name.");
+        return;
+      }
+
+      setIsSubmitting(true);
       const formData = new FormData();
       formData.append("name", data.title);
-      formData.append("image", data.image);
+      if (data.image) {
+        formData.append("image", data.image);
+      }
       formData.append("status", "active");
 
       if (popupFor === "subcategory" && !selectedCategoryId) {
@@ -132,19 +139,37 @@ export default function CategorySubcategoryDropdowns({
         formData.append("categoryId", selectedCategoryId);
       }
 
-      //   Dispatch your action here
       if (popupFor === "category") {
         await dispatch(createCourseCategory(formData)).unwrap();
+        toast.success("New category added successfully!");
+        // Refetch categories to update the dropdown
+        await dispatch(
+          fetchCourseCategories({
+            page: 0,
+            limit: 1000,
+            filters: {
+              status: "active",
+              isDeleted: false,
+            },
+          })
+        ).unwrap();
       } else if (popupFor === "subcategory") {
         await dispatch(createSubCategory(formData)).unwrap();
         toast.success("New subcategory added successfully!");
+        // Refetch subcategories for the selected category
+        if (selectedCategoryId) {
+          await dispatch(fetchSubcategoriesByCategory(selectedCategoryId)).unwrap();
+        }
       }
-      setData({ title: "", image: null }); // Reset form data after successful submission
-      setShowPopup(false); // Close the popup
-      dispatch(fetchSubcategoriesByCategory());
-      console.log("New Category Added:", data);
+
+      // Reset form data and close popup
+      setData({ title: "", image: null });
+      setShowPopup(false);
     } catch (error) {
-      console.error("Error adding new category:", error);
+      console.error(`Error adding new ${popupFor}:`, error);
+      toast.error(`Failed to add ${popupFor}. Please try again.`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -170,8 +195,8 @@ export default function CategorySubcategoryDropdowns({
               {category.name}
             </option>
           ))}
-          <option value={"add-new-category"} className="text-blue-500">
-            <Plus /> Add New Category
+          <option value="add-new-category" className="text-blue-500">
+            Add New Category
           </option>
         </select>
         {error && (
@@ -181,19 +206,24 @@ export default function CategorySubcategoryDropdowns({
         )}
       </div>
 
+      {/* Popup for Adding Category/Subcategory */}
       {showPopup && (
-        <div className="h-screen w-full bg-black/10 fixed top-0 left-0 flex justify-center items-center  z-9999 backdrop-blur-sm">
-          <div className="bg-white w-2/6 p-8">
+        <div className="fixed inset-0 bg-black/10 flex justify-center items-center z-[9999] backdrop-blur-sm">
+          <div className="bg-white w-2/6 p-8 rounded-lg">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold  flex items-center gap-2">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
                 Add New {popupFor === "category" ? "Category" : "Subcategory"}
-              </h2>{" "}
-              <div onClick={() => setShowPopup(false)}>
+              </h2>
+              <button
+                onClick={() => setShowPopup(false)}
+                className="text-gray-500 hover:text-gray-700"
+                disabled={isSubmitting}
+              >
                 <Plus className="w-6 h-6 rotate-45" />
-              </div>
+              </button>
             </div>
 
-            <div className="grid grid-cols-1  gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Name *
@@ -206,6 +236,7 @@ export default function CategorySubcategoryDropdowns({
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter name"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               <div>
@@ -216,20 +247,26 @@ export default function CategorySubcategoryDropdowns({
                   type="file"
                   name="image"
                   onChange={(e) =>
-                    setData({ ...data, image: e.target.files[0] })
+                    setData({ ...data, image: e.target.files?.[0] || null })
                   }
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
+                  disabled={isSubmitting}
                 />
               </div>
-
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="px-4 py-3 mt-2 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={isSubmitting}
+                className="px-4 py-3 mt-2 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
               >
-                <Plus className="w-4 h-4" />
-                Add {popupFor === "category" ? "Category" : "Subcategory"}
+                {isSubmitting ? (
+                  "Adding..."
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    Add {popupFor === "category" ? "Category" : "Subcategory"}
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -268,8 +305,8 @@ export default function CategorySubcategoryDropdowns({
                   </option>
                 )
             )}
-          <option value={"add-new-category"} className="text-blue-500">
-            <Plus /> Add New Subcategory
+          <option value="add-new-category" className="text-blue-500">
+            Add New Subcategory
           </option>
         </select>
         {subcategoriesError && (

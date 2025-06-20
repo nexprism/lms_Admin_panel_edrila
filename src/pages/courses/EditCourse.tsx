@@ -441,7 +441,9 @@ const EditCourse = () => {
           course.subCategoryId?._id ||
           "",
         level: course.level || "beginner",
-        price: course.price || "",
+        price: typeof course.price === "object" && course.price?.$numberDecimal
+          ? course.price.$numberDecimal
+          : course.price || "",
         currency: course.currency || "INR",
         duration: course.duration || "",
         instructorId: course.instructorId || course.instructor?._id || "",
@@ -450,8 +452,8 @@ const EditCourse = () => {
         maxStudents: course.maxStudents || "",
         certificateTemplate:
           course.certificateTemplate !== undefined
-            ? course.certificateTemplate
-            : true,
+        ? course.certificateTemplate
+        : true,
         isDownloadable:
           course.isDownloadable !== undefined ? course.isDownloadable : true,
         courseForum:
@@ -581,61 +583,61 @@ const EditCourse = () => {
     }
   };
 
-  const handelAddPlan = async () => {
-    try {
-      if (editingId) {
-        await dispatch(
-          updatePricingPlan({
-            planId: editingId,
-            updatedData: {
-              title: currentPlan.title,
-              startDate: currentPlan.startDate,
-              endDate: currentPlan.endDate,
-              discount: currentPlan.discount,
-              capacity: currentPlan.capacity,
-            },
-          })
-        ).unwrap();
-        setPopup({
-          message: "Plan added successfully!",
-          type: "success",
-          isVisible: true,
-        });
-        setShowPlanPopup(false);
-        setEditingId(null);
-        setCurrentPlan(null);
-      } else {
-        const payload: any = {
-          course: courseId || "",
-          title: planData.title,
-          startDate: planData.startDate,
-          endDate: planData.endDate,
-          discount: planData.discount,
-          capacity: planData.capacity,
-          language: "English",
-        };
-        await dispatch(createPricingPlan(payload)).unwrap();
+  // const handelAddPlan = async () => {
+  //   try {
+  //     if (editingId) {
+  //       await dispatch(
+  //         updatePricingPlan({
+  //           planId: editingId,
+  //           updatedData: {
+  //             title: currentPlan.title,
+  //             startDate: currentPlan.startDate,
+  //             endDate: currentPlan.endDate,
+  //             discount: currentPlan.discount,
+  //             capacity: currentPlan.capacity,
+  //           },
+  //         })
+  //       ).unwrap();
+  //       setPopup({
+  //         message: "Plan added successfully!",
+  //         type: "success",
+  //         isVisible: true,
+  //       });
+  //       setShowPlanPopup(false);
+  //       setEditingId(null);
+  //       setCurrentPlan(null);
+  //     } else {
+  //       const payload: any = {
+  //         course: courseId || "",
+  //         title: planData.title,
+  //         startDate: planData.startDate,
+  //         endDate: planData.endDate,
+  //         discount: planData.discount,
+  //         capacity: planData.capacity,
+  //         language: "English",
+  //       };
+  //       await dispatch(createPricingPlan(payload)).unwrap();
 
-        setShowPlanPopup(false);
-        setEditingId(null);
-        setCurrentPlan(null);
-        setPopup({
-          message: "Plan added successfully!",
-          type: "success",
-          isVisible: true,
-        });
-      }
-      setShowPlanPopup(false);
-      dispatch(getAllPricingPlansByCourse(courseId || ""));
-    } catch (error) {
-      setPopup({
-        message: "Error adding plan. Please try again.",
-        type: "error",
-        isVisible: true,
-      });
-      console.error("Error adding plan:", error);
-    }
-  };
+  //       setShowPlanPopup(false);
+  //       setEditingId(null);
+  //       setCurrentPlan(null);
+  //       setPopup({
+  //         message: "Plan added successfully!",
+  //         type: "success",
+  //         isVisible: true,
+  //       });
+  //     }
+  //     setShowPlanPopup(false);
+  //     dispatch(getAllPricingPlansByCourse(courseId || ""));
+  //   } catch (error) {
+  //     setPopup({
+  //       message: "Error adding plan. Please try again.",
+  //       type: "error",
+  //       isVisible: true,
+  //     });
+  //     console.error("Error adding plan:", error);
+  //   }
+  // };
 
   const handelDeletePlan = async (planId: string) => {
     try {
@@ -738,19 +740,7 @@ const EditCourse = () => {
                         required
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Course Subtitle
-                      </label>
-                      <input
-                        type="text"
-                        name="subtitle"
-                        value={formData.subtitle}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter course subtitle"
-                      />
-                    </div>
+                
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1139,7 +1129,7 @@ const EditCourse = () => {
                 </div>
               )}
 
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              {/* <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                     <DollarSign className="w-5 h-5 text-blue-600" />
@@ -1166,10 +1156,10 @@ const EditCourse = () => {
                     >
                       <h2 className="text-2xl  font-semibold mb-6 flex justify-center items-center gap-2">
                         {plan.title}
-                      </h2>
+                      </h2> */}
 
                       {/* Price */}
-                      <div className="text-center mb-6">
+                      {/* <div className="text-center mb-6">
                         <div className="flex items-baseline justify-center">
                           <span
                             className={`text-4xl font-bold ${
@@ -1210,10 +1200,10 @@ const EditCourse = () => {
                           <h2 className="text-xs">Capacity</h2>
                           <h2 className="font-medium">100</h2>
                         </div>
-                      </div>
+                      </div> */}
 
                       {/* CTA Button */}
-                      <button
+                      {/* <button
                         onClick={() => {
                           setShowPlanPopup(true);
                           setEditingId(plan._id);
@@ -1230,7 +1220,7 @@ const EditCourse = () => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Course Features */}
               <div className="bg-white rounded-lg shadow-sm p-6">

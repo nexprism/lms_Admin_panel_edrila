@@ -113,7 +113,7 @@ const navItems: NavItem[] = [
     icon: <TableIcon />,
     name: "Assignments",
     subItems: [
-      { name: "All Assignments", path: "/assignments/all" },
+      // { name: "All Assignments", path: "/assignments/all" },
       { name: "Submissions", path: "/assignments/submissions" },
     ],
   },

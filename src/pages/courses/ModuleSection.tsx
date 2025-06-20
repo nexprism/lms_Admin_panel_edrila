@@ -1241,7 +1241,14 @@ const ModuleSection = ({
       type: "success",
       isVisible: true,
     });
-    dispatch(fetchCourseById(courseId));
+    if (courseId) {
+      dispatch(fetchCourseById(courseId));
+    }
+    else {
+      dispatch(fetchCourseById({ courseId: courseData?._id }));
+      window.location.reload();
+    }
+
     // Call parent callback if provided
     if (onModulesChange) {
       onModulesChange(updatedModules);

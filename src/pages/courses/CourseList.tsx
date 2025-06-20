@@ -71,7 +71,7 @@ useEffect(() => {
 
 console.log("Loading state:", data);
 
-const courses: Course[] = data?.data || [];
+const courses: Course[] = Array.isArray(data?.data) ? data.data : [];
 console.log("Fetched courses:", courses);
 const pagination = {
     total: data?.total || 0,
