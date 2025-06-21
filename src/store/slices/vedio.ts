@@ -147,8 +147,7 @@ export const updateVideo = createAsyncThunk(
           "Content-Type": "multipart/form-data",
         },
       });
-      window.location.reload();
-
+console.log("Video updated successfully:", response.data);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message);

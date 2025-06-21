@@ -260,7 +260,7 @@ export default function AddAssignmentForm({
             </div>
 
             {/* Subject and Language Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Subject*
@@ -304,7 +304,7 @@ export default function AddAssignmentForm({
                   <option value="Hindi">Hindi</option>
                 </select>
               </div>
-            </div>
+            </div> */}
 
             {/* Description */}
             <div>

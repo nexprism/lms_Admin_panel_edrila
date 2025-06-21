@@ -21,26 +21,24 @@ import axiosInstance from "../../../services/axiosConfig";
 // Fixed interface to match your store structure
 interface RootState {
   vedio: {
-    // Changed from 'video' to 'vedio' to match your store
     loading: boolean;
     error: string | null;
     data: any;
   };
 }
 
+// Fixed props interface to include fileId
 type VideoLessonProps = {
   lessonId: string;
   videoId?: string;
+  fileId?: string; // Added this missing prop
   onClose: () => void;
   onSaveSuccess?: (data: any) => void;
 };
 
 const sourcePlatforms = [
   { value: "videocypher", label: "Videocypher" },
-  { value: "manual", label: "Manual Upload" },
   { value: "youtube", label: "YouTube" },
-  { value: "vimeo", label: "Vimeo" },
-  { value: "external_link", label: "External Link" },
 ];
 
 const VideoLesson: React.FC<VideoLessonProps> = ({
@@ -52,14 +50,9 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
 }) => {
   const dispatch = useDispatch();
 
-  // Fixed selector to match store structure and destructure all needed values
   const { data, loading, error } = useSelector(
     (state: RootState) => state.vedio
   );
-
-  console.log("VideoLesson data:", fileId);
-  console.log("VideoLesson videoId:", videoId);
-  console.log("lessonId:", lessonId);
 
   const [form, setForm] = useState({
     title: "",
@@ -70,8 +63,12 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
     secureUrl: "",
     embedUrl: "",
     originalUrl: "",
-    youtubeUrl: "", // Added YouTube URL field
+    youtubeUrl: "",
+    thumbnail: "", // Added for VdoCipher
+    quality: "auto", // Added for VdoCipher
+    status: "", // Added for VdoCipher
   });
+  
   const [isEditMode, setIsEditMode] = useState(false);
   const [popup, setPopup] = useState({
     isVisible: false,
@@ -79,32 +76,39 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
     type: "",
   });
 
-  // useEffect(() => {
-  //   if (videoId) {
-  //     setIsEditMode(true);
-  //     dispatch(
-  //       fetchVideo({ fileId, accessToken: "", refreshToken: "" }) as any
-  //     );
-  //   }
-  // }, [videoId, dispatch]);
-
+  // Enhanced getData function to handle VdoCipher data structure
   const getData = async () => {
-    setIsEditMode(true);
-    const response = await axiosInstance.get(`/video/${fileId}`);
-    const data = response.data.data;
-    setForm({
-      title: data.title || "",
-      description: data.description || "",
-      sourcePlatform: data.sourcePlatform || "",
-      file: null,
-      videoId: data.secureUrl || "",
-      secureUrl: data.secureUrl || "",
-      embedUrl: data.secureUrl || "",
-      originalUrl: data.secureUrl || "",
-      youtubeUrl: data.youtubeUrl || data.secureUrl || "",
-    });
-    console.log("Fetched video data:", data);
+    try {
+      setIsEditMode(true);
+      const response = await axiosInstance.get(`/video/${fileId}`);
+      const videoData = response.data.data;
+      
+      setForm({
+        title: videoData.title || "",
+        description: videoData.description || "",
+        sourcePlatform: videoData.sourcePlatform || "",
+        file: null,
+        videoId: videoData.videoId || "", // VdoCipher video ID
+        secureUrl: videoData.secureUrl || "",
+        embedUrl: videoData.secureUrl || "", // Use secureUrl for embed
+        originalUrl: videoData.secureUrl || "",
+        youtubeUrl: videoData.youtubeUrl || "",
+        thumbnail: videoData.thumbnail || "",
+        quality: videoData.quality || "auto",
+        status: videoData.status || "",
+      });
+      
+      console.log("Fetched VdoCipher video data:", videoData);
+    } catch (error) {
+      console.error("Error fetching video data:", error);
+      setPopup({
+        isVisible: true,
+        message: "Failed to fetch video data",
+        type: "error",
+      });
+    }
   };
+
   useEffect(() => {
     if (fileId) {
       getData();
@@ -120,9 +124,12 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
         file: null,
         videoId: data.videoId || "",
         secureUrl: data.secureUrl || "",
-        embedUrl: data.embedUrl || "",
-        originalUrl: data.originalUrl || "",
-        youtubeUrl: data.youtubeUrl || data.originalUrl || "", // Use existing URL data
+        embedUrl: data.embedUrl || data.secureUrl || "",
+        originalUrl: data.originalUrl || data.secureUrl || "",
+        youtubeUrl: data.youtubeUrl || "",
+        thumbnail: data.thumbnail || "",
+        quality: data.quality || "auto",
+        status: data.status || "",
       });
     }
   }, [data, isEditMode, loading, error]);
@@ -134,9 +141,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
       } else if (error) {
         setPopup({
           isVisible: true,
-          message: `Failed to ${
-            isEditMode ? "update" : "upload"
-          } video: ${error}`,
+          message: `Failed to ${isEditMode ? "update" : "upload"} video: ${error}`,
           type: "error",
         });
       }
@@ -154,7 +159,6 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
     }
   };
 
-  // Function to validate YouTube URL
   const isValidYouTubeUrl = (url: string): boolean => {
     const youtubeRegex =
       /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
@@ -170,6 +174,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
       });
       return;
     }
+    
     if (!form.sourcePlatform) {
       setPopup({
         isVisible: true,
@@ -179,7 +184,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
       return;
     }
 
-    // Validation based on source platform
+    // Enhanced validation for VdoCipher and YouTube
     if (form.sourcePlatform === "youtube") {
       if (!form.youtubeUrl.trim()) {
         setPopup({
@@ -197,32 +202,51 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
         });
         return;
       }
-    } else if (
-      (form.sourcePlatform === "manual" ||
-        form.sourcePlatform === "videocypher") &&
-      !isEditMode &&
-      !form.file
-    ) {
-      setPopup({
-        isVisible: true,
-        message: "Please select a video file to upload.",
-        type: "error",
-      });
-      return;
+    } else if (form.sourcePlatform === "videocypher") {
+      // For new uploads, file is required
+      if (!isEditMode && !form.file) {
+        setPopup({
+          isVisible: true,
+          message: "Please select a video file to upload.",
+          type: "error",
+        });
+        return;
+      }
+      // For updates, file is optional (only if user wants to replace video)
     }
-    let response;
+
     try {
-      if (isEditMode && videoId) {
+      let response;
+      
+      if (isEditMode && (fileId || videoId)) {
+        // For VdoCipher updates, we need to use the correct ID
+        const updateId = fileId || videoId;
+        
+        // Show confirmation if replacing video file
+        if (form.file && form.sourcePlatform === "videocypher") {
+          const confirmReplace = window.confirm(
+            `Are you sure you want to replace the current video with "${form.file.name}"? This action cannot be undone.`
+          );
+          if (!confirmReplace) {
+            return;
+          }
+        }
+        
         response = await dispatch(
           updateVideo({
-            videoId,
+            videoId: updateId, // Use fileId for VdoCipher updates
             file: form.sourcePlatform === "youtube" ? null : form.file,
             lessonId,
             sourcePlatform: form.sourcePlatform,
             title: form.title,
             description: form.description,
-            youtubeUrl:
-              form.sourcePlatform === "youtube" ? form.youtubeUrl : undefined,
+            youtubeUrl: form.sourcePlatform === "youtube" ? form.youtubeUrl : undefined,
+            // Include VdoCipher specific fields if updating VdoCipher video
+            ...(form.sourcePlatform === "videocypher" && {
+              quality: form.quality,
+              thumbnail: form.thumbnail,
+              replaceVideo: !!form.file, // Flag to indicate video replacement
+            }),
             accessToken: "",
             refreshToken: "",
           }) as any
@@ -235,43 +259,48 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
             sourcePlatform: form.sourcePlatform,
             title: form.title,
             description: form.description,
-            youtubeUrl:
-              form.sourcePlatform === "youtube" ? form.youtubeUrl : undefined,
+            youtubeUrl: form.sourcePlatform === "youtube" ? form.youtubeUrl : undefined,
+            // Include VdoCipher specific fields if uploading to VdoCipher
+            ...(form.sourcePlatform === "videocypher" && {
+              quality: form.quality || "auto",
+            }),
             accessToken: "",
             refreshToken: "",
           }) as any
         );
       }
-      console.log("Video upload response:", response);
-      if (response.payload.success) {
+      
+      console.log("Video operation response:", response);
+      
+      if (response.payload?.success) {
         setPopup({
           isVisible: true,
           message: `Video ${isEditMode ? "updated" : "uploaded"} successfully!`,
           type: "success",
         });
-        handleClose();
+        // Close after a short delay to show success message
+        setTimeout(() => {
+          handleClose();
+        }, 1500);
       } else {
         setPopup({
           isVisible: true,
           message: `Failed to ${isEditMode ? "update" : "upload"} video: ${
-            response.payload.message
+            response.payload?.message || "Unknown error"
           }`,
           type: "error",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving video:", error);
       setPopup({
         isVisible: true,
         message: `Failed to ${isEditMode ? "update" : "upload"} video: ${
-          error.message
+          error.message || "Network error"
         }`,
         type: "error",
       });
-      return;
     }
-
-    // handleClose();
   };
 
   const handleClose = () => {
@@ -279,7 +308,34 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
     onClose();
   };
 
-  // Helper function to render the appropriate input based on source platform
+  // Enhanced render function to show VdoCipher status
+  const renderVdoCipherInfo = () => {
+    if (form.sourcePlatform === "videocypher" && isEditMode) {
+      return (
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <h4 className="font-medium text-blue-900 mb-2">VdoCipher Video Info</h4>
+          <div className="space-y-1 text-sm text-blue-800">
+            <p><strong>Video ID:</strong> {form.videoId}</p>
+            <p><strong>Status:</strong> 
+              <span className={`ml-1 px-2 py-1 rounded-full text-xs ${
+                form.status === 'ready' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {form.status || 'Unknown'}
+              </span>
+            </p>
+            <p><strong>Quality:</strong> {form.quality}</p>
+            {form.secureUrl && (
+              <p><strong>Secure URL:</strong> 
+                <span className="text-xs text-blue-600 ml-1">Available</span>
+              </p>
+            )}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   const renderSourceInput = () => {
     if (form.sourcePlatform === "youtube") {
       return (
@@ -312,21 +368,19 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
           )}
         </div>
       );
-    } else if (
-      (form.sourcePlatform === "manual" ||
-        form.sourcePlatform === "videocypher") &&
-      !isEditMode
-    ) {
+    } else if (form.sourcePlatform === "videocypher") {
       return (
         <div>
-          <label className="block text-sm font-medium mb-2">Video File *</label>
+          <label className="block text-sm font-medium mb-2">
+            Video File {!isEditMode ? '*' : ''}
+          </label>
           <input
             type="file"
             name="file"
             accept="video/*"
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            required
+            required={!isEditMode}
           />
           {form.file && (
             <p className="mt-2 text-sm text-gray-600 flex items-center gap-1">
@@ -334,33 +388,18 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
               Selected: {form.file.name}
             </p>
           )}
-        </div>
-      );
-    } else if (
-      form.sourcePlatform === "vimeo" ||
-      form.sourcePlatform === "external_link"
-    ) {
-      return (
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            {form.sourcePlatform === "vimeo" ? "Vimeo URL" : "External Link"} *
-          </label>
-          <div className="relative">
-            <input
-              type="url"
-              name="originalUrl"
-              value={form.originalUrl}
-              onChange={handleChange}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder={
-                form.sourcePlatform === "vimeo"
-                  ? "https://vimeo.com/..."
-                  : "https://..."
-              }
-              required
-            />
-            <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          </div>
+          {isEditMode && !form.file && (
+            <p className="mt-1 text-xs text-gray-500">
+              Leave empty to keep current video, or select a new file to replace it
+            </p>
+          )}
+          {isEditMode && form.file && (
+            <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded">
+              <p className="text-sm text-amber-800">
+                ⚠️ This will replace the current video with: <strong>{form.file.name}</strong>
+              </p>
+            </div>
+          )}
         </div>
       );
     }
@@ -374,10 +413,8 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
           <FileVideo className="w-6 h-6" />
           {isEditMode ? "Edit Video Lesson" : "Upload Video Lesson"}
         </h2>
-        {/* <div onClick={handleClose} className="p-2 hover:bg-gray-100 rounded-lg">
-                    <X className="w-5 h-5" />
-                </div> */}
       </div>
+      
       <div className="space-y-5">
         <div>
           <label className="block text-sm font-medium mb-2">Title *</label>
@@ -391,6 +428,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
             required
           />
         </div>
+        
         <div>
           <label className="block text-sm font-medium mb-2">Description</label>
           <textarea
@@ -402,6 +440,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
             placeholder="Enter video description"
           />
         </div>
+        
         <div>
           <label className="block text-sm font-medium mb-2">
             Source Platform *
@@ -420,11 +459,20 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
               </option>
             ))}
           </select>
+          {isEditMode && (
+            <p className="mt-1 text-xs text-amber-600">
+              ⚠️ Changing platform will replace the current video
+            </p>
+          )}
         </div>
 
         {/* Conditional rendering based on source platform */}
         {form.sourcePlatform && renderSourceInput()}
+        
+        {/* Show VdoCipher info if editing VdoCipher video */}
+        {renderVdoCipherInfo()}
       </div>
+      
       <div className="flex justify-end items-center gap-4 mt-8">
         <button
           onClick={handleClose}
@@ -463,6 +511,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
           )}
         </button>
       </div>
+      
       <PopupAlert
         message={popup.message}
         type={popup.type}

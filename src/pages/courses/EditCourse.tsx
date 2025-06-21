@@ -707,14 +707,7 @@ const EditCourse = () => {
           </div>
 
           {/* Error/Success Messages */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-500" />
-              <span className="text-red-700">
-                {typeof error === "string" ? error : "An error occurred"}
-              </span>
-            </div>
-          )}
+         
 
           <form onSubmit={(e) => handleSubmit(e, false)}>
             <div className="space-y-6">
