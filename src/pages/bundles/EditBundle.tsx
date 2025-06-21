@@ -284,7 +284,7 @@ const EditBundleForm = () => {
             // You might need to create an updateCourseBundle action instead of using createCourseBundle
             await dispatch(updateCourseBundle({ id, formData: bundleFormData })).unwrap();
             alert('Bundle updated successfully!');
-            navigate('/bundles');
+            navigate('/bundles/all');
         } catch (error) {
             console.error('Error updating bundle:', error);
             alert('Error updating bundle. Please try again.');
@@ -302,7 +302,7 @@ const EditBundleForm = () => {
                     <p className="text-sm">URL Parameters: {JSON.stringify(params)}</p>
                 </div>
                 <button 
-                    onClick={() => navigate('/bundles')} 
+                    onClick={() => navigate('/bundles/all')} 
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                     Back to Bundles
@@ -610,7 +610,7 @@ const EditBundleForm = () => {
                 <div className="flex justify-end gap-4">
                     <button
                         type="button"
-                        onClick={() => navigate('/bundles')}
+                        onClick={() => navigate('/bundles/all')}
                         className="px-6 py-3 rounded-md font-medium bg-gray-500 hover:bg-gray-600 text-white transition duration-200"
                     >
                         Cancel
