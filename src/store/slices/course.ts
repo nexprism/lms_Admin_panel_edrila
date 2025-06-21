@@ -81,6 +81,10 @@ export const updateCourse = createAsyncThunk(
   async ({ id, data }: { id: string; data: FormData }, { rejectWithValue }) => {
     try {
       console.log("Updating course with ID:", id, "and data:", data);
+      // Remove any existing 'instructorId' entries before appending the correct one
+      data.delete("instructorId");
+      data.append("instructorId", "684088dfef718469d2bbcb62");
+
       const response = await axiosInstance.put(`/courses/${id}`, data, {
         headers: {
           "Content-Type": "multipart/form-data",

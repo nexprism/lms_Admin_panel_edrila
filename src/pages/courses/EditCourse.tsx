@@ -359,7 +359,7 @@ const EditCourse = () => {
     price: "",
     currency: "INR",
     duration: "",
-    instructorId: "",
+    // instructorId: "",
     isPublished: false,
     enrollmentType: "open",
     maxStudents: "",
@@ -435,6 +435,9 @@ const EditCourse = () => {
           course.category?._id ||
           course.categoryId?._id ||
           "",
+          instructorId : course?.instructorId ,
+
+        
         subCategoryId:
           course.subCategoryId ||
           course.subCategory?._id ||
@@ -446,7 +449,7 @@ const EditCourse = () => {
           : course.price || "",
         currency: course.currency || "INR",
         duration: course.duration || "",
-        instructorId: course.instructorId || course.instructor?._id || "",
+        // instructorId: course.instructorId || course.instructor?._id || "",
         isPublished: course.isPublished || false,
         enrollmentType: course.enrollmentType || "open",
         maxStudents: course.maxStudents || "",
@@ -553,20 +556,35 @@ const EditCourse = () => {
     e.preventDefault();
 
     const submitFormData = new FormData();
+
+    // Only append primitive values, not arrays
     (Object.keys(formData) as (keyof typeof formData)[]).forEach((key) => {
-      submitFormData.append(key, String(formData[key]));
+      const value = formData[key];
+      // If value is an array, take the first element or join as string
+      if (Array.isArray(value)) {
+        submitFormData.append(key, value.length > 0 ? String(value[0]) : "");
+      } else {
+        submitFormData.append(key, String(value));
+      }
     });
 
-    submitFormData.append("description", description);
-    submitFormData.append("seoContent", seoContent);
-    submitFormData.append("tags", JSON.stringify(selectedTags));
-    submitFormData.append("modules", JSON.stringify(modules));
-    submitFormData.append("isPublished", (!isDraft).toString());
-    submitFormData.append("level", formData.level || "beginner");
+    // Explicitly set fields as string (not array)
+    submitFormData.set("title", String(formData.title));
+    submitFormData.set("subtitle", String(formData.subtitle));
+    submitFormData.set("seoMetaDescription", String(formData.seoMetaDescription));
 
-    if (thumbnailFile) submitFormData.append("thumbnail", thumbnailFile);
-    if (coverImageFile) submitFormData.append("coverImage", coverImageFile);
-    if (demoVideoFile) submitFormData.append("demoVideo", demoVideoFile);
+    submitFormData.set("description", description);
+    submitFormData.set("seoContent", seoContent);
+    submitFormData.set("tags", JSON.stringify(selectedTags));
+    // submitFormData.set("modules", JSON.stringify(modules));
+    submitFormData.set("isPublished", (!isDraft).toString());
+    submitFormData.set("level", formData.level || "beginner");
+    // submitFormData.set("instructerId",localStorage?.getItem(user))
+    
+
+    if (thumbnailFile) submitFormData.set("thumbnail", thumbnailFile);
+    if (coverImageFile) submitFormData.set("coverImage", coverImageFile);
+    if (demoVideoFile) submitFormData.set("demoVideo", demoVideoFile);
 
     try {
       await dispatch(
