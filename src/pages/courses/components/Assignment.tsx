@@ -23,6 +23,7 @@ interface AddAssignmentFormProps {
   assignmentId?: string; // If provided, edit mode
   onClose?: () => void;
   onSaveSuccess?: (data: any) => void;
+  showSuccessPopup?: boolean; // New prop to control popup display
 }
 
 export default function AddAssignmentForm({
@@ -31,6 +32,7 @@ export default function AddAssignmentForm({
   assignmentId,
   onClose,
   onSaveSuccess,
+  showSuccessPopup = true, // Default to true for backward compatibility
 }: AddAssignmentFormProps) {
   const dispatch = useDispatch();
   const { loading, error, data } = useSelector(
@@ -57,6 +59,7 @@ export default function AddAssignmentForm({
     type: "",
   });
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isFormSubmitted, setIsFormSubmitted] = useState(false); // Track if form was actually submitted
 
   // Fetch assignment if editing
   const getData = async () => {
@@ -78,6 +81,7 @@ export default function AddAssignmentForm({
       document: data.documentFile || null,
     });
   };
+
   useEffect(() => {
     if (assignmentId) {
       setIsEditMode(true);
@@ -143,6 +147,7 @@ export default function AddAssignmentForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsFormSubmitted(true); // Mark that form was actually submitted
 
     const apiFormData = new FormData();
     apiFormData.append("courseId", courseId);
@@ -172,18 +177,22 @@ export default function AddAssignmentForm({
       } else {
         result = await dispatch(createAssignment(apiFormData) as any);
       }
+      
       if (
         (isEditMode && updateAssignment.fulfilled.match(result)) ||
         (!isEditMode && createAssignment.fulfilled.match(result))
       ) {
+        // Only show popup if showSuccessPopup is true and form was actually submitted
+        if (showSuccessPopup && isFormSubmitted) {
+          setPopup({
+            isVisible: true,
+            message: `Assignment ${
+              isEditMode ? "updated" : "created"
+            } successfully!`,
+            type: "success",
+          });
+        }
         
-        setPopup({
-          isVisible: true,
-          message: `Assignment ${
-            isEditMode ? "updated" : "created"
-          } successfully!`,
-          type: "success",
-        });
         setFormData({
           title: "",
           subject: "",
@@ -195,14 +204,24 @@ export default function AddAssignmentForm({
           materials: "",
           file: null,
           document: null,
+          maxAttempts: "",
         });
+        
         if (onSaveSuccess) onSaveSuccess(result.payload);
-        setTimeout(() => {
-          setPopup({ isVisible: false, message: "", type: "" });
+        
+        // Only show popup timeout if popup is visible
+        if (showSuccessPopup && isFormSubmitted) {
+          setTimeout(() => {
+            setPopup({ isVisible: false, message: "", type: "" });
+            if (onClose) onClose();
+          }, 1500);
+        } else {
+          // Close immediately if no popup needed
           if (onClose) onClose();
-        }, 1500);
+        }
       }
     } catch (err) {
+      // Always show error popup regardless of showSuccessPopup setting
       setPopup({
         isVisible: true,
         message: `Failed to ${
@@ -258,53 +277,6 @@ export default function AddAssignmentForm({
                 disabled={loading}
               />
             </div>
-
-            {/* Subject and Language Row */}
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subject*
-                </label>
-                <select
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  required
-                  disabled={loading}
-                >
-                  <option value="">Select Subject</option>
-                  <option value="Mathematics">Mathematics</option>
-                  <option value="Science">Science</option>
-                  <option value="English">English</option>
-                  <option value="History">History</option>
-                  <option value="Geography">Geography</option>
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Art">Art</option>
-                  <option value="Physical Education">Physical Education</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Language
-                </label>
-                <select
-                  name="language"
-                  value={formData.language}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  disabled={loading}
-                >
-                  <option value="English">English</option>
-                  <option value="Spanish">Spanish</option>
-                  <option value="French">French</option>
-                  <option value="German">German</option>
-                  <option value="Mandarin">Mandarin</option>
-                  <option value="Hindi">Hindi</option>
-                </select>
-              </div>
-            </div> */}
 
             {/* Description */}
             <div>

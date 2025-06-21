@@ -32,6 +32,10 @@ export default function FileUploadForm({
     message: "",
     type: "",
   });
+  
+  // Add state to track if component just mounted
+  const [justMounted, setJustMounted] = useState(true);
+  
   console.log("FileUploadForm rendered with fileId:", fileId);
   console.log("lessonId:", lessonId);
   console.log("courseId:", courseId);
@@ -57,6 +61,20 @@ export default function FileUploadForm({
     "Japanese",
   ];
   const fileTypes = ["PDF", "DOCX", "VIDEO", "IMAGE"];
+
+  // Clear Redux state on component mount to prevent stale success/error messages
+  useEffect(() => {
+    // Clear any previous success/error states when component mounts
+    // You might need to dispatch a clear action here if available in your Redux slice
+    // dispatch(clearFileState()); // Uncomment if you have this action
+    
+    // Set justMounted to false after a brief delay
+    const timer = setTimeout(() => {
+      setJustMounted(false);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   // Fetch file if editing
   const getData = async () => {
@@ -89,6 +107,7 @@ export default function FileUploadForm({
       setIsEditMode(false);
     }
   };
+  
   useEffect(() => {
     getData();
     // eslint-disable-next-line
@@ -107,8 +126,11 @@ export default function FileUploadForm({
     // eslint-disable-next-line
   }, [fetchedFile, isEditMode, uploading, error]);
 
-  // Handle success/error popups
+  // Handle success/error popups - Modified to prevent showing stale messages
   useEffect(() => {
+    // Don't show success/error popups if component just mounted (to avoid stale messages)
+    if (justMounted) return;
+    
     if (!uploading) {
       if (success) {
         setPopup({
@@ -129,7 +151,7 @@ export default function FileUploadForm({
       }
     }
     // eslint-disable-next-line
-  }, [success, error, uploading, isEditMode, onSaveSuccess]);
+  }, [success, error, uploading, isEditMode, onSaveSuccess, justMounted]);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -394,14 +416,14 @@ export default function FileUploadForm({
             )}
           </div>
         )}
-        {/* Error Display */}
-        {error && (
+        {/* Error Display - Only show if not just mounted */}
+        {error && !justMounted && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-md">
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
-        {/* Success Display */}
-        {success && (
+        {/* Success Display - Only show if not just mounted */}
+        {success && !justMounted && (
           <div className="p-3 bg-green-50 border border-green-200 rounded-md">
             <p className="text-sm text-green-600">
               Files uploaded successfully!

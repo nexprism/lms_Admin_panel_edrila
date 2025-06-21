@@ -114,6 +114,7 @@ const Quiz = ({
     type: "",
   });
   const [isEditMode, setIsEditMode] = useState(false);
+  const [hasSaveAttempted, setHasSaveAttempted] = useState(false); // NEW: Track if save was attempted
 
   const getData = async () => {
     const response = await dispatch(fetchQuizById(quizId) as any);
@@ -178,10 +179,10 @@ const Quiz = ({
     }
   }, [saveData, loading, saveError, isEditMode]);
 
-  // Handle save success and error popups
+  // FIXED: Handle save success and error popups - only when save was attempted
   useEffect(() => {
-    if (!loading) {
-      if (saveData && !saveError && !isEditMode) {
+    if (!loading && hasSaveAttempted) { // Only show popup if save was attempted
+      if (saveData && !saveError) {
         const isCreateOrUpdate = saveData?.message || saveData?.success;
         if (isCreateOrUpdate) {
           setPopup({
@@ -202,8 +203,9 @@ const Quiz = ({
           type: "error",
         });
       }
+      setHasSaveAttempted(false); // Reset the flag
     }
-  }, [saveData, loading, saveError, isEditMode, onSaveSuccess]);
+  }, [saveData, loading, saveError, isEditMode, onSaveSuccess, hasSaveAttempted]);
 
   const handleChange = (
     field: keyof typeof quizData,
@@ -298,6 +300,9 @@ const Quiz = ({
       return;
     }
 
+    // Set flag to indicate save was attempted
+    setHasSaveAttempted(true);
+
     // Prepare payload based on mode
     let payload;
     if (isEditMode && quizId) {
@@ -330,12 +335,21 @@ const Quiz = ({
       };
       dispatch(createQuiz(payload) as any);
     }
-    handleClose();
+    // Don't call handleClose() here - let the success popup show first
   };
 
   const handleClose = () => {
     setPopup({ isVisible: false, message: "", type: "" });
     onClose();
+  };
+
+  // FIXED: Handle popup close and modal close separately
+  const handlePopupClose = () => {
+    setPopup({ isVisible: false, message: "", type: "" });
+    // If it was a success popup, close the modal
+    if (popup.type === "success") {
+      onClose();
+    }
   };
 
   if (loading && isEditMode) {
@@ -364,6 +378,13 @@ const Quiz = ({
               ? `Edit Quiz: ${quizData.quizTitle || "Untitled Quiz"}`
               : "Create New Quiz"}
           </h2>
+          {/* ADDED: Close button in header */}
+          <button
+            onClick={handleClose}
+            className="text-white hover:text-gray-200 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
         {/* Modal Body */}
@@ -688,7 +709,7 @@ const Quiz = ({
         message={popup.message}
         type={popup.type}
         isVisible={popup.isVisible}
-        onClose={() => setPopup({ isVisible: false, message: "", type: "" })}
+        onClose={handlePopupClose} // CHANGED: Use the new handler
       />
     </div>
   );

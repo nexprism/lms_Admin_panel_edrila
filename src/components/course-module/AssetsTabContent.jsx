@@ -5,38 +5,34 @@ import {
   Download,
   CheckSquare,
   Search,
-  ChevronDown,
-  ChevronRight,
   BookOpen,
   Clock,
-  Calendar,
+  CalendarDays,
+  XCircle,
 } from "lucide-react";
-import axiosInstance from "../../services/axiosConfig"; // Adjust the import path as necessary
-import Quiz from "../../pages/courses/components/Quiz"; // Adjust the import path as necessary
-import Assignment from "../../pages/courses/components/Assignment"; // Adjust the import path as necessary
-import Files from "../../pages/courses/components/Files"; // Adjust the import path as necessary
-import TextLesson from "../../pages/courses/components/TextLesson"; // Adjust the import path as necessary
-import VedioLesson from "../../pages/courses/components/VideoLesson"; // Adjust the import path as necessary
-const baseUrl = import.meta.env.VITE_API_BASE_URL;
+import axiosInstance from "../../services/axiosConfig";
+import Quiz from "../../pages/courses/components/Quiz";
+import Assignment from "../../pages/courses/components/Assignment";
+import Files from "../../pages/courses/components/Files";
+import TextLesson from "../../pages/courses/components/TextLesson";
+import VedioLesson from "../../pages/courses/components/VideoLesson";
 
 const AssetsTabContent = ({ courseID }) => {
   const [activeFilter, setActiveFilter] = useState("quizzes");
   const [searchTerm, setSearchTerm] = useState("");
-  const [expandedModules, setExpandedModules] = useState({});
-  const [expandedLessons, setExpandedLessons] = useState({});
   const [data, setData] = useState({});
   const [openQuiz, setOpenQuiz] = useState(null);
   const [openAssignment, setOpenAssignment] = useState(null);
-  const [openVideo, setOpenVideo] = useState(null);
-  const [openVideoLessons, setVideoLessons] = useState(null);
-  const [textLessons, setTextLessons] = useState(null);
+  const [openFile, setOpenFile] = useState(null);
+  const [openVideoLesson, setOpenVideoLesson] = useState(null);
+  const [openTextLesson, setOpenTextLesson] = useState(null);
 
   const getData = async () => {
     try {
       const response = await axiosInstance.get(
         `courses/${courseID}/all-attachments`
       );
-      setData(response.data.data); // Set the data from the API response
+      setData(response.data.data);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -62,19 +58,19 @@ const AssetsTabContent = ({ courseID }) => {
     {
       id: "assignments",
       label: "Assignments",
-      icon: CheckSquare,
+      icon: FileText,
       count: data?.assignments?.length || 0,
     },
     {
       id: "videos",
-      label: "Videos Lessons",
+      label: "Video Lessons",
       icon: Video,
       count: data?.videos?.length || 0,
     },
     {
       id: "texts",
       label: "Text Lessons",
-      icon: Download,
+      icon: BookOpen,
       count: data?.texts?.length || 0,
     },
   ];
@@ -84,22 +80,15 @@ const AssetsTabContent = ({ courseID }) => {
       item.name.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
 
-  const toggleModule = (moduleId) => {
-    setExpandedModules((prev) => ({
-      ...prev,
-      [moduleId]: !prev[moduleId],
-    }));
-  };
-
   const getAssetTypeColor = (type) => {
     const colors = {
-      quizzes: "bg-blue-50 text-blue-700 border-blue-200",
-      files: "bg-green-50 text-green-700 border-green-200",
-      assignments: "bg-purple-50 text-purple-700 border-purple-200",
-      videos: "bg-orange-50 text-orange-700 border-orange-200",
-      texts: "bg-gray-50 text-gray-700 border-gray-200",
+      quizzes: "bg-blue-100 text-blue-800 border-blue-200",
+      files: "bg-green-100 text-green-800 border-green-200",
+      assignments: "bg-purple-100 text-purple-800 border-purple-200",
+      videos: "bg-orange-100 text-orange-800 border-orange-200",
+      texts: "bg-gray-100 text-gray-800 border-gray-200",
     };
-    return colors[type] || "bg-gray-50 text-gray-700 border-gray-200";
+    return colors[type] || "bg-gray-100 text-gray-800 border-gray-200";
   };
 
   const getAssetIcon = (type) => {
@@ -111,7 +100,7 @@ const AssetsTabContent = ({ courseID }) => {
       texts: BookOpen,
     };
     const IconComponent = icons[type] || FileText;
-    return <IconComponent className="w-5 h-5" />;
+    return <IconComponent className="w-6 h-6" />;
   };
 
   const getActionButton = (type) => {
@@ -134,122 +123,154 @@ const AssetsTabContent = ({ courseID }) => {
     return (
       actions[type] || {
         text: "Access Asset",
-        color: "bg-blue-600 hover:bg-blue-700",
+        color: "bg-indigo-600 hover:bg-indigo-700",
       }
     );
   };
 
   return (
     <>
+      {/* Modals */}
       {openQuiz && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-sm z-99999 flex items-center justify-center">
-          <Quiz
-            sectionId={courseID}
-            lesson={openQuiz?.lessonId}
-            onChange={() => {}}
-            courseId={openQuiz?.courseID}
-            lessonId={openQuiz?.lessonId}
-            moduleId={openQuiz?.moduleId}
-            contentId={openQuiz?.contentId}
-            isEdit={true}
-            quizId={openQuiz?.id}
-            quizData={openQuiz}
-            onClose={() => {
-              setOpenQuiz(null);
-            }}
-          />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95 animate-fade-in-up">
+            <button
+              onClick={() => setOpenQuiz(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition-colors"
+              aria-label="Close Quiz"
+            >
+              <XCircle className="w-7 h-7" />
+            </button>
+            <Quiz
+              sectionId={courseID}
+              lesson={openQuiz?.lessonId}
+              onChange={() => {}}
+              courseId={openQuiz?.courseID}
+              lessonId={openQuiz?.lessonId}
+              moduleId={openQuiz?.moduleId}
+              contentId={openQuiz?.contentId}
+              isEdit={true}
+              quizId={openQuiz?.id}
+              quizData={openQuiz}
+              onClose={() => setOpenQuiz(null)}
+            />
+          </div>
         </div>
-      )}{" "}
+      )}
       {openAssignment && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-sm z-99999 flex items-center justify-center">
-          <Assignment
-            sectionId={courseID}
-            lesson={openAssignment?.lessonId}
-            onChange={() => {}}
-            courseId={courseID}
-            lessonId={openAssignment?.lessonId}
-            moduleId={openAssignment?.moduleId}
-            contentId={openAssignment?.contentId}
-            isEdit={true}
-            assignmentId={openAssignment?.id}
-            assignmentData={openAssignment}
-            onClose={() => {
-              setOpenAssignment(null);
-            }}
-          />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95 animate-fade-in-up">
+            <button
+              onClick={() => setOpenAssignment(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition-colors"
+              aria-label="Close Assignment"
+            >
+              <XCircle className="w-7 h-7" />
+            </button>
+            <Assignment
+              sectionId={courseID}
+              lesson={openAssignment?.lessonId}
+              onChange={() => {}}
+              courseId={courseID}
+              lessonId={openAssignment?.lessonId}
+              moduleId={openAssignment?.moduleId}
+              contentId={openAssignment?.contentId}
+              isEdit={true}
+              assignmentId={openAssignment?.id}
+              assignmentData={openAssignment}
+              onClose={() => setOpenAssignment(null)}
+            />
+          </div>
         </div>
-      )}{" "}
-      {openVideo && (
-        <div className="fixed w-full inset-0 bg-black/10 backdrop-blur-sm z-99999 flex items-center justify-center">
-          <div className="w-1/2">
+      )}
+      {openFile && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95 animate-fade-in-up">
+            <button
+              onClick={() => setOpenFile(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition-colors"
+              aria-label="Close File"
+            >
+              <XCircle className="w-7 h-7" />
+            </button>
             <Files
               courseId={courseID}
-              lessonId={openVideo?.lessonId}
-              fileId={openVideo?.id}
-              videoData={openVideo}
-              onClose={() => {
-                setOpenVideo(null);
-              }}
+              lessonId={openFile?.lessonId}
+              fileId={openFile?.id}
+              videoData={openFile}
+              onClose={() => setOpenFile(null)}
             />
           </div>
         </div>
       )}
-      {textLessons && (
-        <div className="fixed w-full inset-0 bg-black/10 backdrop-blur-sm z-99999 flex items-center justify-center">
-          <div className="w-1/2">
+      {openTextLesson && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95 animate-fade-in-up">
+            <button
+              onClick={() => setOpenTextLesson(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition-colors"
+              aria-label="Close Text Lesson"
+            >
+              <XCircle className="w-7 h-7" />
+            </button>
             <TextLesson
               courseId={courseID}
-              lessonId={textLessons?.lessonId}
-              textLessonId={textLessons?.id}
-              onClose={() => {
-                setTextLessons(null);
-              }}
+              lessonId={openTextLesson?.lessonId}
+              textLessonId={openTextLesson?.id}
+              onClose={() => setOpenTextLesson(null)}
             />
           </div>
         </div>
       )}
-      {openVideoLessons && (
-        <div className="fixed w-full inset-0 bg-black/10 backdrop-blur-sm z-99999 flex items-center justify-center">
-          <div className="w-1/2">
+      {openVideoLesson && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-95 animate-fade-in-up">
+            <button
+              onClick={() => setOpenVideoLesson(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition-colors"
+              aria-label="Close Video Lesson"
+            >
+              <XCircle className="w-7 h-7" />
+            </button>
             <VedioLesson
-              lessonId={openVideoLessons?.lessonId}
-              videoId={openVideoLessons?.id}
-              fileId={openVideoLessons?.id} 
-              onClose={() => {
-                setVideoLessons(null);
-              }}
+              lessonId={openVideoLesson?.lessonId}
+              videoId={openVideoLesson?.id}
+              fileId={openVideoLesson?.id}
+              onClose={() => setOpenVideoLesson(null)}
             />
           </div>
         </div>
       )}
-      <div className="max-w-6xl mx-auto p-6 bg-white">
+
+      <div className="max-w-7xl mx-auto p-8 bg-gray-50 min-h-screen">
         {/* Header */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Course Assets
+        <div className="mb-10 text-center">
+          <h2 className="text-4xl font-extrabold text-gray-900 mb-3 leading-tight">
+            Explore Course Assets
           </h2>
-          <p className="text-gray-600">
-            Access all your course materials organized by modules and lessons
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Dive into all your course materials, neatly organized for seamless
+            learning.
           </p>
         </div>
 
         {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <div className="mb-8 flex justify-center">
+          <div className="relative w-full max-w-xl">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search assets..."
+              placeholder="Search quizzes, files, videos, and more..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm"
+              className="w-full pl-12 pr-6 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300 bg-white shadow-sm text-gray-700 text-base"
             />
           </div>
         </div>
 
         {/* Filter Tabs */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2 bg-gray-50 p-2 rounded-xl">
+        <div className="mb-12 flex justify-center">
+          <div className="flex flex-wrap justify-center gap-3 bg-white p-2 rounded-2xl shadow-md border border-gray-200">
             {filterOptions.map((option) => {
               const IconComponent = option.icon;
               const isActive = activeFilter === option.id;
@@ -259,25 +280,25 @@ const AssetsTabContent = ({ courseID }) => {
                   key={option.id}
                   onClick={() => setActiveFilter(option.id)}
                   className={`
-                                    flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105
-                                    ${
-                                      isActive
-                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
-                                        : "bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-600 shadow-sm"
-                                    }
-                                `}
+                    flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-base transition-all duration-300 ease-in-out
+                    ${
+                      isActive
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-200 transform scale-105"
+                        : "bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-700 shadow-sm border border-transparent hover:border-blue-200"
+                    }
+                  `}
                 >
-                  <IconComponent className="w-4 h-4" />
+                  <IconComponent className="w-5 h-5" />
                   <span>{option.label}</span>
                   <span
                     className={`
-                                    px-2 py-0.5 rounded-full text-xs font-semibold
-                                    ${
-                                      isActive
-                                        ? "bg-blue-500 text-white"
-                                        : "bg-gray-200 text-gray-600"
-                                    }
-                                `}
+                      px-2.5 py-0.5 rounded-full text-xs font-bold
+                      ${
+                        isActive
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-200 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-800"
+                      }
+                    `}
                   >
                     {option.count}
                   </span>
@@ -287,110 +308,147 @@ const AssetsTabContent = ({ courseID }) => {
           </div>
         </div>
 
-        {/* Accordion Content */}
-        <div className="space-y-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {console.log("Filtered Data:", filteredData)}
+        {/* Dynamic Grid of Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {filteredData.map((item, index) => (
             <div
               key={item?.id}
-              className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
+              className="bg-white border border-gray-200 rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer flex flex-col justify-between"
               style={{
-                animationDelay: `${index * 100}ms`,
-                animation: "fadeInUp 0.6s ease-out forwards",
+                animationDelay: `${index * 80}ms`,
+                animation: "fadeInUp 0.7s ease-out forwards",
+                opacity: 0,
               }}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div
-                  className={`p-3 rounded-lg ${getAssetTypeColor(
-                    activeFilter
-                  )} group-hover:scale-110 transition-transform duration-200`}
-                >
-                  {getAssetIcon(activeFilter)}
-                </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium border ${getAssetTypeColor(
-                    activeFilter
-                  )}`}
-                >
-                  {activeFilter === "quizzes" && "Quiz"}
-                  {activeFilter === "files" && "File"}
-                  {activeFilter === "assignments" && "Assignment"}
-                  {activeFilter === "videos" && "Video"}
-                  {activeFilter === "texts" && "Text Lesson"}
-                </span>
-              </div>
-
-              <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-200">
-                {item?.name}
-              </h3>
-
-              <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                {/* <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {item?.size}
-              </span> */}
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {new Date(item?.date).toLocaleDateString()}
-                </span>
-              </div>
-
-              {item?.duration && (
-                <div className="text-xs text-gray-500 mb-3 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  Duration: {item?.duration}
-                </div>
-              )}
-              {item?.difficulty && (
-                <div className="mb-3">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      item?.difficulty === "Easy"
-                        ? "bg-green-100 text-green-700"
-                        : item?.difficulty === "Medium"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div
+                    className={`p-3 rounded-full ${getAssetTypeColor(
+                      activeFilter
+                    )} text-white flex-shrink-0`}
                   >
-                    {item?.difficulty}
+                    {getAssetIcon(activeFilter)}
+                  </div>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold border ${getAssetTypeColor(
+                      activeFilter
+                    )}`}
+                  >
+                    {activeFilter === "quizzes" && "Quiz"}
+                    {activeFilter === "files" && "File"}
+                    {activeFilter === "assignments" && "Assignment"}
+                    {activeFilter === "videos" && "Video Lesson"}
+                    {activeFilter === "texts" && "Text Lesson"}
                   </span>
                 </div>
-              )}
-              {item?.fileType && (
-                <div className="text-xs text-gray-500 mb-3">
-                  File Type: {item?.fileType}
-                </div>
-              )}
-              {item?.readTime && (
-                <div className="text-xs text-gray-500 mb-3 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  Read Time: {item?.readTime}
-                </div>
-              )}
-              {item?.quality && (
-                <div className="text-xs text-gray-500 mb-3">
-                  Quality: {item?.quality}
-                </div>
-              )}
 
-              <div className="pt-4 border-t border-gray-100">
+                <h3 className="font-bold text-xl text-gray-900 mb-3 leading-snug group-hover:text-blue-700 transition-colors duration-200">
+                  {item?.name }
+                </h3>
+
+                <div className="text-sm text-gray-600 space-y-2 mb-4">
+                  {/* Displaying available data fields */}
+                  <span className="flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-gray-500" />
+                    <span className="font-medium">
+                      Date: {new Date(item?.date).toLocaleDateString()}
+                    </span>
+                  </span>
+
+                  {item?.duration && (
+                    <span className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-gray-500" />
+                      <span className="font-medium">
+                        Duration: {item?.duration}
+                      </span>
+                    </span>
+                  )}
+                  {item?.qsize && (
+                    <span className="flex items-center gap-2">
+                      <span className="font-medium">
+                        Questions: {item?.qsize}
+                      </span>
+                    </span>
+                  )}
+                  {item?.totalMarks && (
+                    <span className="flex items-center gap-2">
+                      <span className="font-medium">
+                        Total Marks: {item?.totalMarks}
+                      </span>
+                    </span>
+                  )}
+                  {item?.passMark && (
+                    <span className="flex items-center gap-2">
+                      <span className="font-medium">
+                        Pass Mark: {item?.passMark}
+                      </span>
+                    </span>
+                  )}
+
+                  {item?.readTime && (
+                    <span className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-gray-500" />
+                      <span className="font-medium">
+                        Read Time: {item?.readTime}
+                      </span>
+                    </span>
+                  )}
+                  {item?.difficulty && (
+                    <div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          item?.difficulty === "Easy"
+                            ? "bg-green-100 text-green-700"
+                            : item?.difficulty === "Medium"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        Difficulty: {item?.difficulty}
+                      </span>
+                    </div>
+                  )}
+                  {item?.fileType && (
+                    <span className="font-medium">
+                      File Type: {item?.fileType}
+                    </span>
+                  )}
+                  {item?.quality && (
+                    <span className="font-medium">
+                      Quality: {item?.quality}
+                    </span>
+                  )}
+                  {item?.language && (
+                    <span className="font-medium">
+                      Language: {item?.language}
+                    </span>
+                  )}
+                  {item?.subject && (
+                    <span className="font-medium">
+                      Subject: {item?.subject}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-5 border-t border-gray-100 mt-auto">
                 <button
                   type="button"
                   onClick={() => {
                     if (activeFilter === "quizzes") {
                       setOpenQuiz(item);
                     } else if (activeFilter === "files") {
-                      setOpenVideo(item);
+                      setOpenFile(item);
                     } else if (activeFilter === "assignments") {
                       setOpenAssignment(item);
                     } else if (activeFilter === "videos") {
-                      setVideoLessons(item);
+                      setOpenVideoLesson(item);
                     } else if (activeFilter === "texts") {
-                      setTextLessons(item);
+                      setTextLesson(item);
                     }
                   }}
-                  className={`w-full text-white py-2 rounded-lg font-medium transition-all duration-200 group-hover:shadow-lg ${
-                    getActionButton(item?.type).color
+                  className={`w-full text-white py-3 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-md ${
+                    getActionButton(activeFilter).color
                   }`}
                 >
                   {getActionButton(activeFilter).text}
@@ -402,27 +460,41 @@ const AssetsTabContent = ({ courseID }) => {
 
         {/* Empty State */}
         {filteredData.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-10 h-10 text-blue-400" />
+          <div className="text-center py-20 bg-white rounded-2xl shadow-lg mt-10">
+            <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Search className="w-12 h-12 text-blue-400" />
             </div>
-            <h4 className="text-xl font-semibold text-gray-900 mb-2">
-              No assets found
+            <h4 className="text-2xl font-bold text-gray-900 mb-3">
+              No Assets Found
             </h4>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              Try adjusting your search terms or filter to find what you're
-              looking for.
+            <p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+              We couldn't find any assets matching your current filter or search
+              term. Please try adjusting your criteria.
             </p>
             <button
               type="button"
               onClick={() => setSearchTerm("")}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              className="px-8 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 font-medium shadow-lg"
             >
               Clear Search
             </button>
           </div>
         )}
       </div>
+
+      {/* Keyframe for fadeInUp animation */}
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </>
   );
 };
