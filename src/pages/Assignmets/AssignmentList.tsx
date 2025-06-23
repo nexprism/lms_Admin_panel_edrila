@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
-import { fetchAssignments } from "../../store/slices/assignment";
+import {
+  fetchAssignments,
+  fetchAssignmentSubmissions,
+} from "../../store/slices/assignment";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import toast from "react-hot-toast";
@@ -156,62 +159,58 @@ const DeleteModal: React.FC<{
 
 // Simple component without React.memo to avoid potential issues
 const AssignmentList = () => {
-  renderCount++;
-  console.log(`🔄 AssignmentList render #${renderCount}`);
+  // renderCount++;
+  // console.log(`🔄 AssignmentList render #${renderCount}`);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
 
   const dispatch = useAppDispatch();
-  const {
-    data: assignments,
-    loading,
-    error,
-  } = useAppSelector((state) => state.assignment);
-
-  // Debug: Log selector values
-  console.log('🔍 Selector values:', {
-    assignments: assignments?.data?.length || 0,
-    loading,
-    error,
-    hasData: !!assignments?.data
-  });
-
   const [searchInput, setSearchInput] = useState("");
-  const [filteredAssignments, setFilteredAssignments] = useState<Assignment[]>([]);
+  const [filteredAssignments, setFilteredAssignments] = useState<Assignment[]>(
+    []
+  );
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [assignmentToDelete, setAssignmentToDelete] = useState<Assignment | null>(null);
+  const [assignmentToDelete, setAssignmentToDelete] =
+    useState<Assignment | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [page, setPage] = useState(1);
-  
+
   const navigate = useNavigate();
   const hasFetched = useRef(false);
   const limit = 10;
 
   // Debug: Track when useEffects run
   useEffect(() => {
-    console.log('🎯 Mount useEffect running');
-    return () => console.log('🎯 Mount useEffect cleanup');
+    console.log("🎯 Mount useEffect running");
+    return () => console.log("🎯 Mount useEffect cleanup");
   }, []);
+
+  const getData = async () => {
+    try {
+      console.log("📥 Fetching assignments");
+      const response = await dispatch(fetchAssignmentSubmissions()).unwrap();
+      console.log("📥 Fetched assignments:", response);
+      setAssignments(response);
+      setFilteredAssignments(response);
+      hasFetched.current = true;
+    } catch (error) {
+      console.error("📥 Fetch error:", error);
+      toast.error("Failed to fetch assignments");
+    }
+  };
 
   // Simplified fetch logic - only fetch once
   useEffect(() => {
-    console.log('📡 Fetch useEffect:', {
-      hasFetched: hasFetched.current,
-      loading,
-      hasAssignments: !!assignments?.data
-    });
-
-    if (!hasFetched.current) {
-      console.log('📡 Dispatching fetchAssignments');
-      hasFetched.current = true;
-      dispatch(fetchAssignments());
+    if (assignments.length === 0) {
+      getData();
     }
   }, []); // Empty dependency array - only run once
 
   // Simple filter logic without useCallback
   useEffect(() => {
-    console.log('🔍 Filter useEffect running');
-    if (assignments?.data) {
-      let filtered = [...assignments.data];
-      
+    console.log("🔍 Filter useEffect running");
+    if (assignments?.length > 0) {
+      let filtered = [...assignments];
+
       if (searchInput.trim()) {
         const searchTerm = searchInput.toLowerCase().trim();
         filtered = filtered.filter((assignment: Assignment) => {
@@ -219,7 +218,7 @@ const AssignmentList = () => {
           const lessonName = assignment.lessonId?.title?.toLowerCase() || "";
           const title = assignment.title?.toLowerCase() || "";
           const subject = assignment.subject?.toLowerCase() || "";
-          
+
           return (
             courseName.includes(searchTerm) ||
             lessonName.includes(searchTerm) ||
@@ -228,30 +227,30 @@ const AssignmentList = () => {
           );
         });
       }
-      
-      console.log('🔍 Filtered assignments:', filtered.length);
+
+      console.log("🔍 Filtered assignments:", filtered.length);
       setFilteredAssignments(filtered);
       setPage(1);
     }
-  }, [assignments?.data, searchInput]);
+  }, [assignments, searchInput]);
 
   // Simple event handlers without useCallback
   const handlePageChange = (newPage: number) => {
     const totalPages = Math.ceil(filteredAssignments.length / limit);
     if (newPage >= 1 && newPage <= totalPages) {
-      console.log('📄 Page change:', newPage);
+      console.log("📄 Page change:", newPage);
       setPage(newPage);
     }
   };
 
   const openDeleteModal = (assignment: Assignment) => {
-    console.log('🗑️ Opening delete modal');
+    console.log("🗑️ Opening delete modal");
     setAssignmentToDelete(assignment);
     setDeleteModalOpen(true);
   };
 
   const closeDeleteModal = () => {
-    console.log('🗑️ Closing delete modal');
+    console.log("🗑️ Closing delete modal");
     setAssignmentToDelete(null);
     setDeleteModalOpen(false);
     setIsDeleting(false);
@@ -261,7 +260,7 @@ const AssignmentList = () => {
     if (assignmentToDelete) {
       setIsDeleting(true);
       try {
-        console.log('🗑️ Deleting assignment');
+        console.log("🗑️ Deleting assignment");
         // TODO: Implement deleteAssignment action
         // await dispatch(deleteAssignment(assignmentToDelete._id)).unwrap();
         toast.success("Assignment deleted successfully");
@@ -269,7 +268,7 @@ const AssignmentList = () => {
         dispatch(fetchAssignments());
         closeDeleteModal();
       } catch (error) {
-        console.error('🗑️ Delete error:', error);
+        console.error("🗑️ Delete error:", error);
         toast.error("Failed to delete assignment");
         setIsDeleting(false);
       }
@@ -282,21 +281,21 @@ const AssignmentList = () => {
     const maxPages = 5;
     const start = Math.max(1, page - Math.floor(maxPages / 2));
     const end = Math.min(totalPages, start + maxPages - 1);
-    
+
     if (start > 1) {
       pages.push(1);
       if (start > 2) pages.push("...");
     }
-    
+
     for (let i = start; i <= end; i++) {
       pages.push(i);
     }
-    
+
     if (end < totalPages) {
       if (end < totalPages - 1) pages.push("...");
       pages.push(totalPages);
     }
-    
+
     return pages;
   };
 
@@ -312,34 +311,26 @@ const AssignmentList = () => {
   };
 
   const handleEditClick = (assignmentId: string) => {
-    console.log('✏️ Edit click:', assignmentId);
-    navigate(`/assignments/edit/${assignmentId}`);
+    console.log("✏️ Edit click:", assignmentId);
+    navigate(`/assignments/submissions/${assignmentId}`);
   };
 
   // Debug render info
-  console.log('🎨 Rendering with:', {
-    searchInput,
-    filteredCount: filteredAssignments.length,
-    page,
-    loading,
-    error: !!error
-  });
 
   return (
     <div>
       <PageMeta
         title="Assignment List | LMS Admin"
         description="List of all assignments"
-      />
+      />as
       <PageBreadcrumb pageTitle="Assignment List" />
-      
+
       {/* Debug info - remove in production */}
-      <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
-        <strong>Debug Info:</strong> Render #{renderCount} | 
-        Assignments: {filteredAssignments.length} | 
-        Loading: {loading.toString()} | 
-        Error: {error ? 'Yes' : 'No'}
-      </div>
+      {/* <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+        <strong>Debug Info:</strong> Render #{renderCount} | Assignments:{" "}
+        {filteredAssignments.length} | Loading: {loading.toString()} | Error:{" "}
+        {error ? "Yes" : "No"}
+      </div> */}
 
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className="flex justify-between items-center mb-6">
@@ -359,7 +350,7 @@ const AssignmentList = () => {
                 type="text"
                 value={searchInput}
                 onChange={(e) => {
-                  console.log('🔍 Search input:', e.target.value);
+                  console.log("🔍 Search input:", e.target.value);
                   setSearchInput(e.target.value);
                 }}
                 placeholder="Search by course, lesson, title, or subject..."
@@ -368,7 +359,7 @@ const AssignmentList = () => {
             </div>
             <button
               onClick={() => {
-                console.log('🔄 Reset search');
+                console.log("🔄 Reset search");
                 setSearchInput("");
               }}
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800"
@@ -379,7 +370,7 @@ const AssignmentList = () => {
           </div>
         </div>
 
-        {error && (
+        {/* {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 mb-6">
             <p className="text-red-800 dark:text-red-200">{error}</p>
           </div>
@@ -389,7 +380,7 @@ const AssignmentList = () => {
           <div className="flex justify-center items-center py-8">
             <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin"></div>
           </div>
-        )}
+        )} */}
 
         <div className="bg-white shadow rounded-lg overflow-x-auto dark:bg-gray-900">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -424,17 +415,24 @@ const AssignmentList = () => {
                       {(page - 1) * limit + idx + 1}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                      {assignment.title}
+                      {assignment?.assignmentId?.title.slice(0, 20) + "..."}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                      {assignment.courseId?.title || "No Course"}
+                      {assignment.courseId?.title.slice(0, 60) + "..." ||
+                        "No Course"}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      {getStatus(assignment) === "active" ? (
-                        <span className="text-green-600 dark:text-green-400">Active</span>
-                      ) : (
-                        <span className="text-red-600 dark:text-red-400">Inactive</span>
-                      )}
+                      <span
+                        className={`${
+                          assignment.status === "submitted"
+                            ? "text-red-500"
+                            : assignment.status === "graded"
+                            ? "text-green-500"
+                            : "text-gray-500"
+                        } capitalize`}
+                      >
+                        {assignment.status}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <button
@@ -444,20 +442,20 @@ const AssignmentList = () => {
                       >
                         <Pencil className="h-5 w-5" />
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => openDeleteModal(assignment)}
                         className="text-red-500 hover:text-red-700 transition-colors"
                         title="Delete Assignment"
                       >
                         <Trash2 className="h-5 w-5" />
-                      </button>
+                      </button> */}
                     </td>
                   </tr>
                 ))}
             </tbody>
           </table>
-          
-          {filteredAssignments.length === 0 && !loading && (
+
+          {filteredAssignments.length === 0 && (
             <div className="text-center py-8">
               <p className="text-gray-500 dark:text-gray-400">
                 {searchInput
@@ -484,7 +482,7 @@ const AssignmentList = () => {
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              
+
               {generatePageNumbers().map((p, idx) =>
                 typeof p === "number" ? (
                   <button
@@ -507,10 +505,12 @@ const AssignmentList = () => {
                   </span>
                 )
               )}
-              
+
               <button
                 onClick={() => handlePageChange(page + 1)}
-                disabled={page === Math.ceil(filteredAssignments.length / limit)}
+                disabled={
+                  page === Math.ceil(filteredAssignments.length / limit)
+                }
                 className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 <ChevronRight className="w-5 h-5" />

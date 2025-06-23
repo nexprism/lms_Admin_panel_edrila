@@ -156,10 +156,7 @@ export default function AddAssignmentForm({
     apiFormData.append("subject", formData.subject);
     apiFormData.append("language", formData.language);
     apiFormData.append("description", formData.description);
-    apiFormData.append(
-      "maxAttempts",
-      formData.maxAttempts || "1"
-    );
+    apiFormData.append("maxAttempts", formData.maxAttempts || "1");
     if (formData.score) apiFormData.append("score", formData.score);
     if (formData.maxScore) apiFormData.append("maxScore", formData.maxScore);
     if (formData.duration) apiFormData.append("duration", formData.duration);
@@ -177,7 +174,7 @@ export default function AddAssignmentForm({
       } else {
         result = await dispatch(createAssignment(apiFormData) as any);
       }
-      
+
       if (
         (isEditMode && updateAssignment.fulfilled.match(result)) ||
         (!isEditMode && createAssignment.fulfilled.match(result))
@@ -192,7 +189,7 @@ export default function AddAssignmentForm({
             type: "success",
           });
         }
-        
+
         setFormData({
           title: "",
           subject: "",
@@ -206,9 +203,9 @@ export default function AddAssignmentForm({
           document: null,
           maxAttempts: "",
         });
-        
+
         if (onSaveSuccess) onSaveSuccess(result.payload);
-        
+
         // Only show popup timeout if popup is visible
         if (showSuccessPopup && isFormSubmitted) {
           setTimeout(() => {
@@ -298,8 +295,22 @@ export default function AddAssignmentForm({
             {/* Score and Duration Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    total Marks
+                  </label>
+                  <input
+                    type="number"
+                    name="maxScore"
+                    value={formData.maxScore}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="250"
+                    disabled={loading}
+                  />
+                </div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Score
+                  Pass Marks
                 </label>
                 <input
                   type="number"
@@ -308,21 +319,6 @@ export default function AddAssignmentForm({
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="100"
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pass Marks
-                </label>
-                <input
-                  type="number"
-                  name="maxScore"
-                  value={formData.maxScore}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="250"
                   disabled={loading}
                 />
               </div>

@@ -44,7 +44,7 @@ export const fetchAssignments = createAsyncThunk(
           // 'Authorization': `Bearer ${token}`,
         },
       });
-      window.location.reload();
+      // window.location.reload();
 
       return response.data;
     } catch (err: any) {
@@ -88,6 +88,24 @@ export const fetchAssignmentById = createAsyncThunk(
       return response.data;
     } catch (err: any) {
       console.log("Error fetching assignment by id:", err?.message);
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+export const fetchAssignmentSubmissions = createAsyncThunk(
+  "assignment/fetchAssignmentSubmissions",
+
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/assignment-submissions`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      return response.data.data.submissions;
+    } catch (err: any) {
+      console.log("Error fetching assignment submissions:", err?.message);
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }

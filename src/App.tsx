@@ -24,6 +24,7 @@ import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "./store/slices/authslice";
 import StudentList from "./pages/students/StudenList";
 import StudentDetail from "./pages/students/StudentDetail";
+import AssignmentSubmissionReview from "./pages/Assignmets/AssignmentDetails";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -125,6 +126,15 @@ export default function App() {
 
               {/* Tables */}
               <Route path="/basic-tables" element={<BasicTables />} />
+
+              <Route
+                path="/assignments/submissions"
+                element={<AssignmentList />}
+              />
+              <Route
+                path="/assignments/submissions/:id"
+                element={<AssignmentSubmissionReview />}
+              />
 
               {/* UI Elements */}
               <Route path="/alerts" element={<Alerts />} />

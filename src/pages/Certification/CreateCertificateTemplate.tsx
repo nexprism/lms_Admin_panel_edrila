@@ -1,15 +1,17 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import PopupAlert from "../../components/popUpAlert";
 import { BookOpen } from "lucide-react";
-import Draggable from "react-draggable"; // Import the draggable library
 import { motion } from "framer-motion";
 
 const CreateCertificateTemplate = () => {
   const dispatch = useDispatch();
-  const [templateContents, setTemplateContents] = useState(
-    "<div class='certificate-template-container'></div>"
-  );
+  const containerRef = useRef(null);
+  const [isContainerReady, setIsContainerReady] = useState(false);
+
+  useEffect(() => {
+    if (containerRef.current) setIsContainerReady(true);
+  }, []);
 
   const [title, setTitle] = useState({
     title: "This certificate awarded to [student]",
@@ -17,6 +19,7 @@ const CreateCertificateTemplate = () => {
     fontColor: "#000",
     position: { x: 180, y: 250 },
   });
+
   const [body, setBody] = useState({
     content: "regarding completing [course]",
     fontSize: 16,
@@ -28,22 +31,18 @@ const CreateCertificateTemplate = () => {
   const [stamp, setStamp] = useState(null);
   const [signaturePosition, setSignaturePosition] = useState({ x: 0, y: 0 });
   const [stampPosition, setStampPosition] = useState({ x: 0, y: 0 });
+
   const [backgroundImage, setBackgroundImage] = useState(null);
   const [studentName, setStudentName] = useState("[student_name]");
-  const [instructorName, setInstructorName] = useState("[instructor_name]");
-  const [date, setDate] = useState("[date]");
   const [popup, setPopup] = useState({
     isVisible: false,
     message: "",
     type: "",
   });
 
-  const containerRef = useRef(null);
-
   const handleFileChange = (e, setter) => {
     const file = e.target.files[0];
     setter(file);
-    // setBackgroundImage(file);
   };
 
   const getUrlFromFile = (file) => {
@@ -53,7 +52,7 @@ const CreateCertificateTemplate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Your existing form submission logic...
+    // Your existing submit logic
   };
 
   return (
@@ -66,266 +65,168 @@ const CreateCertificateTemplate = () => {
             </div>
             Create New Certificate Template
           </h1>
-          <p className="text-gray-600 mt-2">
-            Fill in the details below to create your new course
-          </p>
         </div>
+
         <div className="flex gap-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-white space-y-4 rounded-lg shadow-sm p-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3"
-                  placeholder="Enter student name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Certificate Type
-                </label>
-                <select
-                  value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3"
-                >
-                  <option>Select Type</option>
-                  <option>Quiz</option>
-                  <option>Assignment</option>
-                  <option>Project</option>
-                </select>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  background
-                </label>
-                <input
-                  type="file"
-                  onChange={(e) => handleFileChange(e, setBackgroundImage)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3"
-                  placeholder="Enter student name"
-                />
-              </div>
-            </div>
-            <div className="bg-white rounded-lg space-y-4 shadow-sm p-6">
-              <h2 className="text-md font-semibold mb-4">Title</h2>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={title.title}
-                  onChange={(e) =>
-                    setTitle({ ...title, title: e.target.value })
-                  }
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3"
-                  placeholder="Enter title"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Font Size
-                </label>
-                <input
-                  type="number"
-                  value={title.fontSize}
-                  onChange={(e) =>
-                    setTitle({ ...title, fontSize: parseInt(e.target.value) })
-                  }
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3"
-                  placeholder="Enter font size"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Color
-                </label>
-
-                <div className="relative h-12 text-lg flex items-center justify-between px-4 border border-gray-300 rounded-lg">
-                  <h2>#{title.fontColor}</h2>
-
-                  <div className="w-7 h-7 ml-2 rounded-sm bg-[#546545]"></div>
-                  <input
-                    type="color"
-                    value={title.fontColor}
-                    onChange={(e) =>
-                      setTitle({ ...title, fontColor: e.target.value })
-                    }
-                    className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-                    placeholder="Enter student name"
-                  />
-                </div>
-              </div>
+            {/* Student Name */}
+            <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
+              <label className="block font-medium">Student Name</label>
+              <input
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                className="w-full border rounded-lg px-4 py-3"
+              />
+              <label className="block font-medium">Background</label>
+              <input
+                type="file"
+                onChange={(e) => handleFileChange(e, setBackgroundImage)}
+                className="w-full border rounded-lg px-4 py-3"
+              />
             </div>
 
-            <div className="bg-white rounded-lg space-y-4 shadow-sm p-6">
-              <h2 className="text-md font-semibold mb-4">Body</h2>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Content
-                </label>
-                <textarea
-                  rows={4}
-                  value={body.content}
-                  onChange={(e) =>
-                    setBody({ ...body, content: e.target.value })
-                  }
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3"
-                  placeholder="Enter title"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Font Size
-                </label>
-                <input
-                  type="number"
-                  value={body.fontSize}
-                  onChange={(e) =>
-                    setBody({ ...body, fontSize: parseInt(e.target.value) })
-                  }
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3"
-                  placeholder="Enter font size"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Color
-                </label>
-
-                <div className="relative h-12 text-lg flex items-center justify-between px-4 border border-gray-300 rounded-lg">
-                  <h2>#{title.fontColor}</h2>
-
-                  <div className="w-7 h-7 ml-2 rounded-sm bg-[#546545]"></div>
-                  <input
-                    type="color"
-                    value={body.fontColor}
-                    onChange={(e) =>
-                      setBody({ ...body, fontColor: e.target.value })
-                    }
-                    className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-                    placeholder="Enter student name"
-                  />
-                </div>
-              </div>
+            {/* Title Customization */}
+            <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
+              <label className="block font-medium">Title Text</label>
+              <input
+                value={title.title}
+                onChange={(e) => setTitle({ ...title, title: e.target.value })}
+                className="w-full border rounded-lg px-4 py-3"
+              />
+              <label className="block font-medium">Font Size</label>
+              <input
+                type="number"
+                value={title.fontSize}
+                onChange={(e) =>
+                  setTitle({ ...title, fontSize: parseInt(e.target.value) })
+                }
+                className="w-full border rounded-lg px-4 py-3"
+              />
+              <label className="block font-medium">Font Color</label>
+              <input
+                type="color"
+                value={title.fontColor}
+                onChange={(e) =>
+                  setTitle({ ...title, fontColor: e.target.value })
+                }
+              />
             </div>
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Signature
-                </label>
-                <input
-                  type="file"
-                  onChange={(e) => handleFileChange(e, setSignature)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Stamp
-                </label>
-                <input
-                  type="file"
-                  onChange={(e) => handleFileChange(e, setStamp)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3"
-                />
-              </div>
+
+            {/* Body Customization */}
+            <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
+              <label className="block font-medium">Body Text</label>
+              <textarea
+                value={body.content}
+                onChange={(e) => setBody({ ...body, content: e.target.value })}
+                className="w-full border rounded-lg px-4 py-3"
+              />
+              <label className="block font-medium">Font Size</label>
+              <input
+                type="number"
+                value={body.fontSize}
+                onChange={(e) =>
+                  setBody({ ...body, fontSize: parseInt(e.target.value) })
+                }
+                className="w-full border rounded-lg px-4 py-3"
+              />
+              <label className="block font-medium">Font Color</label>
+              <input
+                type="color"
+                value={body.fontColor}
+                onChange={(e) =>
+                  setBody({ ...body, fontColor: e.target.value })
+                }
+              />
             </div>
-            {/* Existing form fields... */}
+
+            {/* Signature and Stamp Upload */}
+            <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
+              <label className="block font-medium">Signature</label>
+              <input
+                type="file"
+                onChange={(e) => handleFileChange(e, setSignature)}
+                className="w-full border rounded-lg px-4 py-3"
+              />
+              <label className="block font-medium">Stamp</label>
+              <input
+                type="file"
+                onChange={(e) => handleFileChange(e, setStamp)}
+                className="w-full border rounded-lg px-4 py-3"
+              />
+            </div>
+
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg"
               >
                 Create Certificate Template
               </button>
             </div>
           </form>
 
+          {/* Preview Canvas */}
           <div
-            className="relative bg-red-400 w-[800px] h-[600px] overflow-hidden"
+            className="relative bg-red-400 w-[800px] h-[600px] overflow-hidden rounded-lg shadow"
             ref={containerRef}
           >
             {backgroundImage ? (
               <img
-                className="w-full h-full object-cover"
                 src={getUrlFromFile(backgroundImage)}
-                alt=""
+                className="w-full h-full object-cover absolute top-0 left-0"
+                alt="Background"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-white">
                 Upload Background Image
               </div>
             )}
-            {backgroundImage && (
-              // <div className="absolute flex inset-0 z-999 ">
-              // <div className="relative flex inset-0 z-999 bg-red-500">
+
+            {isContainerReady && (
               <>
-                {containerRef.current && (
-                  <motion.div
-                    drag
-                    dragConstraints={containerRef}
-                    dragMomentum={false}
-                    initial={false}
-                    style={{
-                      position: "absolute",
-                      left: title.position.x,
-                      top: title.position.y,
-                      fontSize: title.fontSize,
-                      color: title.fontColor,
-                      cursor: "grab",
-                    }}
-                    onDragEnd={(event, info) => {
-                      const containerRect =
-                        containerRef.current.getBoundingClientRect();
-                      const x = info.point.x - containerRect.left;
-                      const y = info.point.y - containerRect.top;
-
-                      setTitle({ ...title, position: { x, y } });
-                    }}
-                  >
-                    {title.title}
-                  </motion.div>
-                )}
-
+                {/* Title */}
                 <motion.div
                   drag
                   dragConstraints={containerRef}
                   dragMomentum={false}
                   style={{
                     position: "absolute",
-                    left: body.position.x,
-                    top: body.position.y,
+                    fontSize: title.fontSize,
+                    color: title.fontColor,
+                    cursor: "grab",
+                  }}
+                  onDragEnd={(e, info) => {
+                    const rect = containerRef.current.getBoundingClientRect();
+                    const x = info.point.x - rect.left;
+                    const y = info.point.y - rect.top;
+                    setTitle({ ...title, position: { x, y } });
+                  }}
+                >
+                  {title.title}
+                </motion.div>
+
+                {/* Body */}
+                <motion.div
+                  drag
+                  dragConstraints={containerRef}
+                  dragMomentum={false}
+                  style={{
+                    position: "absolute",
                     fontSize: body.fontSize,
                     color: body.fontColor,
+                    cursor: "grab",
                   }}
-                  onDragEnd={(_, info) => {
-                    if (!containerRef.current) return;
-                    const containerRect =
-                      containerRef.current.getBoundingClientRect();
-                    const x = info.point.x - containerRect.left;
-                    const y = info.point.y - containerRect.top;
-
-                    setBody({
-                      ...body,
-                      position: {
-                        x,
-                        y,
-                      },
-                    });
+                  onDragEnd={(e, info) => {
+                    const rect = containerRef.current.getBoundingClientRect();
+                    const x = info.point.x - rect.left;
+                    const y = info.point.y - rect.top;
+                    setBody({ ...body, position: { x, y } });
                   }}
                 >
                   {body.content}
                 </motion.div>
 
+                {/* Signature */}
                 {signature && (
                   <motion.div
                     drag
@@ -333,45 +234,52 @@ const CreateCertificateTemplate = () => {
                     dragMomentum={false}
                     style={{
                       position: "absolute",
-                      left: signaturePosition.x,
-                      top: signaturePosition.y,
+                      cursor: "grab",
                     }}
-                    onDragEnd={(_, info) => {
-                      if (!containerRef.current) return;
-                      const containerRect =
-                        containerRef.current.getBoundingClientRect();
-                      const x = info.point.x - containerRect.left;
-                      const y = info.point.y - containerRect.top;
-
-                      setSignaturePosition({
-                        x,
-                        y,
-                      });
+                    onDragEnd={(e, info) => {
+                      const rect = containerRef.current.getBoundingClientRect();
+                      const x = info.point.x - rect.left;
+                      const y = info.point.y - rect.top;
+                      setSignaturePosition({ x, y });
                     }}
                   >
-                    <img
-                      src={getUrlFromFile(signature)}
-                      alt="Signature"
-                      className="w-1/4"
-                    />
+                    <div
+                      style={{
+                        backgroundImage: `url(${getUrlFromFile(signature)})`,
+                      }}
+                    ></div>
                   </motion.div>
                 )}
+
+                {/* Stamp */}
                 {stamp && (
-                  <Draggable>
+                  <motion.div
+                    drag
+                    dragConstraints={containerRef}
+                    dragMomentum={false}
+                    style={{ position: "absolute", cursor: "grab" }}
+                    onDragEnd={(e, info) => {
+                      const rect = containerRef.current.getBoundingClientRect();
+                      const x = info.point.x - rect.left;
+                      const y = info.point.y - rect.top;
+                      setStampPosition({ x, y });
+                    }}
+                  >
                     <div>
                       <img
                         src={getUrlFromFile(stamp)}
                         alt="Stamp"
-                        className="w-1/4"
+                        className="w-24"
                       />
                     </div>
-                  </Draggable>
+                  </motion.div>
                 )}
               </>
             )}
           </div>
         </div>
       </div>
+
       <PopupAlert
         message={popup.message}
         type={popup.type}

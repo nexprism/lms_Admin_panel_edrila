@@ -135,6 +135,8 @@ const DripPopup = ({
   const dispatch = useDispatch();
   const [dripData, setDripData] = useState(initialData || {});
   const { data: course, loading } = useSelector((state) => state.drip);
+  const [edit, setEdit] = useState(false);
+
   const [popup, setPopup] = useState({
     isVisible: false,
     message: "",
@@ -186,6 +188,7 @@ const DripPopup = ({
         `/drip/drip-rules/by-reference/${targetId}`
       );
       const data = result.data.data[0];
+      setEdit(true);
       setForm({
         dripType: data.dripRuleId.dripType || "",
         referenceType: data.dripRuleId.referenceType || "",
@@ -224,8 +227,12 @@ const DripPopup = ({
 
         console.log("Creating drip rule with data:", dripRuleData);
 
-        await dispatch(createDripRule(dripRuleData));
-        const result = await dispatch(createDripRule(dripRuleData));
+        let result;
+        if (edit) {
+          result = await dispatch(createDripRule(dripRuleData));
+        } else {
+          result = await dispatch(createDripRule(dripRuleData));
+        }
         if (createDripRule.fulfilled.match(result)) {
           // Success
           setPopup({ isVisible: true, message: "Success!", type: "success" });
