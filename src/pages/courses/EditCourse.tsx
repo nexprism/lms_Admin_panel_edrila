@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, use } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCourseById, updateCourse } from "../../store/slices/course";
 import CategorySubcategoryDropdowns from "../../components/CategorySubcategoryDropdowns";
@@ -46,9 +46,7 @@ import ModuleSection from "./ModuleSection";
 import {
   createPricingPlan,
   deletePricingPlan,
-  getAllPricingPlans,
   getAllPricingPlansByCourse,
-  updatePricingPlan,
 } from "../../store/slices/plans";
 import toast from "react-hot-toast";
 import Faqs from "./components/Faqs";
@@ -243,11 +241,48 @@ const FileUpload: React.FC<FileUploadProps> = ({
         </label>
         {currentFile && (
           <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-700">
-            {currentFile.name} ({(currentFile.size / 1024 / 1024).toFixed(2)}{" "}
-            MB)
+            {currentFile.name} ({(currentFile.size / 1024 / 1024).toFixed(2)} MB)
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+// YouTube URL Input Component
+const YouTubeUrlInput = ({ label, value, onChange, error }) => {
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+        <Video className="w-4 h-4 text-blue-600" />
+        {label}
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={onChange}
+        className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+          error ? "border-red-400" : "border-gray-300"
+        }`}
+        placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=xyz)"
+      />
+      {error && (
+        <p className="mt-1 text-xs text-red-600">{error}</p>
+      )}
+      {typeof value === "string" && value && (
+        <div className="mt-3">
+          <iframe
+            width="100%"
+            height="200"
+            src={value?.replace("watch?v=", "embed/")}
+            title="YouTube video preview"
+            style={{ border: 0 }}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="rounded-lg"
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -265,70 +300,25 @@ const EditCourse = () => {
     data: courseData,
   } = useSelector((state: RootState) => state.course);
   const Plans = useSelector((state: RootState) => state.plan.data);
-  console.log("Plans data:", Plans);
   const [billingCycle, setBillingCycle] = useState("monthly");
-
-  const plans = [
-    {
-      name: "Lite",
-      icon: "●",
-      price: billingCycle === "monthly" ? 29 : 290,
-      description: "This is our most affordable plan for small teams.",
-      features: [
-        "Unlimited sending",
-        "Email marketing",
-        "Send newsletters",
-        "Up to 5 users",
-      ],
-      buttonStyle: "border border-gray-300 text-gray-700 hover:bg-gray-50",
-    },
-    {
-      name: "Plus",
-      icon: "◆",
-      price: billingCycle === "monthly" ? 89 : 890,
-      description:
-        "Use of our clients choose this plan, and we think it's the best value.",
-      features: [
-        "Unlimited sending",
-        "Email marketing",
-        "Send newsletters",
-        "Up to 25 users",
-      ],
-      buttonStyle: "bg-white text-purple-600 hover:bg-gray-50",
-      popular: true,
-    },
-    {
-      name: "Enterprise",
-      icon: "◆◆",
-      price: billingCycle === "monthly" ? 159 : 1590,
-      description: "For larger businesses or those seeking advanced services.",
-      features: [
-        "Unlimited sending",
-        "Email marketing",
-        "Send newsletters",
-        "Up to 50 users",
-      ],
-      buttonStyle: "border border-gray-300 text-gray-700 hover:bg-gray-50",
-    },
-  ];
 
   useEffect(() => {
     if (!Plans || Plans.length === 0) {
       console.error("Plans data is not available or empty");
     }
     dispatch(getAllPricingPlansByCourse(courseId));
-  }, []);
+  }, [dispatch, courseId, Plans]);
+
   // Course state
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [customTag, setCustomTag] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
-  const [demoVideoFile, setDemoVideoFile] = useState<File | null>(null);
+  const [demoVideoUrl, setDemoVideoUrl] = useState("");
   const [description, setDescription] = useState("");
   const [seoContent, setSeoContent] = useState("");
   const [modules, setModules] = useState<any[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
-  // Store the processed course data separately
   const [processedCourseData, setProcessedCourseData] = useState<any>(null);
   const [showPlanPopup, setShowPlanPopup] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -349,6 +339,21 @@ const EditCourse = () => {
     type: "success",
     isVisible: false,
   });
+  type FormErrors = {
+    title?: string;
+    description?: string;
+    categoryId?: string;
+    subCategoryId?: string;
+    duration?: string;
+    price?: string;
+    seoMetaDescription?: string;
+    seoContent?: string;
+    tags?: string;
+    thumbnailFile?: string;
+    demoVideoUrl?: string;
+  };
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+
   const [formData, setFormData] = useState<any>({
     title: "",
     subtitle: "",
@@ -359,7 +364,7 @@ const EditCourse = () => {
     price: "",
     currency: "INR",
     duration: "",
-    // instructorId: "",
+    instructorId: "",
     isPublished: false,
     enrollmentType: "open",
     maxStudents: "",
@@ -387,21 +392,81 @@ const EditCourse = () => {
     setShowPlanPopup(false);
     setEditingId(null);
     setCurrentPlan({
-      name: "",
-      icon: "●",
-      monthlyPrice: 0,
-      yearlyPrice: 0,
-      description: "",
-      features: [""],
-      popular: false,
-      color: "purple",
+      title: "",
+      startDate: "",
+      endDate: "",
+      discount: 0,
+      capacity: 0,
     });
+  };
+
+  // Validation schema
+  const validateForm = (formData, description, seoContent, selectedTags, files, demoVideoUrl) => {
+    const errors: FormErrors = {};
+
+    if (!formData.title.trim()) {
+      errors.title = "Course title is required";
+    } else if (formData.title.length > 100) {
+      errors.title = "Title must be less than 100 characters";
+    }
+
+    if (!description.trim()) {
+      errors.description = "Course description is required";
+    } else if (description.length > 5000) {
+      errors.description = "Description must be less than 5000 characters";
+    }
+
+    if (!formData.categoryId) {
+      errors.categoryId = "Category is required";
+    }
+
+    if (!formData.subCategoryId) {
+      errors.subCategoryId = "Subcategory is required";
+    }
+
+    if (!formData.duration) {
+      errors.duration = "Duration is required";
+    } else if (isNaN(formData.duration) || formData.duration <= 0) {
+      errors.duration = "Duration must be a positive number";
+    } else if (formData.duration > 1000) {
+      errors.duration = "Duration cannot exceed 1000 hours";
+    }
+
+    if (!formData.price) {
+      errors.price = "Price is required";
+    } else if (isNaN(formData.price) || formData.price < 0) {
+      errors.price = "Price must be a non-negative number";
+    } else if (formData.price > 100000) {
+      errors.price = "Price cannot exceed 100,000";
+    }
+
+    if (formData.seoMetaDescription.length > 160) {
+      errors.seoMetaDescription = "Meta description must be less than 160 characters";
+    }
+
+    if (seoContent.length > 10000) {
+      errors.seoContent = "SEO content must be less than 10,000 characters";
+    }
+
+    if (selectedTags.length === 0) {
+      errors.tags = "At least one tag is required";
+    } else if (selectedTags.length > 10) {
+      errors.tags = "Cannot add more than 10 tags";
+    }
+
+    if (!files.thumbnailFile && !formData.thumbnail) {
+      errors.thumbnailFile = "Thumbnail image is required";
+    }
+
+    if (demoVideoUrl && !/^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]{11}$/.test(demoVideoUrl)) {
+      errors.demoVideoUrl = "Please enter a valid YouTube URL";
+    }
+
+    return errors;
   };
 
   // Fetch course data for editing
   useEffect(() => {
-    console.log("Fetching course data for ID:", courseId);
-
     if (courseId && !dataLoaded) {
       const token = localStorage.getItem("token") || "";
       dispatch(fetchCourseById({ courseId, token }));
@@ -411,17 +476,9 @@ const EditCourse = () => {
   // Handle course data when it's loaded
   useEffect(() => {
     if (courseData && !dataLoaded) {
-      // Handle different response structures
       const course = courseData.data || courseData;
 
-      console.log("Setting course data:", course);
-      console.log("Course modules:", course.modules);
-      console.log("Course tags:", course.tags);
-      console.log("Raw courseData:", courseData);
-
-      // Store the processed course data
       setProcessedCourseData(course);
-      console.log("corse data : ---", course);
       setFormData((prev: any) => ({
         ...prev,
         title: course.title || "",
@@ -435,9 +492,6 @@ const EditCourse = () => {
           course.category?._id ||
           course.categoryId?._id ||
           "",
-          instructorId : course?.instructorId ,
-
-        
         subCategoryId:
           course.subCategoryId ||
           course.subCategory?._id ||
@@ -449,14 +503,14 @@ const EditCourse = () => {
           : course.price || "",
         currency: course.currency || "INR",
         duration: course.duration || "",
-        // instructorId: course.instructorId || course.instructor?._id || "",
+        instructorId: course.instructorId || course.instructor?._id || "",
         isPublished: course.isPublished || false,
         enrollmentType: course.enrollmentType || "open",
         maxStudents: course.maxStudents || "",
         certificateTemplate:
           course.certificateTemplate !== undefined
-        ? course.certificateTemplate
-        : true,
+            ? course.certificateTemplate
+            : true,
         isDownloadable:
           course.isDownloadable !== undefined ? course.isDownloadable : true,
         courseForum:
@@ -469,12 +523,9 @@ const EditCourse = () => {
       setDescription(course.description || "");
       setSeoContent(course.seoContent || "");
       setSelectedTags(course.tags || []);
+      setDemoVideoUrl(course.demoVideo || "");
 
-      // Ensure modules structure is correct
       const courseModules = course.modules || [];
-      console.log("Setting modules:", courseModules);
-
-      // Process modules to ensure they have the correct structure
       const processedModules = courseModules.map((module: any) => ({
         _id: module._id || undefined,
         title: module.title || "",
@@ -493,8 +544,6 @@ const EditCourse = () => {
 
       setModules(processedModules);
       setDataLoaded(true);
-
-      console.log("Processed modules set:", processedModules);
     }
   }, [courseData, dataLoaded]);
 
@@ -509,11 +558,13 @@ const EditCourse = () => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const addTag = (tag: string) => {
-    if (!selectedTags.includes(tag)) {
+    if (!selectedTags.includes(tag) && selectedTags.length < 10) {
       setSelectedTags([...selectedTags, tag]);
+      setFormErrors((prev) => ({ ...prev, tags: "" }));
     }
   };
 
@@ -523,6 +574,7 @@ const EditCourse = () => {
       categoryId,
       subCategoryId: "",
     }));
+    setFormErrors((prev) => ({ ...prev, categoryId: "", subCategoryId: "" }));
   };
 
   const handleSubcategoryChange = (
@@ -533,6 +585,7 @@ const EditCourse = () => {
       ...prev,
       subCategoryId,
     }));
+    setFormErrors((prev) => ({ ...prev, subCategoryId: "" }));
   };
 
   const removeTag = (tagToRemove: string) => {
@@ -540,27 +593,37 @@ const EditCourse = () => {
   };
 
   const addCustomTag = () => {
-    if (customTag.trim() && !selectedTags.includes(customTag.trim())) {
+    if (customTag.trim() && !selectedTags.includes(customTag.trim()) && selectedTags.length < 10) {
       setSelectedTags([...selectedTags, customTag.trim()]);
       setCustomTag("");
+      setFormErrors((prev) => ({ ...prev, tags: "" }));
     }
   };
 
-  // Handle modules change from ModuleSection
   const handleModulesChange = (updatedModules: any[]) => {
-    console.log("Modules updated from ModuleSection:", updatedModules);
     setModules(updatedModules);
   };
 
   const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
     e.preventDefault();
 
+    const files = { thumbnailFile, coverImageFile };
+    const errors = validateForm(formData, description, seoContent, selectedTags, files, demoVideoUrl);
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      setPopup({
+        isVisible: true,
+        message: "Please fix the errors in the form",
+        type: "error",
+      });
+      return;
+    }
+
     const submitFormData = new FormData();
 
-    // Only append primitive values, not arrays
     (Object.keys(formData) as (keyof typeof formData)[]).forEach((key) => {
       const value = formData[key];
-      // If value is an array, take the first element or join as string
       if (Array.isArray(value)) {
         submitFormData.append(key, value.length > 0 ? String(value[0]) : "");
       } else {
@@ -568,7 +631,6 @@ const EditCourse = () => {
       }
     });
 
-    // Explicitly set fields as string (not array)
     submitFormData.set("title", String(formData.title));
     submitFormData.set("subtitle", String(formData.subtitle));
     submitFormData.set("seoMetaDescription", String(formData.seoMetaDescription));
@@ -576,86 +638,30 @@ const EditCourse = () => {
     submitFormData.set("description", description);
     submitFormData.set("seoContent", seoContent);
     submitFormData.set("tags", JSON.stringify(selectedTags));
-    // submitFormData.set("modules", JSON.stringify(modules));
     submitFormData.set("isPublished", (!isDraft).toString());
     submitFormData.set("level", formData.level || "beginner");
-    // submitFormData.set("instructerId",localStorage?.getItem(user))
-    
+    submitFormData.set("demoVideo", demoVideoUrl);
 
     if (thumbnailFile) submitFormData.set("thumbnail", thumbnailFile);
     if (coverImageFile) submitFormData.set("coverImage", coverImageFile);
-    if (demoVideoFile) submitFormData.set("demoVideo", demoVideoFile);
 
     try {
       await dispatch(
         updateCourse({ id: courseId, data: submitFormData })
       ).unwrap();
-      console.log(
-        "Form submitted with data:",
-        Object.fromEntries(submitFormData)
-      );
-      console.log("Modules being submitted:", modules);
-      // Handle success (redirect, show message, etc.)
+      setPopup({
+        isVisible: true,
+        message: isDraft ? "Course saved as draft!" : "Course updated successfully!",
+        type: "success",
+      });
     } catch (error: any) {
-      console.log("Error updating course:", error?.message);
+      setPopup({
+        isVisible: true,
+        message: error.message || "Failed to update course. Please try again.",
+        type: "error",
+      });
     }
   };
-
-  // const handelAddPlan = async () => {
-  //   try {
-  //     if (editingId) {
-  //       await dispatch(
-  //         updatePricingPlan({
-  //           planId: editingId,
-  //           updatedData: {
-  //             title: currentPlan.title,
-  //             startDate: currentPlan.startDate,
-  //             endDate: currentPlan.endDate,
-  //             discount: currentPlan.discount,
-  //             capacity: currentPlan.capacity,
-  //           },
-  //         })
-  //       ).unwrap();
-  //       setPopup({
-  //         message: "Plan added successfully!",
-  //         type: "success",
-  //         isVisible: true,
-  //       });
-  //       setShowPlanPopup(false);
-  //       setEditingId(null);
-  //       setCurrentPlan(null);
-  //     } else {
-  //       const payload: any = {
-  //         course: courseId || "",
-  //         title: planData.title,
-  //         startDate: planData.startDate,
-  //         endDate: planData.endDate,
-  //         discount: planData.discount,
-  //         capacity: planData.capacity,
-  //         language: "English",
-  //       };
-  //       await dispatch(createPricingPlan(payload)).unwrap();
-
-  //       setShowPlanPopup(false);
-  //       setEditingId(null);
-  //       setCurrentPlan(null);
-  //       setPopup({
-  //         message: "Plan added successfully!",
-  //         type: "success",
-  //         isVisible: true,
-  //       });
-  //     }
-  //     setShowPlanPopup(false);
-  //     dispatch(getAllPricingPlansByCourse(courseId || ""));
-  //   } catch (error) {
-  //     setPopup({
-  //       message: "Error adding plan. Please try again.",
-  //       type: "error",
-  //       isVisible: true,
-  //     });
-  //     console.error("Error adding plan:", error);
-  //   }
-  // };
 
   const handelDeletePlan = async (planId: string) => {
     try {
@@ -666,11 +672,10 @@ const EditCourse = () => {
         isVisible: true,
       });
       setEditingId(null);
-      setCurrentPlan(null);
+      setCurrentPlan({});
       setShowPlanPopup(false);
       dispatch(getAllPricingPlansByCourse(courseId || ""));
     } catch (error) {
-      console.error("Error deleting plan:", error);
       setPopup({
         message: "Failed to delete plan",
         type: "error",
@@ -679,12 +684,11 @@ const EditCourse = () => {
     }
   };
 
-  const getUrlFrommFile = (file: File | null) => {
+  const getUrlFromFile = (file: File | null) => {
     if (!file) return "";
     return URL.createObjectURL(file);
   };
 
-  // Show loading state while fetching course data
   if (loading && !dataLoaded) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -706,7 +710,6 @@ const EditCourse = () => {
       />
       <div className="min-h-screen bg-gray-50">
         <div className="mx-auto py-8 px-4">
-          {/* Header */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
             <h1 className="text-3xl font-bold flex items-center gap-3 text-gray-900">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -724,12 +727,15 @@ const EditCourse = () => {
             )}
           </div>
 
-          {/* Error/Success Messages */}
-         
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <span className="text-red-700 text-sm">{error}</span>
+            </div>
+          )}
 
           <form onSubmit={(e) => handleSubmit(e, false)}>
             <div className="space-y-6">
-              {/* Basic Information */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Type className="w-5 h-5 text-blue-600" />
@@ -746,12 +752,16 @@ const EditCourse = () => {
                         name="title"
                         value={formData.title}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          formErrors.title ? "border-red-400" : "border-gray-300"
+                        }`}
                         placeholder="Enter course title"
                         required
                       />
+                      {formErrors.title && (
+                        <p className="mt-1 text-xs text-red-600">{formErrors.title}</p>
+                      )}
                     </div>
-                
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -762,11 +772,13 @@ const EditCourse = () => {
                       onChange={setDescription}
                       placeholder="Describe your course in detail..."
                     />
+                    {formErrors.description && (
+                      <p className="mt-2 text-xs text-red-600">{formErrors.description}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Course Details */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-blue-600" />
@@ -779,6 +791,12 @@ const EditCourse = () => {
                     onCategoryChange={handleCategoryChange}
                     onSubcategoryChange={handleSubcategoryChange}
                   />
+                  {formErrors.categoryId && (
+                    <p className="mt-1 text-xs text-red-600">{formErrors.categoryId}</p>
+                  )}
+                  {formErrors.subCategoryId && (
+                    <p className="mt-1 text-xs text-red-600">{formErrors.subCategoryId}</p>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Level
@@ -804,14 +822,18 @@ const EditCourse = () => {
                       name="duration"
                       value={formData.duration}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        formErrors.duration ? "border-red-400" : "border-gray-300"
+                      }`}
                       placeholder="Course duration"
                     />
+                    {formErrors.duration && (
+                      <p className="mt-1 text-xs text-red-600">{formErrors.duration}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Media Files */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Image className="w-5 h-5 text-blue-600" />
@@ -832,12 +854,14 @@ const EditCourse = () => {
                     currentFile={coverImageFile}
                     icon={Image}
                   />
-                  <FileUpload
-                    label="Demo Video"
-                    accept="video/*"
-                    onFileChange={setDemoVideoFile}
-                    currentFile={demoVideoFile}
-                    icon={Video}
+                  <YouTubeUrlInput
+                    label="Add YouTube Link"
+                    value={demoVideoUrl}
+                    onChange={(e) => {
+                      setDemoVideoUrl(e.target.value);
+                      setFormErrors((prev) => ({ ...prev, demoVideoUrl: "" }));
+                    }}
+                    error={formErrors.demoVideoUrl}
                   />
                 </div>
                 <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -848,7 +872,7 @@ const EditCourse = () => {
                           onClick={() =>
                             setFormData({ ...formData, thumbnail: "" })
                           }
-                          className="absolute top-2 cursor-pointer  right-2 p-1 rounded-sm bg-red-500/50"
+                          className="absolute top-2 cursor-pointer right-2 p-1 rounded-sm bg-red-500/50"
                         >
                           <Plus className="h-4 w-4 rotate-[45deg]" />
                         </div>
@@ -856,7 +880,7 @@ const EditCourse = () => {
                           className="h-40 w-full"
                           src={
                             thumbnailFile
-                              ? getUrlFrommFile(thumbnailFile)
+                              ? getUrlFromFile(thumbnailFile)
                               : `${baseUrl}/${formData?.thumbnail}`
                           }
                         />
@@ -870,7 +894,7 @@ const EditCourse = () => {
                           onClick={() =>
                             setFormData({ ...formData, coverImage: "" })
                           }
-                          className="absolute top-2 cursor-pointer  right-2 p-1 rounded-sm bg-red-500/50"
+                          className="absolute top-2 cursor-pointer right-2 p-1 rounded-sm bg-red-500/50"
                         >
                           <Plus className="h-4 w-4 rotate-[45deg]" />
                         </div>
@@ -878,41 +902,16 @@ const EditCourse = () => {
                           className="h-40 w-full"
                           src={
                             coverImageFile
-                              ? getUrlFrommFile(coverImageFile)
+                              ? getUrlFromFile(coverImageFile)
                               : `${baseUrl}/${formData?.coverImage}`
                           }
                         />
                       </div>
                     )}
                   </div>
-                  <div>
-                    {(formData.demoVideo || demoVideoFile) && (
-                      <div className="relative">
-                        <div
-                          onClick={() =>
-                            setFormData({ ...formData, demoVideo: "" })
-                          }
-                          className="absolute z-50 top-2 cursor-pointer  right-2 p-1 rounded-sm bg-red-500/50"
-                        >
-                          <Plus className="h-4 w-4 rotate-[45deg]" />
-                        </div>
-                        <video className="h-40 w-full" controls width="800">
-                          <source
-                            src={
-                              getUrlFrommFile(demoVideoFile) ||
-                              `${baseUrl}/${formData?.demoVideo}`
-                            }
-                            type="video/mp4"
-                          />
-                          Your browser does not support the video tag.
-                        </video>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
 
-              {/* Pricing */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-blue-600" />
@@ -928,9 +927,14 @@ const EditCourse = () => {
                       name="price"
                       value={formData.price}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        formErrors.price ? "border-red-400" : "border-gray-300"
+                      }`}
                       placeholder="Course price"
                     />
+                    {formErrors.price && (
+                      <p className="mt-1 text-xs text-red-600">{formErrors.price}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -953,12 +957,11 @@ const EditCourse = () => {
 
               {showPlanPopup && (
                 <div className="fixed top-0 left-0 h-screen right-0 bottom-0 bg-black/50 z-9999 flex items-center justify-center">
-                  <div className="bg-white rounded-2xl  shadow-xl p-8">
+                  <div className="bg-white rounded-2xl shadow-xl p-8">
                     <div className="flex items-center justify-between mb-6">
                       <h2 className="text-2xl font-bold text-gray-900">
                         {editingId ? "Edit Plan" : "Create New Plan"}
                       </h2>
-
                       <div
                         onClick={cancelEdit}
                         className="text-gray-500 hover:text-gray-700 transition-colors"
@@ -966,9 +969,7 @@ const EditCourse = () => {
                         <X className="w-6 h-6" />
                       </div>
                     </div>
-
                     <div className="space-y-6">
-                      {/* Basic Info */}
                       <div className="grid md:grid-cols-1 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -996,7 +997,6 @@ const EditCourse = () => {
                           />
                         </div>
                       </div>
-
                       <div>
                         <div className="grid md:grid-cols-1 gap-4">
                           <div>
@@ -1025,7 +1025,6 @@ const EditCourse = () => {
                               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                             />
                           </div>
-
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               End Date
@@ -1052,8 +1051,6 @@ const EditCourse = () => {
                               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                             />
                           </div>
-
-                          {/* Pricing */}
                           <div className="grid md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1083,7 +1080,6 @@ const EditCourse = () => {
                                 placeholder="29"
                               />
                             </div>
-
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Capacity
@@ -1116,18 +1112,20 @@ const EditCourse = () => {
                         </div>
                       </div>
                       <div className="flex gap-3">
+                        {editingId && (
+                          <div
+                            onClick={() => handelDeletePlan(editingId)}
+                            className="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Trash className="w-5 h-5" />
+                            Delete Plan
+                          </div>
+                        )}
                         <div
-                          onClick={() => handelDeletePlan(editingId)}
-                          className="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                        >
-                          <Trash className="w-5 h-5" />
-                          Delete Plan
-                        </div>
-                      </div>
-                      {/* Submit Button */}
-                      <div className="flex gap-3">
-                        <div
-                          onClick={handelAddPlan}
+                          onClick={() => {
+                            // Placeholder for handelAddPlan function
+                            console.log("Add/Update plan clicked");
+                          }}
                           disabled={editingId ? false : !planData.title}
                           className="flex-1 bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                         >
@@ -1140,100 +1138,6 @@ const EditCourse = () => {
                 </div>
               )}
 
-              {/* <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-blue-600" />
-                    Pricing Plans
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => setShowPlanPopup(true)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors  bg-blue-600 text-white `}
-                  >
-                    <Plus className="w-4 h-4 inline-block mr-1" />
-                    Add Plan
-                  </button>
-                </div>
-                <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                  {Plans?.data?.map((plan, index) => (
-                    <div
-                      key={plan._id}
-                      className={`relative rounded-2xl p-8 transition-all duration-300 hover:shadow-xl ${
-                        index % 2 !== 0
-                          ? "bg-gradient-to-b from-purple-600 to-purple-700 text-white transform scale-105 shadow-2xl"
-                          : "bg-gray-100 hover:bg-gray-100"
-                      }`}
-                    >
-                      <h2 className="text-2xl  font-semibold mb-6 flex justify-center items-center gap-2">
-                        {plan.title}
-                      </h2> */}
-
-                      {/* Price */}
-                      {/* <div className="text-center mb-6">
-                        <div className="flex items-baseline justify-center">
-                          <span
-                            className={`text-4xl font-bold ${
-                              index % 2 !== 0 ? "text-white" : "text-gray-900"
-                            }`}
-                          >
-                            ₹{plan.discount}
-                          </span>
-                          <span
-                            className={`ml-1 text-sm ${
-                              index % 2 !== 0
-                                ? "text-purple-200"
-                                : "text-gray-500"
-                            }`}
-                          >
-                            / {billingCycle === "monthly" ? "Month" : "Year"}
-                          </span>
-                        </div>
-                        {billingCycle === "yearly" && (
-                          <div className="text-sm text-green-500 font-medium mt-1">
-                            Save 17%
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="mt-10 grid grid-cols-2 gap-2">
-                        <div>
-                          <h2 className="text-xs">Start</h2>
-                          <h2 className="font-medium">30, May 2023</h2>
-                        </div>
-                        <div>
-                          <h2 className="text-xs">End</h2>
-                          <h2 className="font-medium">30, May 2023</h2>
-                        </div>
-                      </div>
-                      <div className="mt-4 mb-6 grid grid-cols-2 gap-2">
-                        <div>
-                          <h2 className="text-xs">Capacity</h2>
-                          <h2 className="font-medium">100</h2>
-                        </div>
-                      </div> */}
-
-                      {/* CTA Button */}
-                      {/* <button
-                        onClick={() => {
-                          setShowPlanPopup(true);
-                          setEditingId(plan._id);
-                          setCurrentPlan(plan);
-                        }}
-                        className={`w-full ${
-                          index % 2 === 0
-                            ? "bg-white text-black"
-                            : "bg-gray-100 text-gray-900"
-                        } py-3 px-6 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 `}
-                      >
-                        Edit Plan
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div> */}
-
-              {/* Course Features */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Award className="w-5 h-5 text-blue-600" />
@@ -1280,7 +1184,6 @@ const EditCourse = () => {
                 </div>
               </div>
 
-              {/* Tags */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Tag className="w-5 h-5 text-blue-600" />
@@ -1318,13 +1221,15 @@ const EditCourse = () => {
                     <button
                       type="button"
                       onClick={addCustomTag}
-                      className="px-4 py-2  flex  items-center   gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="px-4 py-2 flex items-center gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                       Add Tag
                     </button>
                   </div>
-
+                  {formErrors.tags && (
+                    <p className="mt-1 text-xs text-red-600">{formErrors.tags}</p>
+                  )}
                   <div className="mt-2 flex flex-wrap gap-2">
                     {selectedTags.map((tag) => (
                       <span
@@ -1345,7 +1250,6 @@ const EditCourse = () => {
                 </div>
               </div>
 
-              {/* SEO Content */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Search className="w-5 h-5 text-blue-600" />
@@ -1360,10 +1264,18 @@ const EditCourse = () => {
                       name="seoMetaDescription"
                       value={formData.seoMetaDescription}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        formErrors.seoMetaDescription ? "border-red-400" : "border-gray-300"
+                      }`}
                       rows={3}
                       placeholder="Enter SEO meta description"
                     />
+                    <p className="mt-1 text-xs text-gray-500">
+                      {formData.seoMetaDescription.length}/160 characters
+                    </p>
+                    {formErrors.seoMetaDescription && (
+                      <p className="mt-1 text-xs text-red-600">{formErrors.seoMetaDescription}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1374,11 +1286,13 @@ const EditCourse = () => {
                       onChange={setSeoContent}
                       placeholder="Enter SEO-friendly content..."
                     />
+                    {formErrors.seoContent && (
+                      <p className="mt-2 text-xs text-red-600">{formErrors.seoContent}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Course Modules */}
               <ModuleSection
                 modules={modules}
                 onModulesChange={handleModulesChange}
@@ -1388,7 +1302,6 @@ const EditCourse = () => {
               />
               <Faqs courseID={courseId} />
 
-              {/* Publication Status */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Eye className="w-5 h-5 text-blue-600" />
@@ -1414,7 +1327,6 @@ const EditCourse = () => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex flex-col sm:flex-row gap-4 justify-end">
                   <button

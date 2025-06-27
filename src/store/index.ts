@@ -16,6 +16,7 @@ import vedio from "./slices/vedio";
 import anayltics from "./slices/anayltics";
 import plans from "./slices/plans";
 import studentsSlice from "./slices/students";
+import Support from "./slices/support";
 
 export const store = configureStore({
   reducer: {
@@ -35,6 +36,8 @@ export const store = configureStore({
     analytics: anayltics,
     plan: plans,
     students: studentsSlice,
+    support: Support,
+
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

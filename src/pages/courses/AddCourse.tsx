@@ -40,8 +40,29 @@ import CategorySubcategoryDropdowns from "../../components/CategorySubcategoryDr
 import PopupAlert from "../../components/popUpAlert";
 
 // Validation schema
-const validateForm = (formData, description, seoContent, selectedTags, files) => {
-  const errors = {};
+type FormErrors = {
+  title?: string;
+  description?: string;
+  categoryId?: string;
+  subCategoryId?: string;
+  duration?: string;
+  price?: string;
+  seoMetaDescription?: string;
+  seoContent?: string;
+  tags?: string;
+  thumbnailFile?: string;
+  demoVideoUrl?: string;
+};
+
+const validateForm = (
+  formData: any,
+  description: string,
+  seoContent: string,
+  selectedTags: string[],
+  files: { thumbnailFile: File | null; coverImageFile: File | null },
+  demoVideoUrl: string
+): FormErrors => {
+  const errors: FormErrors = {};
 
   if (!formData.title.trim()) {
     errors.title = "Course title is required";
@@ -67,8 +88,8 @@ const validateForm = (formData, description, seoContent, selectedTags, files) =>
     errors.duration = "Duration is required";
   } else if (isNaN(formData.duration) || formData.duration <= 0) {
     errors.duration = "Duration must be a positive number";
-  } else if (formData.duration > 1000) {
-    errors.duration = "Duration cannot exceed 1000 hours";
+  } else if (formData.duration > 100000) {
+    errors.duration = "Duration cannot exceed 100000 hours";
   }
 
   if (!formData.price) {
@@ -97,11 +118,21 @@ const validateForm = (formData, description, seoContent, selectedTags, files) =>
     errors.thumbnailFile = "Thumbnail image is required";
   }
 
+  if (demoVideoUrl && !/^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]{11}$/.test(demoVideoUrl)) {
+    errors.demoVideoUrl = "Please enter a valid YouTube URL";
+  }
+
   return errors;
 };
 
 // Rich Text Editor Component
-const RichTextEditor = ({ value, onChange, placeholder = "Start typing..." }) => {
+type RichTextEditorProps = {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+};
+
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeholder = "Start typing..." }) => {
   const editorRef = useRef(null);
   const [isPreview, setIsPreview] = useState(false);
 
@@ -225,9 +256,6 @@ const FileUpload = ({ label, accept, onFileChange, currentFile, icon: Icon }) =>
     if (accept === "image/*" && !file.type.startsWith("image/")) {
       return "Please upload a valid image file";
     }
-    if (accept === "video/*" && !file.type.startsWith("video/")) {
-      return "Please upload a valid video file";
-    }
     return "";
   };
 
@@ -301,6 +329,44 @@ const FileUpload = ({ label, accept, onFileChange, currentFile, icon: Icon }) =>
   );
 };
 
+// YouTube URL Input Component
+const YouTubeUrlInput = ({ label, value, onChange, error }) => {
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-semibold text-gray-800 flex items-center gap-2">
+        <Video className="w-5 h-5 text-blue-600" />
+        {label}
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={onChange}
+        className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+          error ? "border-red-400" : "border-gray-200"
+        }`}
+        placeholder="Enter demo vedio YouTube URL"
+      />
+      {error && (
+        <p className="mt-1 text-xs text-red-600">{error}</p>
+      )}
+      {value && (
+        <div className="mt-3">
+          <iframe
+            width="100%"
+            height="200"
+            src={value.replace("watch?v=", "embed/")}
+            title="YouTube video preview"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="rounded-xl"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
 const AddCourse = () => {
   const dispatch = useDispatch();
   const { loading, error, data } = useSelector((state) => state.course);
@@ -309,7 +375,7 @@ const AddCourse = () => {
   const [customTag, setCustomTag] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [coverImageFile, setCoverImageFile] = useState(null);
-  const [demoVideoFile, setDemoVideoFile] = useState(null);
+  const [demoVideoUrl, setDemoVideoUrl] = useState("");
   const [description, setDescription] = useState("");
   const [seoContent, setSeoContent] = useState("");
   type FormErrors = {
@@ -323,6 +389,7 @@ const AddCourse = () => {
     seoContent?: string;
     tags?: string;
     thumbnailFile?: string;
+    demoVideoUrl?: string;
   };
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [popup, setPopup] = useState({
@@ -375,7 +442,6 @@ const AddCourse = () => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-    // Clear error for this field
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -418,8 +484,8 @@ const AddCourse = () => {
   const handleSubmit = async (e, isDraft = false) => {
     e.preventDefault();
 
-    const files = { thumbnailFile, coverImageFile, demoVideoFile };
-    const errors = validateForm(formData, description, seoContent, selectedTags, files);
+    const files = { thumbnailFile, coverImageFile };
+    const errors = validateForm(formData, description, seoContent, selectedTags, files, demoVideoUrl);
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -440,10 +506,10 @@ const AddCourse = () => {
     submitFormData.append("seoContent", seoContent);
     submitFormData.append("tags", JSON.stringify(selectedTags));
     submitFormData.append("isPublished", (!isDraft).toString());
+    submitFormData.append("demoVideo", demoVideoUrl);
 
     if (thumbnailFile) submitFormData.append("thumbnail", thumbnailFile);
     if (coverImageFile) submitFormData.append("coverImage", coverImageFile);
-    if (demoVideoFile) submitFormData.append("demoVideo", demoVideoFile);
 
     try {
       await dispatch(createCourse(submitFormData)).unwrap();
@@ -452,7 +518,6 @@ const AddCourse = () => {
         message: isDraft ? "Course saved as draft!" : "Course published successfully!",
         type: "success",
       });
-      // Reset form after successful submission
       setFormData({
         title: "",
         subtitle: "",
@@ -479,7 +544,7 @@ const AddCourse = () => {
       setSelectedTags([]);
       setThumbnailFile(null);
       setCoverImageFile(null);
-      setDemoVideoFile(null);
+      setDemoVideoUrl("");
     } catch (error) {
       setPopup({
         isVisible: true,
@@ -541,7 +606,6 @@ const AddCourse = () => {
                     <p className="mt-1 text-xs text-red-600">{formErrors.title}</p>
                   )}
                 </div>
-            
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-2">
@@ -597,7 +661,7 @@ const AddCourse = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-800 mb-2">
-                    Duration (hours) *
+                    Duration (mins) *
                   </label>
                   <input
                     type="number"
@@ -639,12 +703,14 @@ const AddCourse = () => {
                 currentFile={coverImageFile}
                 icon={Image}
               />
-              <FileUpload
-                label="Demo Video"
-                accept="video/*"
-                onFileChange={setDemoVideoFile}
-                currentFile={demoVideoFile}
-                icon={Video}
+              <YouTubeUrlInput
+                label="Add Demo YouTube Link"
+                value={demoVideoUrl}
+                onChange={(e) => {
+                  setDemoVideoUrl(e.target.value);
+                  setFormErrors((prev) => ({ ...prev, demoVideoUrl: "" }));
+                }}
+                error={formErrors.demoVideoUrl}
               />
             </div>
             {formErrors.thumbnailFile && (
@@ -679,20 +745,6 @@ const AddCourse = () => {
                     src={getUrlFromFile(coverImageFile)}
                     alt="Cover Image Preview"
                   />
-                </div>
-              )}
-              {demoVideoFile && (
-                <div className="relative">
-                  <button
-                    onClick={() => setDemoVideoFile(null)}
-                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                  <video className="h-48 w-full rounded-xl" controls>
-                    <source src={getUrlFromFile(demoVideoFile)} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
                 </div>
               )}
             </div>

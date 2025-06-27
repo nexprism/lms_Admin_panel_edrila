@@ -114,6 +114,16 @@ const navItems: NavItem[] = [
       { name: "Vedio logs", path: "/files/sessions" },
     ],
   },
+
+
+      {
+    icon: <TableIcon />,
+    name: "Helpdesk",
+    subItems: [
+      { name: "Help Requests", path: "/requests" },
+    ],
+  },
+
   {
     icon: <PieChartIcon />,
     name: "Certifications",

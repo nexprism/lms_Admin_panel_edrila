@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
 import axiosInstance from "../../services/axiosConfig";
 
 interface AssignmentState {
@@ -35,16 +34,19 @@ export const createAssignment = createAsyncThunk(
 
 export const fetchAssignments = createAsyncThunk(
   "assignment/fetchAssignments",
-  async (_, { rejectWithValue }) => {
+  async (params?: { page?: number; limit?: number; search?: string }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get("/assignment", {
+      const queryParams = new URLSearchParams();
+      
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+      if (params?.search) queryParams.append('search', params.search);
+
+      const response = await axiosInstance.get(`/assignment?${queryParams.toString()}`, {
         headers: {
           "Content-Type": "application/json",
-          // Add Authorization header if needed
-          // 'Authorization': `Bearer ${token}`,
         },
       });
-      // window.location.reload();
 
       return response.data;
     } catch (err: any) {
@@ -95,17 +97,40 @@ export const fetchAssignmentById = createAsyncThunk(
 
 export const fetchAssignmentSubmissions = createAsyncThunk(
   "assignment/fetchAssignmentSubmissions",
-
-  async (_, { rejectWithValue }) => {
+  async (params?: { page?: number; limit?: number; search?: string }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/assignment-submissions`, {
+      const queryParams = new URLSearchParams();
+      
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+      if (params?.search) queryParams.append('search', params.search);
+
+      const response = await axiosInstance.get(`/assignment-submissions?${queryParams.toString()}`, {
         headers: {
           "Content-Type": "application/json",
         },
       });
-      return response.data.data.submissions;
+      
+      return response.data;
     } catch (err: any) {
       console.log("Error fetching assignment submissions:", err?.message);
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+export const deleteAssignmentSubmission = createAsyncThunk(
+  "assignment/deleteAssignmentSubmission",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.delete(`/assignment-submissions/${id}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      return response.data;
+    } catch (err: any) {
+      console.log("Error deleting assignment submission:", err?.message);
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
@@ -114,7 +139,14 @@ export const fetchAssignmentSubmissions = createAsyncThunk(
 const assignmentSlice = createSlice({
   name: "assignment",
   initialState,
-  reducers: {},
+  reducers: {
+    clearError: (state) => {
+      state.error = null;
+    },
+    clearData: (state) => {
+      state.data = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(createAssignment.pending, (state) => {
@@ -164,8 +196,33 @@ const assignmentSlice = createSlice({
       .addCase(fetchAssignmentById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(fetchAssignmentSubmissions.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAssignmentSubmissions.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
+      })
+      .addCase(fetchAssignmentSubmissions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      }
+      )
+      .addCase(deleteAssignmentSubmission.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteAssignmentSubmission.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
+      })
+      .addCase(deleteAssignmentSubmission.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
-  },
+  }
 });
-
+export const { clearError, clearData } = assignmentSlice.actions;
 export default assignmentSlice.reducer;

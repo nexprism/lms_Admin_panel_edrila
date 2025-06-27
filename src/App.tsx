@@ -25,6 +25,8 @@ import { selectIsAuthenticated } from "./store/slices/authslice";
 import StudentList from "./pages/students/StudenList";
 import StudentDetail from "./pages/students/StudentDetail";
 import AssignmentSubmissionReview from "./pages/Assignmets/AssignmentDetails";
+import HelpDesk from "./pages/HelpDesk/RequestList";
+import TicketDetails from "./pages/HelpDesk/TicketDetails";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -91,6 +93,8 @@ export default function App() {
               <Route path="/quiz/all" element={<QuizList />} />
               <Route path="/quiz/edit/:quizId" element={<EditQuiz />} />
               <Route path="/assignments/all" element={<AssignmentList />} />
+              <Route path="/support-tickets/view/:ticketId" element={< TicketDetails isEditMode={false} />} />
+              <Route path="/support-tickets/edit/:ticketId" element={< TicketDetails isEditMode={true} />} />
               <Route
                 path="/certificates/add"
                 element={<CreateCertificateTemplate />}
@@ -135,6 +139,8 @@ export default function App() {
                 path="/assignments/submissions/:id"
                 element={<AssignmentSubmissionReview />}
               />
+
+              <Route path="/requests" element={<HelpDesk />} />
 
               {/* UI Elements */}
               <Route path="/alerts" element={<Alerts />} />
