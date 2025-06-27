@@ -407,12 +407,13 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl max-w-2xl w-full mx-auto shadow-lg p-6">
+    <div className="bg-white lg:w-[700px] rounded-xl max-w-2xl w-full mx-auto shadow-lg p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold flex items-center gap-2">
           <FileVideo className="w-6 h-6" />
           {isEditMode ? "Edit Video Lesson" : "Upload Video Lesson"}
         </h2>
+        
       </div>
       
       <div className="space-y-5">

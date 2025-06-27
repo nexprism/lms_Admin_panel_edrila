@@ -72,35 +72,22 @@ const Modal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[1000] min-h-[700px] flex bg-[#00000021] bg-opacity-70 items-center justify-center p-4 animate-fade-in">
+    <div className="fixed inset-0 z-[1000] h-full min-h-[700px] flex bg-[#00000021] bg-opacity-70 items-center justify-center p-4 animate-fade-in">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-[#00000021] bg-opacity-70 transition-opacity"
+        className="fixed inset-0 bg-[#00000021] bg-opacity-70 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Container */}
       <div
-        className={`relative w-full max-h-[90vh] min-h-[700px] overflow-scroll hide-scrollbar rounded-xl shadow-2xl bg-white transform scale-95 animate-scale-in
+        className={`relative w-fit max-h-[90vh] min-h-fit overflow-scroll hide-scrollbar rounded-xl shadow-2xl transform scale-95 animate-scale-in
                     max-w-${maxWidth}`}
       >
-        {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50 rounded-t-xl">
-          <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-          {showCloseButton && (
-            <button
-              onClick={onClose}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200"
-              aria-label="Close modal"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          )}
-        </div>
 
         {/* Modal Body */}
         <div
-          className="p-6 overflow-y-auto custom-scrollbar"
+          className="  overflow-y-auto custom-scrollbar"
           style={{
             maxHeight:
               "calc(90vh - 120px - (var(--header-height, 0) + var(--footer-height, 0)))",
@@ -931,61 +918,10 @@ const LessonEditor = ({
       >
         <div className="space-y-6">
           {/* Lesson Info Header */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                {currentConfig?.icon && (
-                  <currentConfig.icon className="w-6 h-6 text-gray-600" />
-                )}
-                <div>
-                  <h4 className="font-medium text-gray-900">
-                    {lesson.title || "Untitled Lesson"}
-                  </h4>
-                  <p className="text-sm text-gray-500">
-                    Lesson ID: {savedLessonId}
-                  </p>
-                </div>
-              </div>
-
-              {hasExistingContent && (
-                <div className="flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-800 rounded-lg">
-                  <CheckCircle className="w-4 h-4" />
-                  <div className="text-sm font-medium">
-                    <div>Edit Mode</div>
-                    <div className="text-xs text-green-600">
-                      Content ID: {contentId}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* Content Form */}
           {renderContentModal()}
 
-          {/* Modal Actions */}
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-            <button
-              onClick={() => setShowContentModal(false)}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            {/* <button
-              onClick={() => {
-                // Save content logic here
-                setShowContentModal(false);
-              }}
-              className={`px-6 py-2 text-white rounded-lg transition-colors ${
-                hasExistingContent
-                  ? "bg-amber-600 hover:bg-amber-700"
-                  : "bg-blue-600 hover:bg-blue-700"
-              }`}
-            >
-              {hasExistingContent ? "Update Content" : "Save Content"}
-            </button> */}
-          </div>
         </div>
       </Modal>
     </>
