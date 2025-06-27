@@ -264,7 +264,7 @@ export default function FileUploadForm({
   };
 
   return (
-    <div className="mx-auto p-6 bg-white h-[90%] overflow-y-auto">
+    <div className="mx-auto md:w-[500px] lg:w-[700px] max-h-[90vh] p-6 bg-white h-[90%] overflow-y-auto">
       <div className="space-y-6">
         <div className="border-b border-gray-200 pb-4 flex justify-between items-center">
           <h2 className="text-lg font-medium text-gray-900 mb-4">
