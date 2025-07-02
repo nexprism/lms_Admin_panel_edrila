@@ -299,15 +299,15 @@ const EditCourse = () => {
     error,
     data: courseData,
   } = useSelector((state: RootState) => state.course);
-  const Plans = useSelector((state: RootState) => state.plan.data);
+  // const Plans = useSelector((state: RootState) => state.plan.data);
   const [billingCycle, setBillingCycle] = useState("monthly");
 
-  useEffect(() => {
-    if (!Plans || Plans.length === 0) {
-      console.error("Plans data is not available or empty");
-    }
-    dispatch(getAllPricingPlansByCourse(courseId));
-  }, [dispatch, courseId, Plans]);
+  // useEffect(() => {
+  //   if (!Plans || Plans.length === 0) {
+  //     console.error("Plans data is not available or empty");
+  //   }
+  //   dispatch(getAllPricingPlansByCourse(courseId));
+  // }, [dispatch, courseId, Plans]);
 
   // Course state
   const [selectedTags, setSelectedTags] = useState<string[]>([]);

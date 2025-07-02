@@ -18,6 +18,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import PopupAlert from "../../components/popUpAlert.jsx";
 import axiosInstance from "../../services/axiosConfig.js";
+
 const DRIP_TYPES = [
   {
     value: "days_after_enrollment",
@@ -129,8 +130,8 @@ const DripPopup = ({
   initialData,
   courseData,
   onFetchCourseData,
-  targetType, // Add targetType prop
-  targetId, // Add targetId prop
+  targetType,
+  targetId,
 }) => {
   const dispatch = useDispatch();
   const [dripData, setDripData] = useState(initialData || {});
@@ -151,17 +152,16 @@ const DripPopup = ({
     dispatch(fetchCourseContents());
   }, [dispatch]);
 
-  // Updated form state to include target information
   const [form, setForm] = useState({
     dripType: initialData?.dripType || "",
-    referenceType: initialData?.referenceType || "",
-    referenceId: initialData?.referenceId || "",
+    referenceType: initialData?.referenceType || "enrollment",
+    referenceId: initialData?.referenceId || initialData?.targetId || "",
     delayDays: initialData?.delayDays || 0,
     unlockDate: initialData?.unlockDate || "",
     requiredScore: initialData?.requiredScore || "",
     conditionOperator: initialData?.conditionOperator || "AND",
-    targetType: targetType || initialData?.targetType || "lesson", // Add targetType to form
-    targetId: targetId || initialData?.targetId || "", // Add targetId to form
+    targetType: targetType || initialData?.targetType || "lesson",
+    targetId: targetId || initialData?.targetId || "",
   });
 
   const [activeCategory, setActiveCategory] = useState("all");
@@ -182,6 +182,7 @@ const DripPopup = ({
       }));
     }
   };
+
   const getData = async () => {
     try {
       const result = await axiosInstance.get(
@@ -197,16 +198,11 @@ const DripPopup = ({
         unlockDate: data.dripRuleId.unlockDate || "",
         requiredScore: data.dripRuleId.requiredScore || "",
         conditionOperator: data.dripRuleId.conditionOperator || "AND",
-        targetType: data.targetType || "lesson", // Default to lesson if not provided
-        targetId: data.targetId || "", // Default to empty if not provided
+        targetType: data.targetType || "lesson",
+        targetId: data.targetId || "",
       });
     } catch (error) {
       console.error("Failed to fetch drip data:", error);
-      //   setPopup({
-      //     isVisible: true,
-      //     message: "Failed to fetch course data. Please try again later.",
-      //     type: "error",
-      //   });
     }
   };
 
@@ -215,10 +211,10 @@ const DripPopup = ({
       getData();
     }
   }, [targetId]);
+
   const handleSubmit = async () => {
     if (form.dripType) {
       try {
-        // Include target information in the drip rule
         const dripRuleData = {
           ...form,
           targetType: form.targetType,
@@ -234,10 +230,8 @@ const DripPopup = ({
           result = await dispatch(createDripRule(dripRuleData));
         }
         if (createDripRule.fulfilled.match(result)) {
-          // Success
           setPopup({ isVisible: true, message: "Success!", type: "success" });
         } else {
-          // Error
           setPopup({ isVisible: true, message: "Error!", type: "error" });
         }
         if (onSubmit) onSubmit(dripRuleData);
@@ -252,7 +246,6 @@ const DripPopup = ({
     }
   };
 
-  // Rest of your component remains the same...
   const getFilteredDripTypes = () => {
     if (activeCategory === "all") return DRIP_TYPES;
     return DRIP_TYPES.filter((type) => type.category === activeCategory);
@@ -331,6 +324,11 @@ const DripPopup = ({
   const selectedDripType = DRIP_TYPES.find(
     (type) => type.value === form.dripType
   );
+
+  // Helper function to determine if reference type selection should be shown
+  const shouldShowReferenceTypeSelection = () => {
+    return form.dripType && form.dripType !== "days_after_enrollment" && form.dripType !== "specific_date";
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -446,64 +444,66 @@ const DripPopup = ({
                 Configure: {selectedDripType?.label}
               </h3>
 
-              {/* Reference Type */}
-              <div className="space-y-3">
-                <label className="block text-sm font-semibold text-gray-900">
-                  Reference Type
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {REFERENCE_TYPES.map((refType) => {
-                    const IconComponent = refType.icon;
-                    return (
-                      <div
-                        key={refType.value}
-                        className={`border rounded-lg p-3 cursor-pointer transition-all duration-200 ${
-                          form.referenceType === refType.value
-                            ? "border-purple-500 bg-purple-50"
-                            : "border-gray-200 hover:border-purple-300"
-                        }`}
-                        onClick={() =>
-                          setForm((prev) => ({
-                            ...prev,
-                            referenceType: refType.value,
-                            referenceId: "",
-                          }))
-                        }
-                      >
-                        <div className="flex items-center space-x-3">
-                          <IconComponent
-                            className={`w-5 h-5 ${
-                              form.referenceType === refType.value
-                                ? "text-purple-600"
-                                : "text-gray-500"
-                            }`}
-                          />
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900">
-                              {refType.label}
+              {/* Reference Type - Only show if not "days_after_enrollment" and not "specific_date" */}
+              {shouldShowReferenceTypeSelection() && (
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-900">
+                    Reference Type
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {REFERENCE_TYPES.map((refType) => {
+                      const IconComponent = refType.icon;
+                      return (
+                        <div
+                          key={refType.value}
+                          className={`border rounded-lg p-3 cursor-pointer transition-all duration-200 ${
+                            form.referenceType === refType.value
+                              ? "border-purple-500 bg-purple-50"
+                              : "border-gray-200 hover:border-purple-300"
+                          }`}
+                          onClick={() =>
+                            setForm((prev) => ({
+                              ...prev,
+                              referenceType: refType.value,
+                              referenceId: "",
+                            }))
+                          }
+                        >
+                          <div className="flex items-center space-x-3">
+                            <IconComponent
+                              className={`w-5 h-5 ${
+                                form.referenceType === refType.value
+                                  ? "text-purple-600"
+                                  : "text-gray-500"
+                              }`}
+                            />
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-900">
+                                {refType.label}
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                {refType.description}
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-600">
-                              {refType.description}
-                            </div>
+                            <input
+                              type="radio"
+                              name="referenceType"
+                              value={refType.value}
+                              checked={form.referenceType === refType.value}
+                              onChange={handleChange}
+                              className="w-4 h-4 text-purple-600"
+                            />
                           </div>
-                          <input
-                            type="radio"
-                            name="referenceType"
-                            value={refType.value}
-                            checked={form.referenceType === refType.value}
-                            onChange={handleChange}
-                            className="w-4 h-4 text-purple-600"
-                          />
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Reference ID Dropdown */}
-              {(form.referenceType === "lesson" ||
-                form.referenceType === "module") && (
+              {/* Reference ID Dropdown - Only show if reference type is lesson or module */}
+              {shouldShowReferenceTypeSelection() && 
+               (form.referenceType === "lesson" || form.referenceType === "module") && (
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-900">
                     {form.referenceType === "lesson"
