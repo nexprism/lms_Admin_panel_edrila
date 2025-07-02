@@ -34,13 +34,13 @@ const DRIP_TYPES = [
     icon: BookOpen,
     category: "completion",
   },
-  {
-    value: "days_after_module_completed",
-    label: "Days After Module Completed",
-    description: "Release after completing a module",
-    icon: CheckCircle,
-    category: "completion",
-  },
+  // {
+  //   value: "days_after_module_completed",
+  //   label: "Days After Module Completed",
+  //   description: "Release after completing a module",
+  //   icon: CheckCircle,
+  //   category: "completion",
+  // },
   {
     value: "after_lesson_completed",
     label: "Immediately After Lesson",
@@ -48,13 +48,13 @@ const DRIP_TYPES = [
     icon: Zap,
     category: "immediate",
   },
-  {
-    value: "after_module_completed",
-    label: "Immediately After Module",
-    description: "Release immediately when module is completed",
-    icon: CheckCircle,
-    category: "immediate",
-  },
+  // {
+  //   value: "after_module_completed",
+  //   label: "Immediately After Module",
+  //   description: "Release immediately when module is completed",
+  //   icon: CheckCircle,
+  //   category: "immediate",
+  // },
   {
     value: "specific_date",
     label: "Specific Date",
@@ -76,20 +76,20 @@ const DRIP_TYPES = [
     icon: FileText,
     category: "achievement",
   },
-  {
-    value: "after_feedback_received",
-    label: "After Feedback Received",
-    description: "Release after instructor provides feedback",
-    icon: AlertCircle,
-    category: "interaction",
-  },
-  {
-    value: "custom_condition",
-    label: "Custom Condition",
-    description: "Set up custom release conditions",
-    icon: Zap,
-    category: "advanced",
-  },
+  // {
+  //   value: "after_feedback_received",
+  //   label: "After Feedback Received",
+  //   description: "Release after instructor provides feedback",
+  //   icon: AlertCircle,
+  //   category: "interaction",
+  // },
+  // {
+  //   value: "custom_condition",
+  //   label: "Custom Condition",
+  //   description: "Set up custom release conditions",
+  //   icon: Zap,
+  //   category: "advanced",
+  // },
 ];
 
 const REFERENCE_TYPES = [
@@ -99,29 +99,28 @@ const REFERENCE_TYPES = [
     description: "Reference a particular lesson",
     icon: BookOpen,
   },
-  {
-    value: "module",
-    label: "Specific Module",
-    description: "Reference a particular module",
-    icon: CheckCircle,
-  },
-  {
-    value: "date",
-    label: "Date/Time",
-    description: "Use date and time reference",
-    icon: Calendar,
-  },
-  {
-    value: "enrollment",
-    label: "Enrollment Date",
-    description: "Based on when student enrolled",
-    icon: Users,
-  },
+  // {
+  //   value: "module",
+  //   label: "Specific Module",
+  //   description: "Reference a particular module",
+  //   icon: CheckCircle,
+  // },
+  // {
+  //   value: "date",
+  //   label: "Date/Time",
+  //   description: "Use date and time reference",
+  //   icon: Calendar,
+  // },
+  // {
+  //   value: "enrollment",
+  //   label: "Enrollment Date",
+  //   description: "Based on when student enrolled",
+  //   icon: Users,
+  // },
 ];
 
 const CONDITION_OPERATORS = [
   { value: "AND", label: "AND", description: "All conditions must be met" },
-  { value: "OR", label: "OR", description: "Any condition can be met" },
 ];
 
 const DripPopup = ({
@@ -251,38 +250,49 @@ const DripPopup = ({
     return DRIP_TYPES.filter((type) => type.category === activeCategory);
   };
 
-  const getDropdownOptions = () => {
-    if (!course) return [];
+const getDropdownOptions = () => {
+  if (!course) return [];
 
-    if (form.referenceType === "module") {
-      return (
-        course.modules?.map((module) => ({
-          value: module._id,
-          label: module.title,
-          sublabel: `Course: ${module.courseId?.title || "Unknown"} | Order: ${
-            module.order
-          }`,
-        })) || []
+  if (form.referenceType === "module") {
+    return (
+      course.modules?.map((module) => ({
+        value: module._id,
+        label: module.title,
+        sublabel: `Course: ${module.courseId?.title || "Unknown"} | Order: ${
+          module.order
+        }`,
+      })) || []
+    );
+  }
+
+  if (form.referenceType === "lesson") {
+    // Filter lessons based on dripType
+    let filteredLessons = course.lessons || [];
+
+    if (form.dripType === "after_quiz_passed") {
+      filteredLessons = filteredLessons.filter(
+        (lesson) => lesson.type === "quiz"
+      );
+    } else if (form.dripType === "after_assignment_submitted") {
+      filteredLessons = filteredLessons.filter(
+        (lesson) => lesson.type === "assignment"
       );
     }
 
-    if (form.referenceType === "lesson") {
-      return (
-        course.lessons?.map((lesson) => {
-          const module = course.modules?.find((m) => m._id === lesson.moduleId);
-          return {
-            value: lesson._id,
-            label: lesson.title,
-            sublabel: `Type: ${lesson.type} | Module: ${
-              module?.title || "Unknown"
-            } | Order: ${lesson.order}`,
-          };
-        }) || []
-      );
-    }
+    return filteredLessons.map((lesson) => {
+      const module = course.modules?.find((m) => m._id === lesson.moduleId._id);
+      return {
+        value: lesson._id,
+        label: lesson.title,
+        sublabel: `Type: ${lesson.type} | Module: ${
+          module?.title || "Unknown"
+        } | Order: ${lesson.order}`,
+      };
+    });
+  }
 
-    return [];
-  };
+  return [];
+};
 
   const getSelectedOptionLabel = () => {
     const options = getDropdownOptions();
@@ -536,11 +546,15 @@ const DripPopup = ({
                           <div className="px-4 py-3 text-gray-500 text-center">
                             Loading...
                           </div>
-                        ) : getDropdownOptions().length === 0 ? (
-                          <div className="px-4 py-3 text-gray-500 text-center">
-                            No {form.referenceType}s available
-                          </div>
-                        ) : (
+                        ) :  getDropdownOptions().length === 0 ? (
+  <div className="px-4 py-3 text-gray-500 text-center">
+    {form.dripType === "after_quiz_passed"
+      ? "No quizzes available"
+      : form.dripType === "after_assignment_submitted"
+      ? "No assignments available"
+      : `No ${form.referenceType}s available`}
+  </div>
+): (
                           getDropdownOptions().map((option) => (
                             <div
                               key={option.value}
