@@ -40,7 +40,6 @@ export const createLesson = createAsyncThunk(
           "Content-Type": "multipart/form-data",
         },
       });
-      window.location.reload();
 
       return response.data;
     } catch (error: any) {

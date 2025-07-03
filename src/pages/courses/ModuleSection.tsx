@@ -1,3 +1,5 @@
+
+
 import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createModule } from "../../store/slices/module";
@@ -55,8 +57,6 @@ import Quiz from "./components/Quiz";
 import Assignment from "./components/Assignment";
 import VedioLesson from "./components/VideoLesson";
 import { useAppDispatch } from "../../hooks/redux";
-import toast from "react-hot-toast";
-import { fetchCourseById } from "../../store/slices/course";
 import PopupAlert from "../../components/popUpAlert";
 import { useParams } from "react-router";
 
@@ -121,10 +121,23 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [popup, setPopup] = useState<{
+    message: string;
+    type: "success" | "error";
+    isVisible: boolean;
+  }>({
+    message: "",
+    type: "success",
+    isVisible: false,
+  });
 
   const handleCreateModule = async () => {
     if (!moduleData.title.trim()) {
-      alert("Please enter a module title");
+      setPopup({
+        message: "Please enter a module title",
+        type: "error",
+        isVisible: true,
+      });
       return;
     }
 
@@ -142,10 +155,37 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
       };
 
       const result = await dispatch(createModule(payload)).unwrap();
-      onModuleCreated(result.data);
+      
+      // Debug logging to see what we get back
+      console.log("Module creation result:", result);
+      console.log("Result.data:", result.data);
+      
+      // Immediate UI update - this will update the UI instantly
+      onModuleCreated(result.data || result);
+      
+      // Show success feedback
+      setPopup({
+        message: "Module created successfully!",
+        type: "success",
+        isVisible: true,
+      });
+      
+      // Reset form for next module
+      setModuleData({
+        title: "",
+        description: "",
+        order: moduleData.order + 1, // Increment order for next module
+        estimatedDuration: 60,
+        isPublished: false,
+      });
+      
     } catch (error) {
       console.error("Error creating module:", error);
-      alert("Failed to create module. Please try again.");
+      setPopup({
+        message: "Failed to create module. Please try again.",
+        type: "error",
+        isVisible: true,
+      });
     } finally {
       setIsSaving(false);
     }
@@ -153,6 +193,12 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
 
   return (
     <>
+      <PopupAlert
+        message={popup.message}
+        type={popup.type}
+        isVisible={popup.isVisible}
+        onClose={() => setPopup({ ...popup, isVisible: false })}
+      />
       <div className="bg-white border-2 border-blue-200 rounded-2xl p-8 shadow-lg">
         <div className="text-center mb-8">
           <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
@@ -208,7 +254,7 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
                 onChange={(e) =>
                   setModuleData({
                     ...moduleData,
-                    estimatedDuration: parseInt(e.target.value) || 60,
+                    estimatedDuration: parseInt(e.target.value) ,
                   })
                 }
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
@@ -252,6 +298,7 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
 
           <div className="pt-6">
             <button
+              type="button"
               onClick={handleCreateModule}
               disabled={isSaving || !moduleData.title.trim()}
               className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg font-semibold"
@@ -363,8 +410,15 @@ const LessonEditor = ({
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
+              console.log("Checking module lessons:", mod.lessons);
               for (const l of mod.lessons) {
-                if (l._id === lesson._id && l.textLessons[0]?._id) {
+
+                console.log("Checking lesson:", l);
+                // Check if the lesson matches and has textLessons
+                console.log("Comparing lesson._id:", l._id, "with lesson._id:", lesson._id);
+                // If lesson has textLessons, return the first one
+                  console.log("l.textLessons", l.textLessons);
+                if (l._id == lesson._id && l.textLessons[0]?._id) {
                   return l.textLessons._id || l.textLessons[0]?._id;
                 }
               }
@@ -414,6 +468,7 @@ const LessonEditor = ({
   };
 
   const contentId = getContentId();
+  console.log("Content ID for lesson:", contentId);
   const hasExistingContent = !!contentId;
 
   const lessonTypeConfig = {
@@ -448,7 +503,11 @@ const LessonEditor = ({
 
   const handleSaveLesson = async () => {
     if (!lesson.title.trim()) {
-      toast.error("Please enter a lesson title");
+      setPopup({
+        message: "Please enter a lesson title",
+        type: "error",
+        isVisible: true,
+      });
       return;
     }
 
@@ -466,7 +525,11 @@ const LessonEditor = ({
         courseId,
         moduleId,
       });
-      alert("Error: Missing course/section information. Please try again.");
+      setPopup({
+        message: "Error: Missing course/section information. Please try again.",
+        type: "error",
+        isVisible: true,
+      });
       return;
     }
 
@@ -494,21 +557,41 @@ const LessonEditor = ({
         setSavedLessonId(newLessonId);
         // Update the lesson object with the new ID
         const updatedLesson = { ...lesson, _id: newLessonId, id: newLessonId };
-        onChange(updatedLesson);
+        
+        // Call onSave callback to update parent state immediately (replaces onChange call)
+        if (onSave) {
+          const enhancedResult = {
+            ...result,
+            data: {
+              ...result?.data,
+              _id: newLessonId,
+              id: newLessonId,
+              title: lesson.title,
+              type: lesson.type,
+              order: lesson.order,
+              isRequired: lesson.isRequired,
+            }
+          };
+          onSave(enhancedResult);
+        } else {
+          // Fallback to onChange if onSave is not provided
+          onChange(updatedLesson);
+        }
+        
+        // Immediate success feedback
+        setPopup({
+          message: "Lesson saved successfully!",
+          type: "success",
+          isVisible: true,
+        });
+        
+        console.log("Lesson saved successfully:", result);
+        
+        // No automatic refresh - keep UI purely local until user manually refreshes
       }
-
-      // toast.success("Lesson saved successfully!");
-      setPopup({
-        message: "Lesson saved successfully!",
-        type: "success",
-        isVisible: true,
-      });
-      console.log("Lesson saved successfully:", result);
-      dispatch(fetchCourseById({ courseId: courseIdFromParams })); // Refresh course data
-      onSave && onSave(result);
+      
     } catch (error) {
       console.error("Error saving lesson:", error);
-      // toast.error("Failed to save lesson");
       setPopup({
         message: "Failed to save lesson",
         type: "error",
@@ -590,25 +673,38 @@ const LessonEditor = ({
         );
       }
       case "text": {
-        let textData = lesson.textContent;
-        let textLessonId = lesson.textContent?._id || lesson.textLessonId;
-        if (!textData && courseData?.modules) {
-          for (const mod of courseData.modules) {
-            if (mod.lessons) {
-              for (const l of mod.lessons) {
-                if (l._id === lesson._id && l.textContent) {
-                  textData = l.textContent;
-                  textLessonId = l.textContent._id;
+        let textLessonId = contentId; // Use the contentId we already calculated
+        
+        // If we don't have contentId, try to find it from lesson data
+        if (!textLessonId) {
+          textLessonId = lesson.textLessons?._id || lesson.textLessonId;
+          
+          // Search in courseData modules if still not found
+          if (!textLessonId && courseData?.modules) {
+            for (const mod of courseData.modules) {
+              if (mod.lessons) {
+                for (const l of mod.lessons) {
+                  if (l._id === lesson._id && l.textLessons) {
+                    textLessonId = l.textLessons[0]?._id || l.textLessons._id;
+                    break;
+                  }
                 }
+                if (textLessonId) break;
               }
             }
           }
         }
+        
+        console.log("Passing textLessonId to TextLesson:", textLessonId);
+        
         return (
           <TextLesson
-            {...commonProps}
+            section={section || courseId}
+            lesson={{ ...lesson, _id: savedLessonId }}
+            onChange={onChange}
+            courseId={courseId || section}
+            lessonId={savedLessonId}
             textLessonId={textLessonId}
-            textData={textData}
             onClose={() => {
               setShowContentModal(false);
               setOpenLessonData(null);
@@ -646,6 +742,8 @@ const LessonEditor = ({
       case "video":
       default: {
         let videoData = lesson.video;
+        console.log("lesson.video", lesson.video);
+        console.log("courseData.modules", courseData?.modules);
         let fileId = lesson.video?._id || lesson.fileId;
         if (!videoData && courseData?.modules) {
           for (const mod of courseData.modules) {
@@ -659,10 +757,11 @@ const LessonEditor = ({
             }
           }
         }
+        console.log("Files component - contentId:", contentId, "fileId:", fileId, "lesson:", lesson);
         return (
           <Files
             {...commonProps}
-            fileId={fileId}
+            fileId={contentId || fileId}
             videoData={videoData}
             onClose={() => {
               setShowContentModal(false);
@@ -686,8 +785,9 @@ const LessonEditor = ({
             Please save the lesson to unlock content creation tools
           </p>
           <button
+            type="button"
             onClick={handleSaveLesson}
-            disabled={isSaving || !lesson.title.trim()}
+            disabled={isSaving || !lesson.title?.trim()}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? "Saving..." : "Save Lesson"}
@@ -699,6 +799,7 @@ const LessonEditor = ({
     return (
       <div className="flex items-center space-x-3">
         <button
+          type="button"
           onClick={() => getData(lesson)}
           className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
             hasExistingContent
@@ -710,7 +811,7 @@ const LessonEditor = ({
           <span>{hasExistingContent ? "Edit Content" : "Create Content"}</span>
         </button>
 
-        {hasExistingContent && (
+        {/* {hasExistingContent && (
           <div className="flex items-center space-x-2 px-3 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200">
             <CheckCircle className="w-4 h-4" />
             <span className="text-sm font-medium">Content Created</span>
@@ -718,15 +819,16 @@ const LessonEditor = ({
               ID: {contentId.substring(0, 8)}...
             </span>
           </div>
-        )}
-
+        )} */}
+{/* 
         <button
+          type="button"
           onClick={() => setShowSettings(!showSettings)}
           className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
         >
           <Settings className="w-4 h-4" />
           <span>Settings</span>
-        </button>
+        </button> */}
       </div>
     );
   };
@@ -777,7 +879,7 @@ const LessonEditor = ({
                     <span className="font-medium">
                       Lesson #{lesson.order || 1}
                     </span>
-                    {savedLessonId && (
+                    {/* {savedLessonId && (
                       <span className="text-xs">
                         Lesson ID: {savedLessonId.substring(0, 8)}...
                       </span>
@@ -786,7 +888,7 @@ const LessonEditor = ({
                       <span className="text-xs">
                         Content ID: {contentId.substring(0, 8)}...
                       </span>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>
@@ -795,6 +897,7 @@ const LessonEditor = ({
               <div className="flex items-center space-x-2">
                 {/* Save Button */}
                 <button
+                  type="button"
                   onClick={handleSaveLesson}
                   disabled={isSaving}
                   className="flex items-center space-x-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
@@ -811,6 +914,7 @@ const LessonEditor = ({
 
                 {/* Remove Button */}
                 <button
+                  type="button"
                   onClick={onRemove}
                   className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 transition-all duration-200"
                   title="Remove lesson"
@@ -967,8 +1071,9 @@ const SavedModuleDisplay = ({
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-gray-900">{module.title}</h3>
-          {/* <h3 className="text-lg font-medium text-gray-900">{module.title}</h3> */}
+          <h3 className="text-lg font-medium text-gray-900">
+            {module.title || module.module?.title || "Untitled Module"}
+          </h3>
 
           {/* Left Side - Module Info */}
           <div className="flex items-center space-x-3">
@@ -1023,9 +1128,11 @@ const SavedModuleDisplay = ({
         <div className="border-t border-gray-200 bg-gray-50">
           <div className="p-6">
             {/* Module Description */}
-            {module.description && (
+            {(module.description || module.module?.description) && (
               <div className="mb-6">
-                <p className="text-gray-600">{module.description}</p>
+                <p className="text-gray-600">
+                  {module.description || module.module?.description}
+                </p>
               </div>
             )}
 
@@ -1033,22 +1140,29 @@ const SavedModuleDisplay = ({
             <div className="flex items-center space-x-6 mb-6 text-sm">
               <div className="flex items-center space-x-2 text-gray-600">
                 <Clock className="w-4 h-4" />
-                <span>{module.estimatedDuration || 60} minutes</span>
+                <span>
+                  {module.estimatedDuration || module.module?.estimatedDuration || 60} minutes
+                </span>
               </div>
 
               <div
                 className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                  module.isPublished
+                  (module.isPublished !== undefined ? module.isPublished : module.module?.isPublished)
                     ? "bg-emerald-100 text-emerald-800"
                     : "bg-amber-100 text-amber-800"
                 }`}
               >
                 <div
                   className={`w-2 h-2 rounded-full mr-2 ${
-                    module.isPublished ? "bg-emerald-500" : "bg-amber-500"
+                    (module.isPublished !== undefined ? module.isPublished : module.module?.isPublished)
+                      ? "bg-emerald-500" 
+                      : "bg-amber-500"
                   }`}
                 ></div>
-                {module.isPublished ? "Published" : "Draft"}
+                {(module.isPublished !== undefined ? module.isPublished : module.module?.isPublished) 
+                  ? "Published" 
+                  : "Draft"
+                }
               </div>
             </div>
 
@@ -1092,8 +1206,19 @@ const SavedModuleDisplay = ({
                   onChange={(l) => onLessonChange(idx, l)}
                   onRemove={() => onLessonRemove(idx)}
                   onSave={(savedLesson) => {
-                    // Update the lesson with the saved data
-                    onLessonChange(idx, savedLesson);
+                    // Extract lesson data from the API response properly
+                    const lessonData = savedLesson?.data || savedLesson;
+                    const updatedLesson = {
+                      ...lesson, // Keep existing lesson properties
+                      _id: lessonData._id || lessonData.id,
+                      id: lessonData._id || lessonData.id,
+                      title: lessonData.title || lesson.title,
+                      type: lessonData.type || lesson.type,
+                      order: lessonData.order || lesson.order,
+                      isRequired: lessonData.isRequired !== undefined ? lessonData.isRequired : lesson.isRequired,
+                    };
+                    // Update the lesson with the properly structured saved data
+                    onLessonChange(idx, updatedLesson);
                   }}
                 />
               ))}
@@ -1147,7 +1272,7 @@ const ModuleSection = ({
   );
   console.log("courseData", courseData);
 
-  const [savedModules, setSavedModules] = useState([]);
+  const [savedModules, setSavedModules] = useState<any[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [activeTab, setActiveTab] = useState("modules"); // Add this new state
   const dispatch = useAppDispatch();
@@ -1168,80 +1293,118 @@ const ModuleSection = ({
     }
   }, [modules]);
 
-  const handleModuleCreated = (newModule) => {
-    const updatedModules = [...savedModules, { ...newModule, lessons: [] }];
+  const handleModuleCreated = async (newModule: any) => {
+    // Debug logging to see the structure
+    console.log("New module received:", newModule);
+    
+    // Immediate UI update - normalize the module structure
+    const moduleWithLessons = { 
+      // Ensure all required properties are available at the top level
+      _id: newModule._id || newModule.id,
+      id: newModule._id || newModule.id,
+      title: newModule.title,
+      description: newModule.description || "",
+      order: newModule.order || 1,
+      estimatedDuration: newModule.estimatedDuration || 60,
+      isPublished: newModule.isPublished || false,
+      courseId: newModule.courseId || courseId,
+      lessons: [], // Start with empty lessons array
+      
+      // Keep the original module data for reference
+      module: newModule,
+      
+      // Include any other properties from the response
+      ...newModule,
+    };
+    
+    console.log("Processed module:", moduleWithLessons);
+    
+    const updatedModules = [...savedModules, moduleWithLessons];
+    
+    // Update state immediately for instant UI feedback
     setSavedModules(updatedModules);
     setShowCreateForm(false);
+    
+    // Show success popup
     setPopup({
       message: "Module created successfully!",
       type: "success",
       isVisible: true,
     });
-    if (courseId) {
-      dispatch(fetchCourseById(courseId));
-    }
-    else {
-      dispatch(fetchCourseById({ courseId: courseData?._id }));
-      window.location.reload();
-    }
-
-    // Call parent callback if provided
+    
+    // Call parent callback for immediate update
     if (onModulesChange) {
       onModulesChange(updatedModules);
     }
+    
+    // No automatic refresh - keep changes purely local for better performance
   };
 
-  const addLessonToModule = (moduleIndex, newLesson) => {
+  const addLessonToModule = (moduleIndex: number, newLesson: any) => {
     const updatedModules = savedModules.map((module, idx) =>
       idx === moduleIndex
         ? { ...module, lessons: [...(module.lessons || []), newLesson] }
         : module
     );
+    
+    // Immediate UI update
     setSavedModules(updatedModules);
 
+    // Update parent immediately
     if (onModulesChange) {
       onModulesChange(updatedModules);
     }
   };
 
-  const updateLessonInModule = (moduleIndex, lessonIndex, updatedLesson) => {
+  const updateLessonInModule = (moduleIndex: number, lessonIndex: number, updatedLesson: any) => {
     const updatedModules = savedModules.map((module, idx) =>
       idx === moduleIndex
         ? {
             ...module,
-            lessons: (module.lessons || []).map((lesson, lIdx) =>
+            lessons: (module.lessons || []).map((lesson: any, lIdx: number) =>
               lIdx === lessonIndex ? updatedLesson : lesson
             ),
           }
         : module
     );
+    
+    // Immediate UI update
     setSavedModules(updatedModules);
 
+    // Update parent immediately
     if (onModulesChange) {
       onModulesChange(updatedModules);
     }
   };
 
-  const removeLessonFromModule = (moduleIndex, lessonIndex) => {
+  const removeLessonFromModule = (moduleIndex: number, lessonIndex: number) => {
     if (window.confirm("Are you sure you want to delete this lesson?")) {
+      const lessonToDelete = savedModules[moduleIndex].lessons[lessonIndex];
+      const lessonId = lessonToDelete._id || lessonToDelete.id;
+      
       const updatedModules = savedModules.map((module, idx) =>
         idx === moduleIndex
           ? {
               ...module,
               lessons: (module.lessons || []).filter(
-                (_, lIdx) => lIdx !== lessonIndex
+                (_: any, lIdx: number) => lIdx !== lessonIndex
               ),
             }
           : module
       );
 
-      const lessonId = savedModules[moduleIndex].lessons[lessonIndex]._id;
-      console.log("Removing lesson with ID:", lessonId);
-      dispatch(deleteLesson(lessonId));
+      // Immediate UI update
       setSavedModules(updatedModules);
 
+      // Update parent immediately
       if (onModulesChange) {
         onModulesChange(updatedModules);
+      }
+
+      // Delete from backend (but don't wait for it)
+      if (lessonId) {
+        console.log("Removing lesson with ID:", lessonId);
+        dispatch(deleteLesson(lessonId));
       }
     }
   };

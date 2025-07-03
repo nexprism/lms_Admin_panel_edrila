@@ -18,20 +18,113 @@ import {
   Folder,
   ChevronDown,
   ChevronUp,
+  Target,
+  Trophy,
+  Timer,
+  Brain,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import {
   createQuiz,
   upadateQuiz,
-  fetchQuiz,
   fetchQuizById,
 } from "../../../store/slices/quiz";
-import PopupAlert from "../../../components/popUpAlert";
+
+// Enhanced popup component similar to TextLesson and Assignment components
+interface EnhancedPopupProps {
+  isVisible: boolean;
+  message: string;
+  type: "success" | "error" | "warning" | "info";
+  onClose: () => void;
+  autoClose?: boolean;
+}
+
+const EnhancedPopup: React.FC<EnhancedPopupProps> = ({ isVisible, message, type, onClose, autoClose = true }) => {
+  useEffect(() => {
+    if (isVisible && autoClose && type === "success") {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, autoClose, type, onClose]);
+
+  if (!isVisible) return null;
+
+  const getTypeStyles = () => {
+    switch (type) {
+      case "success":
+        return "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 text-green-800";
+      case "error":
+        return "bg-gradient-to-r from-red-50 to-rose-50 border-red-200 text-red-800";
+      case "warning":
+        return "bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200 text-amber-800";
+      case "info":
+        return "bg-gradient-to-r from-blue-50 to-sky-50 border-blue-200 text-blue-800";
+      default:
+        return "bg-gray-50 border-gray-200 text-gray-800";
+    }
+  };
+
+  const getIcon = () => {
+    switch (type) {
+      case "success":
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case "error":
+        return <AlertCircle className="w-5 h-5 text-red-600" />;
+      case "warning":
+        return <AlertCircle className="w-5 h-5 text-amber-600" />;
+      case "info":
+        return <AlertCircle className="w-5 h-5 text-blue-600" />;
+      default:
+        return <AlertCircle className="w-5 h-5 text-gray-600" />;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 md:pt-20">
+      <div className={`w-full max-w-sm md:max-w-md rounded-xl border-2 p-4 md:p-6 shadow-xl transform transition-all duration-300 scale-100 ${getTypeStyles()}`}>
+        <div className="flex items-start gap-3 md:gap-4">
+          <div className="flex-shrink-0">
+            {getIcon()}
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium leading-relaxed">
+              {message}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        
+        {type === "success" && (
+          <div className="mt-4 bg-white bg-opacity-60 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-xs text-green-700">
+              <Clock className="w-4 h-4" />
+              <span>Quiz saved successfully</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // Types
 type QuestionType = {
   question: string;
-  options: string[];
+  options: string[] | OptionType[];
   correctAnswer: string;
+};
+
+type OptionType = {
+  label: string;
+  text: string;
 };
 
 type SectionType = {
@@ -108,7 +201,11 @@ const Quiz = ({
     isTestSeries: false,
   });
 
-  const [popup, setPopup] = useState({
+  const [popup, setPopup] = useState<{
+    isVisible: boolean;
+    message: string;
+    type: "success" | "error" | "warning" | "info" | "";
+  }>({
     isVisible: false,
     message: "",
     type: "",
@@ -218,15 +315,6 @@ const Quiz = ({
     setSections(updatedSections);
   };
 
-  const handleSectionUpdate = (
-    sectionIndex: number,
-    updatedSection: SectionType
-  ) => {
-    const updatedSections = [...sections];
-    updatedSections[sectionIndex] = updatedSection;
-    setSections(updatedSections);
-  };
-
   const handleDeleteSection = (sectionIndex: number) => {
     const updatedSections = sections.filter(
       (_, index) => index !== sectionIndex
@@ -256,11 +344,12 @@ const Quiz = ({
   };
 
   const toggleSectionExpanded = (sectionIndex: number) => {
-    setExpandedSections((prev) =>
-      prev.includes(sectionIndex)
+    setExpandedSections((prev) => {
+      const newExpanded = prev.includes(sectionIndex)
         ? prev.filter((index) => index !== sectionIndex)
-        : [...prev, sectionIndex]
-    );
+        : [...prev, sectionIndex];
+      return newExpanded;
+    });
   };
 
   const getTotalQuestions = () => {
@@ -354,12 +443,24 @@ const Quiz = ({
 
   if (loading && isEditMode) {
     return (
-      <div className="fixed inset-0 overflow-scroll flex items-center justify-center z-50 p-4 animate-fade-in">
-        <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform scale-95 animate-scale-in">
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading quiz data...</p>
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 max-h-[700px]">
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 text-white">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-spin" />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold">Loading Quiz...</h2>
+                <p className="text-indigo-100 text-xs sm:text-sm mt-1">Please wait while we fetch the quiz data</p>
+              </div>
+            </div>
+          </div>
+          <div className="p-8 text-center">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+              <div className="h-4 bg-gray-200 rounded w-5/6 mx-auto"></div>
             </div>
           </div>
         </div>
@@ -368,284 +469,332 @@ const Quiz = ({
   }
 
   return (
-    <div>
-      <div className="bg-white rounded-xl max-w-full w-full max-h-[70vh] overflow-y-auto transform scale-95 animate-scale-in hide-scrollbar">
-        {/* Modal Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-4 rounded-t-xl flex justify-between items-center shadow-md">
-          <h2 className="text-xl font-bold flex items-center">
-            <BookOpen className="w-6 h-6 mr-3" />
-            {isEditMode
-              ? `Edit Quiz: ${quizData.quizTitle || "Untitled Quiz"}`
-              : "Create New Quiz"}
-          </h2>
-          {/* ADDED: Close button in header */}
-          <button
-            onClick={handleClose}
-            className="text-white hover:text-gray-200 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        {/* Modal Body */}
-        <div className="p-6 space-y-8">
-          {/* Basic Quiz Information */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Settings className="w-5 h-5 mr-2 text-blue-600" />
-              Quiz Configuration
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <BookOpen className="w-4 h-4 inline mr-2" />
-                  Quiz Title *
-                </label>
-                <input
-                  type="text"
-                  value={quizData.quizTitle}
-                  onChange={(e) => handleChange("quizTitle", e.target.value)}
-                  placeholder="Enter quiz title"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Clock className="w-4 h-4 inline mr-2" />
-                  Duration (minutes)
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="180"
-                  value={quizData.quizDuration}
-                  onChange={(e) =>
-                    handleChange("quizDuration", parseInt(e.target.value) || "")
-                  }
-                  placeholder="30"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <CheckCircle className="w-4 h-4 inline mr-2" />
-                  Difficulty Level
-                </label>
-                <select
-                  value={quizData.quizDifficulty}
-                  onChange={(e) =>
-                    handleChange("quizDifficulty", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select difficulty</option>
-                  <option value="easy">🟢 Easy</option>
-                  <option value="medium">🟡 Medium</option>
-                  <option value="hard">🔴 Hard</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <AlertCircle className="w-4 h-4 inline mr-2" />
-                  Total Marks (%) *
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="1000"
-                  value={quizData.totalMarks}
-                  onChange={(e) =>
-                    handleChange("totalMarks", parseInt(e.target.value))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <AlertCircle className="w-4 h-4 inline mr-2" />
-                  Pass Mark (%) *
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max={quizData.totalMarks}
-                  value={quizData.passMark}
-                  onChange={(e) =>
-                    handleChange("passMark", parseInt(e.target.value))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
-              <div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={quizData.isTestSeries}
-                    onChange={(e) =>
-                      handleChange("isTestSeries", e.target.checked)
-                    }
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm font-medium text-gray-700">
-                    Test Series Quiz
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            {/* Show course and lesson info in edit mode */}
-            {isEditMode && (quizData.courseTitle || quizData.lessonTitle) && (
-              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="text-sm font-medium text-blue-900 mb-2">
-                  Quiz Context
-                </h4>
-                {quizData.courseTitle && (
-                  <p className="text-sm text-blue-800">
-                    <strong>Course:</strong> {quizData.courseTitle}
+    <>
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 max-h-[700px]">
+        {/* Enhanced Header - Responsive */}
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                  <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold">
+                    {isEditMode ? "Edit Quiz" : "Create New Quiz"}
+                  </h2>
+                  <p className="text-indigo-100 text-xs sm:text-sm mt-1 hidden sm:block">
+                    {isEditMode ? "Update quiz settings and questions" : "Design engaging quizzes for students"}
                   </p>
-                )}
-                {quizData.lessonTitle && (
-                  <p className="text-sm text-blue-800">
-                    <strong>Lesson:</strong> {quizData.lessonTitle}
-                  </p>
-                )}
+                </div>
               </div>
-            )}
-
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FileText className="w-4 h-4 inline mr-2" />
-                Description
-              </label>
-              <textarea
-                value={quizData.quizDescription}
-                onChange={(e) =>
-                  handleChange("quizDescription", e.target.value)
-                }
-                placeholder="Brief description of the quiz content and objectives"
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
-              />
+              <button
+                onClick={handleClose}
+                className="w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center hover:bg-opacity-30 transition-all duration-200"
+              >
+                <X className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </button>
             </div>
           </div>
 
-          {/* Sections Management */}
-          <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden shadow">
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                    <Folder className="w-5 h-5 mr-2 text-green-600" />
-                    Quiz Sections ({sections.length}) - Total Questions (
-                    {getTotalQuestions()})
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Organize your quiz into sections with questions
-                  </p>
+          {/* Content - Responsive */}
+          <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-h-[600px] overflow-y-auto">
+            {/* Basic Quiz Information */}
+            <div className=" rounded-xl p-4 sm:p-6 border-2 border-indigo-200 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Settings className="w-5 h-5 mr-2 text-indigo-600" />
+                Quiz Configuration
+              </h3>
+              
+              {/* Mobile/Tablet responsive grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                {/* Left Column */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                      <BookOpen className="w-4 h-4" />
+                      Quiz Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={quizData.quizTitle}
+                      onChange={(e) => handleChange("quizTitle", e.target.value)}
+                      placeholder="Enter quiz title"
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                      <Timer className="w-4 h-4" />
+                      Duration (minutes)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="180"
+                      value={quizData.quizDuration}
+                      onChange={(e) =>
+                        handleChange("quizDuration", parseInt(e.target.value) || "")
+                      }
+                      placeholder="30"
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                      <Brain className="w-4 h-4" />
+                      Difficulty Level
+                    </label>
+                    <select
+                      value={quizData.quizDifficulty}
+                      onChange={(e) =>
+                        handleChange("quizDifficulty", e.target.value)
+                      }
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
+                    >
+                      <option value="">Select difficulty</option>
+                      <option value="easy">🟢 Easy</option>
+                      <option value="medium">🟡 Medium</option>
+                      <option value="hard">🔴 Hard</option>
+                    </select>
+                  </div>
                 </div>
+
+                {/* Right Column */}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <Trophy className="w-4 h-4" />
+                        Total Marks *
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="1000"
+                        value={quizData.totalMarks}
+                        onChange={(e) =>
+                          handleChange("totalMarks", parseInt(e.target.value))
+                        }
+                        className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <Target className="w-4 h-4" />
+                        Pass Mark (%) *
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max={quizData.totalMarks}
+                        value={quizData.passMark}
+                        onChange={(e) =>
+                          handleChange("passMark", parseInt(e.target.value))
+                        }
+                        className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={quizData.isTestSeries}
+                        onChange={(e) =>
+                          handleChange("isTestSeries", e.target.checked)
+                        }
+                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      />
+                      <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" />
+                        Test Series Quiz
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Show course and lesson info in edit mode */}
+                  {isEditMode && (quizData.courseTitle || quizData.lessonTitle) && (
+                    <div className="p-3 bg-white bg-opacity-60 rounded-lg border border-indigo-200">
+                      <h4 className="text-sm font-medium text-indigo-900 mb-2">
+                        Quiz Context
+                      </h4>
+                      {quizData.courseTitle && (
+                        <p className="text-sm text-indigo-800">
+                          <strong>Course:</strong> {quizData.courseTitle}
+                        </p>
+                      )}
+                      {quizData.lessonTitle && (
+                        <p className="text-sm text-indigo-800">
+                          <strong>Lesson:</strong> {quizData.lessonTitle}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                  <FileText className="w-4 h-4" />
+                  Description
+                </label>
+                <textarea
+                  value={quizData.quizDescription}
+                  onChange={(e) =>
+                    handleChange("quizDescription", e.target.value)
+                  }
+                  placeholder="Brief description of the quiz content and objectives"
+                  rows={3}
+                  className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none transition-all duration-200 text-sm sm:text-base"
+                />
+              </div>
+            </div>
+
+            {/* Sections Management */}
+            <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden shadow-sm">
+              <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-4 sm:px-6 py-4 border-b border-gray-200">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <Folder className="w-5 h-5 mr-2 text-green-600" />
+                      Quiz Sections ({sections.length}) - Total Questions ({getTotalQuestions()})
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Organize your quiz into sections with questions
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setEditingSection(null);
+                      setShowSectionBuilder(true);
+                    }}
+                    className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg"
+                  >
+                    <FolderPlus className="w-4 h-4" />
+                    Add Section
+                  </button>
+                </div>
+              </div>
+              <div className="p-4 sm:p-6">
+                {sections.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Folder className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">
+                      No sections yet
+                    </h4>
+                    <p className="text-gray-500 mb-4">
+                      Start building your quiz by adding sections
+                    </p>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowSectionBuilder(true);
+                      }}
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-200"
+                    >
+                      <FolderPlus className="w-4 h-4" />
+                      Add First Section
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {sections.map((section, sectionIndex) => (
+                      <SectionCard
+                        key={sectionIndex}
+                        section={section}
+                        sectionIndex={sectionIndex}
+                        isExpanded={expandedSections.includes(sectionIndex)}
+                        onToggleExpanded={() =>
+                          toggleSectionExpanded(sectionIndex)
+                        }
+                        onEditSection={() => {
+                          setEditingSection(sectionIndex);
+                          setShowSectionBuilder(true);
+                        }}
+                        onDeleteSection={() => handleDeleteSection(sectionIndex)}
+                        onEditQuestion={(questionIndex) => {
+                          setEditingQuestion({ sectionIndex, questionIndex });
+                          setActiveQuestionSectionIndex(sectionIndex);
+                          setShowQuestionBuilder(true);
+                        }}
+                        onDeleteQuestion={(questionIndex) => {
+                          const updatedQuestions = section.questions.filter(
+                            (_, i) => i !== questionIndex
+                          );
+                          handleQuestionsUpdate(sectionIndex, updatedQuestions);
+                        }}
+                        onAddQuestion={() => {
+                          setEditingQuestion(null);
+                          setActiveQuestionSectionIndex(sectionIndex);
+                          setShowQuestionBuilder(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Enhanced Footer - Responsive */}
+          <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="text-sm text-gray-600 order-2 sm:order-1">
+                <span className="text-red-500">*</span> Required fields
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 order-1 sm:order-2">
                 <button
-                  onClick={() => {
-                    setEditingSection(null);
-                    setShowSectionBuilder(true);
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
+                  type="button"
+                  onClick={handleClose}
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200"
                 >
-                  <FolderPlus className="w-4 h-4" />
-                  Add Section
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveQuiz}
+                  disabled={
+                    loading ||
+                    sections.length === 0 ||
+                    !quizData.quizTitle.trim() ||
+                    getTotalQuestions() === 0
+                  }
+                  className={`w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 text-sm font-semibold text-white border border-transparent rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 ${
+                    loading ||
+                    sections.length === 0 ||
+                    !quizData.quizTitle.trim() ||
+                    getTotalQuestions() === 0
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                  }`}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin h-4 w-4" />
+                      <span>{isEditMode ? "Updating..." : "Creating..."} Quiz</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>{isEditMode ? "Update" : "Create"} Quiz</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
-            <div className="p-6">
-              {sections.length === 0 ? (
-                <div className="text-center py-12">
-                  <Folder className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">
-                    No sections yet
-                  </h4>
-                  <p className="text-gray-500 mb-4">
-                    Start building your quiz by adding sections
-                  </p>
-                  <button
-                    onClick={() => setShowSectionBuilder(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg inline-flex items-center gap-2"
-                  >
-                    <FolderPlus className="w-4 h-4" />
-                    Add First Section
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {sections.map((section, sectionIndex) => (
-                    <SectionCard
-                      key={sectionIndex}
-                      section={section}
-                      sectionIndex={sectionIndex}
-                      isExpanded={expandedSections.includes(sectionIndex)}
-                      onToggleExpanded={() =>
-                        toggleSectionExpanded(sectionIndex)
-                      }
-                      onEditSection={() => {
-                        setEditingSection(sectionIndex);
-                        setShowSectionBuilder(true);
-                      }}
-                      onDeleteSection={() => handleDeleteSection(sectionIndex)}
-                      onEditQuestion={(questionIndex) => {
-                        setEditingQuestion({ sectionIndex, questionIndex });
-                        setActiveQuestionSectionIndex(sectionIndex);
-                        setShowQuestionBuilder(true);
-                      }}
-                      onDeleteQuestion={(questionIndex) => {
-                        const updatedQuestions = section.questions.filter(
-                          (_, i) => i !== questionIndex
-                        );
-                        handleQuestionsUpdate(sectionIndex, updatedQuestions);
-                      }}
-                      onAddQuestion={() => {
-                        setEditingQuestion(null);
-                        setActiveQuestionSectionIndex(sectionIndex);
-                        setShowQuestionBuilder(true);
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
-        </div>
-
-        {/* Modal Footer (Save Button) */}
-        <div className="sticky bottom-0 bg-gray-100 px-6 py-4 border-t border-gray-200 rounded-b-xl flex justify-end items-center gap-4 shadow-inner">
-          <button
-            onClick={handleClose}
-            className="px-6 py-3 rounded-lg font-semibold text-gray-700 border border-gray-300 hover:bg-gray-200 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSaveQuiz}
-            disabled={
-              loading ||
-              sections.length === 0 ||
-              !quizData.quizTitle.trim() ||
-              getTotalQuestions() === 0
-            }
-            className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors shadow ${
-              loading ||
-              sections.length === 0 ||
-              !quizData.quizTitle.trim() ||
-              getTotalQuestions() === 0
-                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
-            }`}
-          >
-            <Save className="w-5 h-5" />
-            {loading
-              ? `${isEditMode ? "Updating" : "Creating"} Quiz...`
-              : `${isEditMode ? "Update" : "Create"} Quiz`}
-          </button>
         </div>
       </div>
 
@@ -705,13 +854,16 @@ const Quiz = ({
         />
       )}
 
-      <PopupAlert
-        message={popup.message}
-        type={popup.type}
-        isVisible={popup.isVisible}
-        onClose={handlePopupClose} // CHANGED: Use the new handler
-      />
-    </div>
+      {/* Enhanced Popup - Responsive */}
+      {popup.isVisible && popup.type !== "" && (
+        <EnhancedPopup
+          message={popup.message}
+          type={popup.type as "success" | "error" | "warning" | "info"}
+          isVisible={popup.isVisible}
+          onClose={handlePopupClose}
+        />
+      )}
+    </>
   );
 };
 
@@ -741,7 +893,7 @@ const SectionBuilder = ({ section, onSave, onClose }: SectionBuilderProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div className="fixed inset-0 z-60 flex items-center justify-center bg-transparent backdrop-blur-sm bg-opacity-50 p-4">
       <div className="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-lg overflow-auto max-h-[90vh]">
         <h3 className="text-lg font-semibold text-gray-900">
           {section ? "Edit Section" : "Add New Section"}
@@ -803,13 +955,30 @@ const QuestionBuilder = ({
   onClose,
 }: QuestionBuilderProps) => {
   const [questionText, setQuestionText] = useState(question?.question || "");
+  
+  // Convert question options to OptionType format
+  const convertToOptionType = (options: string[] | OptionType[]): OptionType[] => {
+    if (!options || options.length === 0) {
+      return [
+        { label: "A", text: "" },
+        { label: "B", text: "" },
+        { label: "C", text: "" },
+        { label: "D", text: "" },
+      ];
+    }
+    
+    if (typeof options[0] === 'string') {
+      return (options as string[]).map((text, index) => ({
+        label: String.fromCharCode(65 + index),
+        text: text,
+      }));
+    }
+    
+    return options as OptionType[];
+  };
+
   const [options, setOptions] = useState<OptionType[]>(
-    question?.options || [
-      { label: "A", text: "" },
-      { label: "B", text: "" },
-      { label: "C", text: "" },
-      { label: "D", text: "" },
-    ]
+    convertToOptionType(question?.options || [])
   );
   const [correctAnswer, setCorrectAnswer] = useState(
     question?.correctAnswer || ""
@@ -858,7 +1027,7 @@ const QuestionBuilder = ({
   };
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div className="fixed inset-0 z-60 flex items-center justify-center bg-transparent backdrop-blur-lg p-4">
       <div className="bg-white rounded-xl max-w-lg w-full p-6 space-y-4 shadow-lg overflow-auto max-h-[90vh]">
         <h3 className="text-lg font-semibold text-gray-900">
           {question ? "Edit Question" : "Add New Question"}
@@ -980,8 +1149,13 @@ const SectionCard = ({
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <button
-                onClick={onToggleExpanded}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onToggleExpanded();
+                }}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 focus:outline-none"
               >
                 {isExpanded ? (
                   <ChevronUp className="w-5 h-5" />
@@ -1007,21 +1181,36 @@ const SectionCard = ({
           </div>
           <div className="flex items-center gap-1 ml-4">
             <button
-              onClick={onAddQuestion}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onAddQuestion();
+              }}
               className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
               title="Add Question"
             >
               <Plus className="w-4 h-4" />
             </button>
             <button
-              onClick={onEditSection}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onEditSection();
+              }}
               className="p-2 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
               title="Edit Section"
             >
               <Edit2 className="w-4 h-4" />
             </button>
             <button
-              onClick={onDeleteSection}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDeleteSection();
+              }}
               className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               title="Delete Section"
             >
@@ -1039,7 +1228,12 @@ const SectionCard = ({
               <HelpCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 mb-3">No questions in this section</p>
               <button
-                onClick={onAddQuestion}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onAddQuestion();
+                }}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
@@ -1058,7 +1252,12 @@ const SectionCard = ({
                 />
               ))}
               <button
-                onClick={onAddQuestion}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onAddQuestion();
+                }}
                 className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-blue-600 hover:border-blue-300 transition-colors flex items-center justify-center gap-2"
               >
                 <Plus className="w-4 h-4" />
@@ -1095,8 +1294,13 @@ const QuestionCard = ({
               Question {index + 1}
             </span>
             <button
-              onClick={() => setShowPreview(!showPreview)}
-              className="text-gray-500 hover:text-blue-600"
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowPreview(!showPreview);
+              }}
+              className="text-gray-500 hover:text-blue-600 focus:outline-none"
               title="Preview Question"
               aria-label="Preview Question"
             >
@@ -1112,7 +1316,10 @@ const QuestionCard = ({
               <ul className="list-disc list-inside">
                 {question.options.map((option, optionIndex) => (
                   <li key={optionIndex} className="text-gray-700">
-                    {option.label}: {option.text}
+                    {typeof option === 'string' 
+                      ? `${String.fromCharCode(65 + optionIndex)}: ${option}`
+                      : `${option.label}: ${option.text}`
+                    }
                   </li>
                 ))}
               </ul>
@@ -1124,14 +1331,24 @@ const QuestionCard = ({
         </div>
         <div className="flex items-center gap-1 ml-4">
           <button
-            onClick={onEdit}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onEdit();
+            }}
             className="p-2 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
             title="Edit Question"
           >
             <Edit2 className="w-4 h-4" />
           </button>
           <button
-            onClick={onDelete}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
             className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             title="Delete Question"
           >

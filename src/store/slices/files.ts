@@ -151,7 +151,14 @@ export const updateFile = createAsyncThunk(
 const filesSlice = createSlice({
   name: "files",
   initialState,
-  reducers: {},
+  reducers: {
+    clearFileState: (state) => {
+      state.error = null;
+      state.success = false;
+      state.uploading = false;
+      state.data = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(uploadFile.pending, (state) => {
@@ -190,7 +197,7 @@ const filesSlice = createSlice({
       })
       .addCase(fetchFileById.fulfilled, (state, action) => {
         state.uploading = false;
-        state.success = true;
+        state.success = false; // Don't set success for fetch operations
         state.data = action.payload;
       })
       .addCase(fetchFileById.rejected, (state, action) => {
@@ -201,4 +208,5 @@ const filesSlice = createSlice({
   },
 });
 
+export const { clearFileState } = filesSlice.actions;
 export default filesSlice.reducer;

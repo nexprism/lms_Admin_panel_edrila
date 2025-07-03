@@ -1,12 +1,107 @@
-import React, { useState, useRef, useEffect, use } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createTextLesson,
   fetchTextLessonById,
   updateTextLesson,
-} from "../../../store/slices/textLesson"; // Adjust import path as needed
+} from "../../../store/slices/textLesson";
 import PopupAlert from "../../../components/popUpAlert";
-const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:5000/";
+import QuillEditor from "../../../components/QuillEditor";
+import { 
+  BookOpen, 
+  Type, 
+  FileText, 
+  Upload, 
+  Save, 
+  X, 
+  Globe, 
+  Lock, 
+  Eye, 
+  EyeOff,
+  Paperclip,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  Sparkles,
+  Clock,
+  Menu
+} from "lucide-react";
+
+// Enhanced popup component similar to Files component
+const EnhancedPopup = ({ isVisible, message, type, onClose, autoClose = true }) => {
+  useEffect(() => {
+    if (isVisible && autoClose && type === "success") {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, autoClose, type, onClose]);
+
+  if (!isVisible) return null;
+
+  const getTypeStyles = () => {
+    switch (type) {
+      case "success":
+        return "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 text-green-800";
+      case "error":
+        return "bg-gradient-to-r from-red-50 to-rose-50 border-red-200 text-red-800";
+      case "warning":
+        return "bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200 text-amber-800";
+      case "info":
+        return "bg-gradient-to-r from-blue-50 to-sky-50 border-blue-200 text-blue-800";
+      default:
+        return "bg-gray-50 border-gray-200 text-gray-800";
+    }
+  };
+
+  const getIcon = () => {
+    switch (type) {
+      case "success":
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case "error":
+        return <AlertCircle className="w-5 h-5 text-red-600" />;
+      case "warning":
+        return <AlertCircle className="w-5 h-5 text-amber-600" />;
+      case "info":
+        return <AlertCircle className="w-5 h-5 text-blue-600" />;
+      default:
+        return <AlertCircle className="w-5 h-5 text-gray-600" />;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 md:pt-20">
+      <div className={`w-full max-w-sm md:max-w-md rounded-xl border-2 p-4 md:p-6 shadow-xl transform transition-all duration-300 scale-100 ${getTypeStyles()}`}>
+        <div className="flex items-start gap-3 md:gap-4">
+          <div className="flex-shrink-0">
+            {getIcon()}
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium leading-relaxed">
+              {message}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        
+        {type === "success" && (
+          <div className="mt-4 bg-white bg-opacity-60 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-xs text-green-700">
+              <Clock className="w-4 h-4" />
+              <span>Lesson saved successfully</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const TextLessonEditor = ({
   section,
@@ -17,6 +112,16 @@ const TextLessonEditor = ({
   textLessonId,
   onClose,
 }) => {
+  console.log("TextLessonEditor props:", {
+    section,
+    lesson,
+    onChange: !!onChange,
+    courseId,
+    lessonId,
+    textLessonId,
+    onClose: !!onClose
+  });
+
   const dispatch = useDispatch();
   const { loading, error, data } = useSelector((state) => state.textLesson);
   const [popup, setPopup] = useState({
@@ -41,89 +146,60 @@ const TextLessonEditor = ({
   const [dropContent, setDropContent] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const quillRef = useRef(null);
-  const editorRef = useRef(null);
+  const [content, setContent] = useState("");
 
-  const getData = async () => {
+  const getData = useCallback(async () => {
     try {
-      if (textLessonId) {
+      console.log("getData called - textLessonId:", textLessonId);
+      console.log("textLessonId type:", typeof textLessonId);
+      console.log("textLessonId truthy:", !!textLessonId);
+      
+      if (textLessonId && textLessonId !== 'undefined' && textLessonId !== '') {
         setIsEditMode(true);
-        const response = await dispatch(
+        console.log("Attempting to fetch text lesson data for ID:", textLessonId);
+        
+        const response = await (dispatch as any)(
           fetchTextLessonById(textLessonId)
         ).unwrap();
-        const data = response.data;
-        setFormData({
-          language: data.language,
-          title: data.title,
-          bookTitle: data.bookTitle,
-          accessibility: data.accessibility,
-          attachments: data.attachments,
-          summary: data.summary,
-        });
-
-        editorRef.current.innerHTML = data.content || "";
-        console.log("Fetched text lesson data:", response);
+        
+        console.log("Fetch response:", response);
+        const data = response?.data || response;
+        
+        if (data) {
+          setFormData({
+            language: data.language || "English",
+            title: data.title || "",
+            bookTitle: data.bookTitle || data.subTitle || "",
+            accessibility: data.accessibility || "free",
+            attachments: data.attachments || [],
+            summary: data.summary || "",
+            content: data.content || "",
+          });
+          console.log("Form data updated:", data);
+        } else {
+          console.warn("No data received from API");
+        }
+      } else {
+        console.log("No textLessonId provided or invalid, staying in create mode");
+        setIsEditMode(false);
       }
     } catch (error) {
       console.error("Error fetching text lesson data:", error);
+      setPopup({
+        isVisible: true,
+        message: "Failed to load lesson data. Please try again.",
+        type: "error",
+      });
     }
-  };
+  }, [textLessonId, dispatch]);
 
   useEffect(() => {
+    console.log("useEffect triggered - textLessonId:", textLessonId);
     getData();
-  }, [textLessonId]);
-  useEffect(() => {
-    // Load Quill dynamically
-    const loadQuill = async () => {
-      if (typeof window !== "undefined" && !window.Quill) {
-        // Load Quill CSS
-        const link = document.createElement("link");
-        link.href =
-          "https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css";
-        link.rel = "stylesheet";
-        document.head.appendChild(link);
-
-        // Load Quill JS
-        const script = document.createElement("script");
-        script.src =
-          "https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js";
-        script.onload = initializeQuill;
-        document.head.appendChild(script);
-      } else if (window.Quill) {
-        initializeQuill();
-      }
-    };
-
-    const initializeQuill = () => {
-      if (editorRef.current && !quillRef.current) {
-        quillRef.current = new window.Quill(editorRef.current, {
-          theme: "snow",
-          placeholder: "Start writing your lesson content...",
-          modules: {
-            toolbar: [
-              [{ header: [1, 2, 3, false] }],
-              ["bold", "italic", "underline", "strike"],
-              [{ color: [] }, { background: [] }],
-              [{ list: "ordered" }, { list: "bullet" }],
-              [{ align: [] }],
-              ["link", "image", "video"],
-              ["blockquote", "code-block"],
-              [{ script: "sub" }, { script: "super" }],
-              ["clean"],
-            ],
-          },
-        });
-
-        quillRef.current.on("text-change", () => {
-          const content = quillRef.current.root.innerHTML;
-          setFormData((prev) => ({ ...prev, content }));
-        });
-      }
-    };
-
-    loadQuill();
-  }, []);
+  }, [getData]);
 
   // Clear success message after 3 seconds
   useEffect(() => {
@@ -147,9 +223,11 @@ const TextLessonEditor = ({
 
     if (field === "title") {
       setTitleCharCount(value.length);
-    } else if (field === "bookTitle") {
-      setBookTitleCharCount(value.length);
     }
+  };
+
+  const handleContentChange = (content) => {
+    setFormData((prev) => ({ ...prev, content }));
   };
 
   const handleFileUpload = (event) => {
@@ -173,7 +251,6 @@ const TextLessonEditor = ({
       const apiFormData = new FormData();
 
       // Append basic form fields
-
       apiFormData.append("language", formData.language);
       apiFormData.append("title", formData.title);
       apiFormData.append("subTitle", formData.bookTitle);
@@ -231,360 +308,301 @@ const TextLessonEditor = ({
       content: "",
     });
     setTitleCharCount(0);
-    setBookTitleCharCount(0);
-    onClose();
-    if (quillRef.current) {
-      quillRef.current.setContents([]);
-    }
+    if (onClose) onClose();
   };
 
   return (
-    <div className="min-h-fit bg-gray-50 py-8 px-4">
-      <div className=" mx-auto bg-white  rounded-lg max-h-[60vh] overflow-scroll hide-scrollbar">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-6 h-6 bg-gray-200 rounded flex items-center justify-center">
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                <path
-                  fillRule="evenodd"
-                  d="M4 5a2 2 0 012-2v1a1 1 0 001 1h6a1 1 0 001-1V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <h1 className="text-lg font-semibold text-gray-900">
-              Add new text lesson
-            </h1>
-          </div>
-        </div>
-
-        {/* Success/Error Messages */}
-        {saveSuccess && (
-          <div className="bg-green-50 border-l-4 border-green-400 p-4 mx-6 mt-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-green-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
+    <>
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mx-h-[700px]">
+        {/* Enhanced Header - Responsive */}
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 sm:p-6 text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold">
+                    {isEditMode ? "Edit Text Lesson" : "Create New Text Lesson"}
+                  </h2>
+                  <p className="text-blue-100 text-xs sm:text-sm mt-1 hidden sm:block">
+                    {isEditMode ? "Update lesson content and settings" : "Design engaging text-based learning content"}
+                  </p>
+                </div>
+              </div>
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center hover:bg-opacity-30 transition-all duration-200"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-green-700">
-                  Lesson saved successfully!
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 mx-6 mt-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">Error: {error}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Form Content */}
-        <div className="p-6 space-y-6">
-          {/* Language */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Language
-            </label>
-            <select
-              value={formData.language}
-              onChange={(e) => handleInputChange("language", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              disabled={loading}
-            >
-              <option value="English">English</option>
-              <option value="Spanish">Hindi</option>
-            </select>
-          </div>
-
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Title
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => handleInputChange("title", e.target.value)}
-              placeholder="Between 255 characters"
-              maxLength={255}
-              disabled={loading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-            />
-            <div className="text-xs text-gray-500 text-right mt-1">
-              {titleCharCount}/255
+                  <X className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Book Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Sub Title
-            </label>
-            <input
-              type="text"
-              value={formData.bookTitle}
-              onChange={(e) => handleInputChange("bookTitle", e.target.value)}
-              placeholder="+"
-              disabled={loading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-            />
-          </div>
-
-          {/* Accessibility */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Accessibility
-            </label>
-            <div className="flex gap-6">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="accessibility"
-                  value="free"
-                  checked={formData.accessibility === "free"}
-                  onChange={(e) =>
-                    handleInputChange("accessibility", e.target.value)
-                  }
-                  disabled={loading}
-                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 disabled:opacity-50"
-                />
-                <span className="ml-2 text-sm text-gray-700">Free</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="accessibility"
-                  value="paid"
-                  checked={formData.accessibility === "paid"}
-                  onChange={(e) =>
-                    handleInputChange("accessibility", e.target.value)
-                  }
-                  disabled={loading}
-                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 disabled:opacity-50"
-                />
-                <span className="ml-2 text-sm text-gray-700">Paid</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Attachments */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Attachments
-            </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-              <input
-                type="file"
-                multiple
-                onChange={handleFileUpload}
-                disabled={loading}
-                className="hidden"
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className={`cursor-pointer flex flex-col items-center justify-center text-gray-500 hover:text-gray-700 ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                <svg
-                  className="w-8 h-8 mb-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
-                <span className="text-sm">
-                  Choose related files or lesson attachments.
-                </span>
-              </label>
-            </div>
-
-            {formData.attachments.length > 0 && (
-              <div className="mt-3 space-y-2">
-                {formData.attachments.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between bg-gray-50 p-2 rounded"
+          {/* Content - Responsive */}
+          <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-h-[700px] overflow-scroll">
+            {/* Mobile/Tablet responsive grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+              {/* Left Column */}
+              <div className="space-y-4 sm:space-y-6">
+                {/* Language Selection */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <Globe className="w-4 h-4" />
+                    Language
+                  </label>
+                  <select
+                    value={formData.language}
+                    onChange={(e) => handleInputChange("language", e.target.value)}
+                    className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm sm:text-base"
+                    disabled={loading}
                   >
-                    <a
-                      href={`${baseUrl}/uploads/${file.name}` || file.fileName}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1"
-                    >
-                      <span className="text-sm text-gray-700">
-                        {file.name || file.fileName}
-                      </span>
-                    </a>
-                    <button
-                      onClick={() => removeAttachment(index)}
+                    <option value="English">English</option>
+                    <option value="Hindi">Hindi</option>
+                  </select>
+                </div>
+
+                {/* Title */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <Type className="w-4 h-4" />
+                    Lesson Title *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => handleInputChange("title", e.target.value)}
+                      placeholder="Enter an engaging lesson title"
+                      maxLength={255}
                       disabled={loading}
-                      className="text-red-500 hover:text-red-700 disabled:opacity-50"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 pr-12 sm:pr-16 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 disabled:bg-gray-50 text-sm sm:text-base"
+                    />
+                    <div className="absolute right-3 top-2 sm:top-3 text-xs text-gray-400">
+                      {titleCharCount}/255
+                    </div>
                   </div>
-                ))}
+                </div>
+
+                {/* Sub Title */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <FileText className="w-4 h-4" />
+                    Sub Title
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.bookTitle}
+                    onChange={(e) => handleInputChange("bookTitle", e.target.value)}
+                    placeholder="Optional subtitle or description"
+                    disabled={loading}
+                    className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 disabled:bg-gray-50 text-sm sm:text-base"
+                  />
+                </div>
+
+                {/* Accessibility - Responsive */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <Lock className="w-4 h-4" />
+                    Access Level
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <label className="relative">
+                      <input
+                        type="radio"
+                        name="accessibility"
+                        value="free"
+                        checked={formData.accessibility === "free"}
+                        onChange={(e) => handleInputChange("accessibility", e.target.value)}
+                        disabled={loading}
+                        className="sr-only"
+                      />
+                      <div className={`p-3 sm:p-4 border-2 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 ${
+                        formData.accessibility === "free"
+                          ? "border-green-500 bg-green-50 text-green-700"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}>
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <div>
+                            <div className="font-semibold text-sm sm:text-base">Free Access</div>
+                            <div className="text-xs opacity-70">Available to everyone</div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <label className="relative">
+                      <input
+                        type="radio"
+                        name="accessibility"
+                        value="paid"
+                        checked={formData.accessibility === "paid"}
+                        onChange={(e) => handleInputChange("accessibility", e.target.value)}
+                        disabled={loading}
+                        className="sr-only"
+                      />
+                      <div className={`p-3 sm:p-4 border-2 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 ${
+                        formData.accessibility === "paid"
+                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}>
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <div>
+                            <div className="font-semibold text-sm sm:text-base">Premium</div>
+                            <div className="text-xs opacity-70">Requires enrollment</div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
 
-          {/* Summary */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Summary
-            </label>
-            <textarea
-              value={formData.summary}
-              onChange={(e) => handleInputChange("summary", e.target.value)}
-              rows={4}
-              disabled={loading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:bg-gray-100"
-              placeholder="Write a brief summary of the lesson..."
-            />
-          </div>
+              {/* Right Column */}
+              <div className="space-y-4 sm:space-y-6">
+                {/* Attachments */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <Paperclip className="w-4 h-4" />
+                    Attachments
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl p-4 sm:p-6 bg-gray-50 hover:bg-gray-100 transition-all duration-200">
+                    <input
+                      type="file"
+                      multiple
+                      onChange={handleFileUpload}
+                      disabled={loading}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className={`cursor-pointer flex flex-col items-center justify-center text-gray-500 hover:text-gray-700 ${
+                        loading ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <Upload className="w-6 h-6 sm:w-8 sm:h-8 mb-2 sm:mb-3 text-blue-500" />
+                      <span className="text-sm font-medium">Choose Files</span>
+                      <span className="text-xs text-gray-400 mt-1 text-center">
+                        Upload related documents or resources
+                      </span>
+                    </label>
+                  </div>
 
-          {/* Content */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Content
-            </label>
-            <div
-              className={`border border-gray-300 rounded-md overflow-hidden ${
-                loading ? "opacity-50" : ""
-              }`}
-            >
-              <div ref={editorRef} style={{ minHeight: "300px" }} />
+                  {formData.attachments.length > 0 && (
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {formData.attachments.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-lg shadow-sm"
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                            <span className="text-sm text-gray-700 truncate">
+                              {file.name || file.fileName}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => removeAttachment(index)}
+                            disabled={loading}
+                            className="text-red-500 hover:text-red-700 disabled:opacity-50 p-1 rounded flex-shrink-0"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              
+              </div>
+            </div>
+
+            {/* Summary - Full width on mobile */}
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <FileText className="w-4 h-4" />
+                Lesson Summary
+              </label>
+              <textarea
+                value={formData.summary}
+                onChange={(e) => handleInputChange("summary", e.target.value)}
+                rows={4}
+                disabled={loading}
+                className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:bg-gray-50 transition-all duration-200 text-sm sm:text-base"
+                placeholder="Write a brief summary that will help students understand what they'll learn..."
+              />
+            </div>
+
+            {/* Content Editor - Responsive height */}
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <BookOpen className="w-4 h-4" />
+                Lesson Content *
+              </label>
+              <div className="min-h-[300px] sm:min-h-[400px]">
+                <QuillEditor
+                  value={formData.content}
+                  onChange={(content) => handleInputChange("content", content)}
+                  placeholder="Start writing your lesson content..."
+                  height="300px"
+                  toolbar="full"
+                  className={loading ? "opacity-50 pointer-events-none" : ""}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={archive}
-                  onChange={(e) => setArchive(e.target.checked)}
-                  disabled={loading}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50"
-                />
-                <span className="ml-2 text-sm text-gray-700">Active</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={dropContent}
-                  onChange={(e) => setDropContent(e.target.checked)}
-                  disabled={loading}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50"
-                />
-                <span className="ml-2 text-sm text-gray-700">Drip content</span>
-              </label>
-            </div>
-
-            <div className="flex gap-3">
-              <div
-                onClick={handleCancel}
-                disabled={loading}
-                className="px-4 cursor-pointer py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
+          {/* Enhanced Footer - Responsive */}
+          <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="text-sm text-gray-600 order-2 sm:order-1">
+                <span className="text-red-500">*</span> Required fields
               </div>
-              <button
-                onClick={handleSave}
-                disabled={loading}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {loading && (
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                )}
-                {loading ? "Saving..." : "Save"}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 order-1 sm:order-2">
+                <button
+                  onClick={handleCancel}
+                  disabled={loading}
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={loading}
+                  className="w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 border border-transparent rounded-lg sm:rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin h-4 w-4" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>{isEditMode ? "Update Lesson" : "Create Lesson"}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <PopupAlert
+
+      {/* Enhanced Popup - Responsive */}
+      <EnhancedPopup
         message={popup.message}
         type={popup.type}
         isVisible={popup.isVisible}
-        onClose={() => setPopup({ ...popup, isVisible: false })}
+        onClose={() => setPopup({ isVisible: false, message: "", type: "" })}
       />
-    </div>
+    </>
   );
 };
 
