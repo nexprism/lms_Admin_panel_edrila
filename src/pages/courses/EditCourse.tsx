@@ -891,7 +891,7 @@ type="number"
                             <div>
                               <h4 className="text-sm font-medium text-gray-700 mb-2">Current Thumbnail</h4>
                               <img
-                                src={`${baseUrl}${formData.thumbnail}`}
+                                src={`${baseUrl}/${formData.thumbnail}`}
                                 alt="Current thumbnail"
                                 className="w-full h-40 object-cover rounded-lg border"
                               />
@@ -901,7 +901,7 @@ type="number"
                             <div>
                               <h4 className="text-sm font-medium text-gray-700 mb-2">Current Cover Image</h4>
                               <img
-                                src={`${baseUrl}${formData.coverImage}`}
+                                src={`${baseUrl}/${formData.coverImage}`}
                                 alt="Current cover"
                                 className="w-full h-40 object-cover rounded-lg border"
                               />
