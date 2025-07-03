@@ -44,84 +44,74 @@ const BundleList: React.FC = () => {
   const dispatch = useAppDispatch();
   const { loading, error, data } = useAppSelector((state) => state.courseBundle);
 
-  // Local state for UI management
+  // State for search, filter, pagination
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
-  // Fetch bundles on component mount
+  // Debounce search
   useEffect(() => {
-    dispatch(fetchCourseBundles());
-  }, [dispatch]);
+    const timer = setTimeout(() => {
+      dispatch(fetchCourseBundles({ page, limit }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [dispatch, page, limit, searchInput, statusFilter]);
 
-  // Filter and search bundles - FIXED
-  const filteredBundles = React.useMemo(() => {
-    console.log("Filtering bundles with search:", searchInput, "and status:", statusFilter);
-    console.log("Raw data:", data); // Debug log
-    
-    // Handle different possible data structures
-    const bundles = Array.isArray(data) ? data : (data?.bundles || data?.data || []);
-    
-    if (!bundles || !Array.isArray(bundles)) {
-      console.log("No valid bundles array found");
-      return [];
-    }
-    
-    let filtered = bundles.filter((bundle: Bundle) => !bundle.isDeleted);
+  // Fetch on mount
+  useEffect(() => {
+    dispatch(fetchCourseBundles({ page, limit }));
+  }, [dispatch, page, limit]);
 
-    // Apply search filter
-    if (searchInput.trim()) {
-      filtered = filtered.filter((bundle: Bundle) =>
-        bundle.title.toLowerCase().includes(searchInput.toLowerCase()) ||
-        bundle.description.toLowerCase().includes(searchInput.toLowerCase())
-      );
-    }
-
-    // Apply status filter
-    if (statusFilter) {
-      filtered = filtered.filter((bundle: Bundle) => bundle.status === statusFilter);
-    }
-
-    console.log("Filtered bundles:", filtered); // Debug log
-    return filtered;
-  }, [data, searchInput, statusFilter]); // FIXED: Use 'data' instead of 'data?.bundles'
-
-  // Pagination logic
-  const totalItems = filteredBundles.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentBundles = filteredBundles.slice(startIndex, endIndex);
+  // Extract bundles from the correct data structure
+  const bundles: Bundle[] = Array.isArray(data?.bundles) ? data.bundles : [];
+  console.log("Fetched bundles:", bundles);
+  
+  const pagination = {
+    total: data?.total || 0,
+    page: data?.page || 1,
+    limit: data?.limit || 10,
+    totalPages: data?.totalPages || 1,
+  };
 
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPage(newPage);
     }
   };
 
   const handleLimitChange = (newLimit: number) => {
-    setItemsPerPage(newLimit);
-    setCurrentPage(1);
+    setLimit(newLimit);
+    setPage(1);
   };
 
   const handleResetFilters = () => {
     setSearchInput("");
     setStatusFilter("");
-    setCurrentPage(1);
+    setPage(1);
+    setLimit(10);
   };
+
+  const filteredBundles = bundles?.filter((bundle: Bundle) => {
+    const matchesSearch =
+      !searchInput ||
+      bundle.title.toLowerCase().includes(searchInput.toLowerCase()) ||
+      bundle.description.toLowerCase().includes(searchInput.toLowerCase());
+    const matchesStatus =
+      !statusFilter || bundle.status === statusFilter;
+    return matchesSearch && matchesStatus && !bundle.isDeleted;
+  });
 
   const generatePageNumbers = () => {
     const pages = [];
+    const totalPages = pagination.totalPages;
+    const current = pagination.page;
     const maxPages = 5;
-
-    const start = Math.max(1, currentPage - Math.floor(maxPages / 2));
+    const start = Math.max(1, current - Math.floor(maxPages / 2));
     const end = Math.min(totalPages, start + maxPages - 1);
-
-    if (start > 1) pages.push(1, '...');
+    if (start > 1) pages.push(1, "...");
     for (let i = start; i <= end; i++) pages.push(i);
-    if (end < totalPages) pages.push('...', totalPages);
-
+    if (end < totalPages) pages.push("...", totalPages);
     return pages;
   };
 
@@ -145,12 +135,6 @@ const BundleList: React.FC = () => {
     }
   };
 
-  // Debug logging
-  useEffect(() => {
-    console.log("Component state:", { loading, error, data });
-    console.log("Filtered bundles count:", filteredBundles.length);
-  }, [loading, error, data, filteredBundles.length]);
-
   return (
     <div>
       <PageMeta
@@ -161,7 +145,7 @@ const BundleList: React.FC = () => {
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">Course Bundles</h1>
-          <span className="text-gray-500 text-sm dark:text-gray-400">Total: {totalItems}</span>
+          <span className="text-gray-500 text-sm dark:text-gray-400">Total: {pagination.total}</span>
         </div>
 
         {/* Search & Filter */}
@@ -178,31 +162,17 @@ const BundleList: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5 text-gray-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-              >
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="draft">Draft</option>
-              </select>
-            </div>
 
             <div className="flex items-center gap-2">
               <span className="text-sm dark:text-gray-300">Show:</span>
               <select
-                value={itemsPerPage}
+                value={limit}
                 onChange={(e) => handleLimitChange(Number(e.target.value))}
                 className="border border-gray-300 rounded-md px-3 py-2 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={20}>20</option>
-                <option value={50}>50</option>
               </select>
             </div>
 
@@ -246,33 +216,20 @@ const BundleList: React.FC = () => {
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">#</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Thumbnail</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Title</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Courses</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Price</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Students</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Created</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
-                {currentBundles.map((bundle: Bundle, idx: number) => (
+                {filteredBundles.map((bundle: Bundle, idx: number) => (
                   <tr key={bundle._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                     <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                      {startIndex + idx + 1}
+                      {(pagination.page - 1) * pagination.limit + idx + 1}
                     </td>
-                    <td className="px-6 py-4">
-                      <img
-                        src={
-                          bundle?.thumbnail
-                            ? `${import.meta.env.VITE_IMAGE_URL}/${bundle.thumbnail}`
-                            : `https://placehold.co/40x40?text=${bundle?.title?.charAt(0) || "B"}`
-                        }
-                        alt={bundle?.thumbnail ? bundle?.title : "No image"}
-                        className="w-10 h-10 rounded-lg object-cover"
-                      />
-                    </td>
+                 
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">{bundle.title}</div>
                       <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
@@ -295,17 +252,7 @@ const BundleList: React.FC = () => {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                      <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        {bundle.totalStudents || 0}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <span className={`capitalize ${getStatusColor(bundle.status)}`}>
-                        {bundle.status}
-                      </span>
-                    </td>
+                  
                     <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {new Date(bundle.createdAt).toLocaleDateString()}
                     </td>
@@ -333,41 +280,41 @@ const BundleList: React.FC = () => {
         )}
 
         {/* Pagination */}
-        {!loading && totalPages > 1 && (
+        {!loading && pagination.totalPages > 1 && (
           <div className="flex justify-between items-center mt-6">
             <div className="text-sm text-gray-700 dark:text-gray-300">
-              Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} results
+              Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} results
             </div>
             <div className="flex gap-2">
               <button 
-                onClick={() => handlePageChange(currentPage - 1)} 
-                disabled={currentPage === 1}
+                onClick={() => handlePageChange(pagination.page - 1)} 
+                disabled={pagination.page === 1}
                 className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              {generatePageNumbers().map((page, idx) =>
-                typeof page === "number" ? (
+              {generatePageNumbers().map((pageNum, idx) =>
+                typeof pageNum === "number" ? (
                   <button
                     key={idx}
-                    onClick={() => handlePageChange(page)}
+                    onClick={() => handlePageChange(pageNum)}
                     className={`px-3 py-1 rounded ${
-                      currentPage === page 
+                      pagination.page === pageNum 
                         ? "bg-indigo-500 text-white" 
                         : "bg-gray-100 dark:bg-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
                     }`}
                   >
-                    {page}
+                    {pageNum}
                   </button>
                 ) : (
                   <span key={idx} className="px-2 text-gray-400 dark:text-gray-500">
-                    {page}
+                    {pageNum}
                   </span>
                 )
               )}
               <button 
-                onClick={() => handlePageChange(currentPage + 1)} 
-                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(pagination.page + 1)} 
+                disabled={pagination.page === pagination.totalPages}
                 className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 <ChevronRight className="w-5 h-5" />

@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchCourses } from '../../store/slices/course';
 import { fetchCourseBundleById, updateCourseBundle } from '../../store/slices/courseBundle';
 import { RootState } from '../../hooks/redux';
-import { ChevronDown, X, Check } from 'lucide-react';
+import QuillEditor from '../../components/QuillEditor';
+import { ChevronDown, X, Check, CheckCircle, XCircle } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { AppDispatch } from '../../store';
 
@@ -22,7 +23,7 @@ const MultiSelectDropdown = ({ courses, selectedCourses, onChange, loading }) =>
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const filteredCourses = courses?.data?.filter(course =>
+    const filteredCourses = courses?.courses?.filter(course =>
         (course.title || course.name || '').toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
 
@@ -42,7 +43,7 @@ const MultiSelectDropdown = ({ courses, selectedCourses, onChange, loading }) =>
             <div className="mb-2">
                 <div className="flex flex-wrap gap-2">
                     {selectedCourses.map(courseId => {
-                        const course = courses?.data?.find(c => (c._id || c.id) === courseId);
+                        const course = courses?.courses?.find((c: any) => (c._id || c.id) === courseId);
                         const courseName = course?.title || course?.name || 'Unknown Course';
                         return (
                             <span
@@ -126,6 +127,46 @@ const MultiSelectDropdown = ({ courses, selectedCourses, onChange, loading }) =>
     );
 };
 
+// Custom Popup Component
+const CustomPopup = ({ popup, onClose }: { 
+    popup: { show: boolean; type: 'success' | 'error'; title: string; message: string; }; 
+    onClose: () => void; 
+}) => {
+    if (!popup.show) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+                <div className="flex items-center mb-4">
+                    {popup.type === 'success' ? (
+                        <CheckCircle className="w-6 h-6 text-green-600 mr-3" />
+                    ) : (
+                        <XCircle className="w-6 h-6 text-red-600 mr-3" />
+                    )}
+                    <h3 className={`text-lg font-semibold ${
+                        popup.type === 'success' ? 'text-green-800' : 'text-red-800'
+                    }`}>
+                        {popup.title}
+                    </h3>
+                </div>
+                <p className="text-gray-600 mb-6">{popup.message}</p>
+                <div className="flex justify-end">
+                    <button
+                        onClick={onClose}
+                        className={`px-4 py-2 rounded-md font-medium ${
+                            popup.type === 'success'
+                                ? 'bg-green-600 hover:bg-green-700'
+                                : 'bg-red-600 hover:bg-red-700'
+                        } text-white transition duration-200`}
+                    >
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const EditBundleForm = () => {
     const dispatch: AppDispatch = useDispatch();
     const navigate = useNavigate();
@@ -143,6 +184,19 @@ const EditBundleForm = () => {
     
     console.log('Courses data:', courses);
     console.log('Bundle data:', bundleData);
+
+    // Popup state
+    const [popup, setPopup] = useState<{
+        show: boolean;
+        type: 'success' | 'error';
+        title: string;
+        message: string;
+    }>({
+        show: false,
+        type: 'success',
+        title: '',
+        message: ''
+    });
 
     const [formData, setFormData] = useState({
         title: '',
@@ -167,10 +221,7 @@ const EditBundleForm = () => {
 
     const [files, setFiles] = useState({
         thumbnail: null,
-        banner: null,
-        video: null,
-        attachmentFile: null,
-        documentFile: null
+        banner: null
     });
 
     const [selectedCourses, setSelectedCourses] = useState([]);
@@ -178,7 +229,7 @@ const EditBundleForm = () => {
     // Fetch courses and bundle data
     useEffect(() => {
         console.log('Fetching courses...');
-        dispatch(fetchCourses());
+        dispatch(fetchCourses({ page: 1, limit: 100 })); // Fetch more courses for dropdown
         
         if (id && id !== 'undefined') {
             console.log('Fetching bundle with ID:', id);
@@ -241,12 +292,22 @@ const EditBundleForm = () => {
 
     const handleSubmit = async () => {
         if (!id || id === 'undefined') {
-            alert('Bundle ID is missing. Cannot update bundle.');
+            setPopup({
+                show: true,
+                type: 'error',
+                title: 'Error!',
+                message: 'Bundle ID is missing. Cannot update bundle.'
+            });
             return;
         }
 
         if (selectedCourses.length === 0) {
-            alert('Please select at least one course.');
+            setPopup({
+                show: true,
+                type: 'error',
+                title: 'Error!',
+                message: 'Please select at least one course.'
+            });
             return;
         }
 
@@ -281,13 +342,30 @@ const EditBundleForm = () => {
         });
 
         try {
-            // You might need to create an updateCourseBundle action instead of using createCourseBundle
             await dispatch(updateCourseBundle({ id, formData: bundleFormData })).unwrap();
-            alert('Bundle updated successfully!');
-            navigate('/bundles/all');
-        } catch (error) {
+            
+            // Show success popup
+            setPopup({
+                show: true,
+                type: 'success',
+                title: 'Success!',
+                message: 'Bundle updated successfully!'
+            });
+            
+            // Navigate after a short delay
+            setTimeout(() => {
+                navigate('/bundles/all');
+            }, 2000);
+        } catch (error: any) {
             console.error('Error updating bundle:', error);
-            alert('Error updating bundle. Please try again.');
+            
+            // Show error popup
+            setPopup({
+                show: true,
+                type: 'error',
+                title: 'Error!',
+                message: error?.message || 'Error updating bundle. Please try again.'
+            });
         }
     };
 
@@ -379,13 +457,12 @@ const EditBundleForm = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                         Description
                     </label>
-                    <textarea
-                        name="description"
+                    <QuillEditor
                         value={formData.description}
-                        onChange={handleInputChange}
-                        rows={4}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(value: string) => setFormData(prev => ({ ...prev, description: value }))}
                         placeholder="This bundle includes beginner to advanced courses..."
+                        height="200px"
+                        toolbar="full"
                     />
                 </div>
                 
@@ -494,7 +571,17 @@ const EditBundleForm = () => {
                             accept="image/*"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
+                        {(files.thumbnail || bundleData?.thumbnail) && (
+                            <div className="mt-2">
+                                <img
+                                    src={files.thumbnail ? URL.createObjectURL(files.thumbnail) : `${import.meta.env.VITE_IMAGE_URL}/${bundleData?.thumbnail}`}
+                                    alt="Thumbnail preview"
+                                    className="w-32 h-20 object-cover rounded-md border"
+                                />
+                            </div>
+                        )}
                     </div>
+                    
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Banner
@@ -506,43 +593,15 @@ const EditBundleForm = () => {
                             accept="image/*"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                    </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Video
-                        </label>
-                        <input
-                            type="file"
-                            name="video"
-                            onChange={handleFileChange}
-                            accept="video/*"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Attachment File
-                        </label>
-                        <input
-                            type="file"
-                            name="attachmentFile"
-                            onChange={handleFileChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Document File
-                        </label>
-                        <input
-                            type="file"
-                            name="documentFile"
-                            onChange={handleFileChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                        {(files.banner || bundleData?.banner) && (
+                            <div className="mt-2">
+                                <img
+                                    src={files.banner ? URL.createObjectURL(files.banner) : `${import.meta.env.VITE_IMAGE_URL}/${bundleData?.banner}`}
+                                    alt="Banner preview"
+                                    className="w-32 h-20 object-cover rounded-md border"
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
                 
@@ -553,7 +612,7 @@ const EditBundleForm = () => {
                                 type="checkbox"
                                 name={field}
                                 id={field}
-                                checked={formData[field]}
+                                checked={(formData as any)[field]}
                                 onChange={handleInputChange}
                                 className="mr-2"
                             />
@@ -629,6 +688,12 @@ const EditBundleForm = () => {
                     </button>
                 </div>
             </div>
+            
+            {/* Custom Popup */}
+            <CustomPopup 
+                popup={popup} 
+                onClose={() => setPopup(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 };
