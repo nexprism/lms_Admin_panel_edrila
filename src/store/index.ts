@@ -17,6 +17,7 @@ import anayltics from "./slices/anayltics";
 import plans from "./slices/plans";
 import studentsSlice from "./slices/students";
 import Support from "./slices/support";
+import dashboardReducer from "./slices/dashboard";
 
 export const store = configureStore({
   reducer: {
@@ -37,6 +38,7 @@ export const store = configureStore({
     plan: plans,
     students: studentsSlice,
     support: Support,
+    dashboard: dashboardReducer,
 
   },
   middleware: (getDefaultMiddleware) =>
