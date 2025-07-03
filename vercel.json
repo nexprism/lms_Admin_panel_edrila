@@ -1,7 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "SKIP_PREFLIGHT_CHECK=true npm run build",
   "outputDirectory": "dist",
+  "env": {
+    "SKIP_PREFLIGHT_CHECK": "true",
+    "CI": "false",
+    "GENERATE_SOURCEMAP": "false"
+  },
   "routes": [
     {
       "handle": "filesystem"
