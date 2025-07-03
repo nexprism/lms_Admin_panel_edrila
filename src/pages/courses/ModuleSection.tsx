@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createModule } from "../../store/slices/module";
-import { createLesson, deleteLesson } from "../../store/slices/lesson";
+import { createLesson, deleteLesson, updateLesson } from "../../store/slices/lesson";
 import { RootState, AppDispatch } from "../../hooks/redux";
 
 import {
@@ -332,8 +332,9 @@ const LessonEditor = ({
   onChange,
   onRemove,
   onSave,
+  isEditing = false,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [isSaving, setIsSaving] = useState(false);
   const [savedLessonId, setSavedLessonId] = useState(
@@ -548,52 +549,87 @@ const LessonEditor = ({
 
       console.log("Saving lesson data:", lessonData);
 
-      const result = await dispatch(createLesson(lessonData)).unwrap();
-
-      // Extract lesson ID from the response
-      const newLessonId = result?.data?._id || result?._id || result?.id;
-
-      if (newLessonId) {
-        setSavedLessonId(newLessonId);
-        // Update the lesson object with the new ID
-        const updatedLesson = { ...lesson, _id: newLessonId, id: newLessonId };
+      let result;
+      
+      // Check if this is an update (lesson has an ID) or create new lesson
+      if (savedLessonId) {
+        // Update existing lesson
+        const token = localStorage.getItem("token") || "";
+        result = await dispatch(updateLesson({
+          lessonId: savedLessonId,
+          lessonData,
+          token
+        })).unwrap();
         
-        // Call onSave callback to update parent state immediately (replaces onChange call)
-        if (onSave) {
-          const enhancedResult = {
-            ...result,
-            data: {
-              ...result?.data,
-              _id: newLessonId,
-              id: newLessonId,
-              title: lesson.title,
-              type: lesson.type,
-              order: lesson.order,
-              isRequired: lesson.isRequired,
-            }
-          };
-          onSave(enhancedResult);
-        } else {
-          // Fallback to onChange if onSave is not provided
+        console.log("Lesson updated successfully:", result);
+        
+        // For updates, use the existing lesson ID
+        const updatedLesson = { 
+          ...lesson, 
+          _id: savedLessonId, 
+          id: savedLessonId,
+          title: lesson.title,
+          type: lesson.type,
+          order: lesson.order,
+          isRequired: lesson.isRequired,
+        };
+        
+        if (onChange) {
           onChange(updatedLesson);
         }
         
-        // Immediate success feedback
         setPopup({
-          message: "Lesson saved successfully!",
+          message: "Lesson updated successfully!",
           type: "success",
           isVisible: true,
         });
         
-        console.log("Lesson saved successfully:", result);
-        
-        // No automatic refresh - keep UI purely local until user manually refreshes
+      } else {
+        // Create new lesson
+        result = await dispatch(createLesson(lessonData)).unwrap();
+
+        // Extract lesson ID from the response
+        const newLessonId = result?.data?._id || result?._id || result?.id;
+
+        if (newLessonId) {
+          setSavedLessonId(newLessonId);
+          // Update the lesson object with the new ID
+          const updatedLesson = { ...lesson, _id: newLessonId, id: newLessonId };
+          
+          // Call onSave callback to update parent state immediately (replaces onChange call)
+          if (onSave) {
+            const enhancedResult = {
+              ...result,
+              data: {
+                ...result?.data,
+                _id: newLessonId,
+                id: newLessonId,
+                title: lesson.title,
+                type: lesson.type,
+                order: lesson.order,
+                isRequired: lesson.isRequired,
+              }
+            };
+            onSave(enhancedResult);
+          } else {
+            // Fallback to onChange if onSave is not provided
+            onChange(updatedLesson);
+          }
+          
+          setPopup({
+            message: "Lesson created successfully!",
+            type: "success",
+            isVisible: true,
+          });
+          
+          console.log("Lesson created successfully:", result);
+        }
       }
       
     } catch (error) {
       console.error("Error saving lesson:", error);
       setPopup({
-        message: "Failed to save lesson",
+        message: savedLessonId ? "Failed to update lesson" : "Failed to create lesson",
         type: "error",
         isVisible: true,
       });
@@ -952,7 +988,12 @@ const LessonEditor = ({
                   onChange={(e) =>
                     onChange({ ...lesson, type: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
+                  disabled={savedLessonId} // Make readonly when lesson is already saved
+                  className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base ${
+                    savedLessonId 
+                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
+                      : ''
+                  }`}
                 >
                   <option value="video-lesson">🎬 Video Lesson</option>
                   <option value="video">📹 File</option>
@@ -960,6 +1001,11 @@ const LessonEditor = ({
                   <option value="quiz">❓ Quiz</option>
                   <option value="assignment">📋 Assignment</option>
                 </select>
+                {savedLessonId && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Lesson type cannot be changed after creation
+                  </p>
+                )}
               </div>
             </div>
 
@@ -1039,6 +1085,7 @@ const SavedModuleDisplay = ({
   onAddLesson,
   onLessonChange,
   onLessonRemove,
+  isEditing = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false); // Changed to false by default
   const totalLessons = module.lessons?.length || 0;
@@ -1205,6 +1252,7 @@ const SavedModuleDisplay = ({
                   courseData={courseData}
                   onChange={(l) => onLessonChange(idx, l)}
                   onRemove={() => onLessonRemove(idx)}
+                  isEditing={isEditing}
                   onSave={(savedLesson) => {
                     // Extract lesson data from the API response properly
                     const lessonData = savedLesson?.data || savedLesson;
@@ -1459,6 +1507,7 @@ const ModuleSection = ({
             moduleLoading={moduleLoading}
             moduleError={moduleError}
             setShowCreateForm={setShowCreateForm}
+            isEditing={isEditing}
           />
         );
 

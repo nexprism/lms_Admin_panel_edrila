@@ -17,7 +17,8 @@ const ModulesTabContent = ({
     removeLessonFromModule, 
     moduleLoading, 
     moduleError, 
-    setShowCreateForm 
+    setShowCreateForm,
+    isEditing = false
 }) => {
     return (
         <div>
@@ -79,6 +80,7 @@ const ModulesTabContent = ({
                         onAddLesson={(newLesson) => addLessonToModule(index, newLesson)}
                         onLessonChange={(lessonIndex, updatedLesson) => updateLessonInModule(index, lessonIndex, updatedLesson)}
                         onLessonRemove={(lessonIndex) => removeLessonFromModule(index, lessonIndex)}
+                        isEditing={isEditing}
                     />
                 ))}
 
