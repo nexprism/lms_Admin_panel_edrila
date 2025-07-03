@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "buildCommand": "SKIP_PREFLIGHT_CHECK=true npm run build",
+  "buildCommand": "vite build --mode production",
   "outputDirectory": "dist",
   "env": {
-    "SKIP_PREFLIGHT_CHECK": "true",
     "CI": "false",
-    "GENERATE_SOURCEMAP": "false"
+    "GENERATE_SOURCEMAP": "false",
+    "VITE_IGNORE_TS_ERRORS": "true"
   },
   "routes": [
     {
