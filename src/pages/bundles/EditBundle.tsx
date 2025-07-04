@@ -574,7 +574,7 @@ const EditBundleForm = () => {
                         {(files.thumbnail || bundleData?.thumbnail) && (
                             <div className="mt-2">
                                 <img
-                                    src={files.thumbnail ? URL.createObjectURL(files.thumbnail) : `${import.meta.env.VITE_IMAGE_URL}/${bundleData?.thumbnail}`}
+                                    src={files.thumbnail ? URL.createObjectURL(files.thumbnail) : `${import.meta.env.VITE_BASE_URL_ADMIN}/${bundleData?.thumbnail}`}
                                     alt="Thumbnail preview"
                                     className="w-32 h-20 object-cover rounded-md border"
                                 />
@@ -596,7 +596,7 @@ const EditBundleForm = () => {
                         {(files.banner || bundleData?.banner) && (
                             <div className="mt-2">
                                 <img
-                                    src={files.banner ? URL.createObjectURL(files.banner) : `${import.meta.env.VITE_IMAGE_URL}/${bundleData?.banner}`}
+                                    src={files.banner ? URL.createObjectURL(files.banner) : `${import.meta.env.VITE_BASE_URL_ADMIN}/${bundleData?.banner}`}
                                     alt="Banner preview"
                                     className="w-32 h-20 object-cover rounded-md border"
                                 />
