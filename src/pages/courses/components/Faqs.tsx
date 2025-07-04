@@ -6,7 +6,7 @@ import { all } from "axios";
 import toast from "react-hot-toast";
 import PopupAlert from "../../../components/popUpAlert";
 
-function Faqs({ courseID }) {
+function Faqs({ courseId }) {
   const [allFaqs, setAllFaqs] = React.useState([]);
   const [showPopup, setShowPopup] = React.useState(false);
   const [faqData, setFaqData] = React.useState({
@@ -27,7 +27,7 @@ function Faqs({ courseID }) {
 
   const getFaqs = async () => {
     try {
-      const faqs = await axiosInstance.get(`/faqs/course/${courseID}`);
+      const faqs = await axiosInstance.get(`/faqs/course/${courseId}`);
       console.log("faqs", faqs.data);
       setAllFaqs(faqs.data.data);
     } catch (error) {
@@ -59,7 +59,7 @@ function Faqs({ courseID }) {
         });
       } else {
         const payload: any = {
-          courseId: courseID || "",
+          courseId: courseId || "",
           question: selectedFaq ? selectedFaq.question : faqData.question,
           answer: selectedFaq ? selectedFaq.answer : faqData.answer,
         };
@@ -118,10 +118,10 @@ function Faqs({ courseID }) {
   };
 
   useEffect(() => {
-    if (courseID) {
+    if (courseId) {
       getFaqs();
     }
-  }, [courseID]);
+  }, [courseId]);
   return (
     <>
       <PopupAlert
