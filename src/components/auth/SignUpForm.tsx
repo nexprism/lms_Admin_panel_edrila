@@ -8,7 +8,7 @@ import {
   selectAuthError,
   clearError,
   clearStatuses 
-} from '../../store/slices/authSlice';
+} from '../../store/slices/authslice';
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";

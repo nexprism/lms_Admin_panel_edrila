@@ -40,8 +40,56 @@ export const createLesson = createAsyncThunk(
           "Content-Type": "multipart/form-data",
         },
       });
-      window.location.reload();
 
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const updateLesson = createAsyncThunk(
+  "lesson/updateLesson",
+  async (
+    {
+      lessonId,
+      lessonData,
+      token,
+    }: {
+      lessonId: string;
+      lessonData: {
+        language?: string;
+        section?: string;
+        moduleId?: string;
+        title?: string;
+        description?: string;
+        type?: string;
+        order?: number;
+        isRequired?: boolean;
+        fileUrl?: File;
+        image?: File;
+      };
+      token: string;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const formData = new FormData();
+      Object.entries(lessonData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value as any);
+        }
+      });
+
+      const response = await axiosInstance.put(
+        `/lesson/${lessonId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message);
@@ -119,6 +167,32 @@ const lessonSlice = createSlice({
         state.data = { ...state.data, ...action.payload };
       })
       .addCase(updateLessonMobileOnly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(updateLesson.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateLesson.fulfilled, (state, action) => {
+        state.loading = false;
+        // Assuming the payload contains the updated lesson data
+        state.data = { ...state.data, ...action.payload };
+      })
+      .addCase(updateLesson.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(deleteLesson.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteLesson.fulfilled, (state, action) => {
+        state.loading = false;
+        // Clear the data if this lesson was deleted
+        state.data = null;
+      })
+      .addCase(deleteLesson.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

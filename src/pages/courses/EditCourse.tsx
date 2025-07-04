@@ -13,163 +13,143 @@ import {
   Video,
   Plus,
   X,
-  Bold,
-  Italic,
-  Underline,
-  List,
-  Link,
   Award,
   Download,
   MessageCircle,
   Lock,
-  Calendar,
   Upload,
   Eye,
   Loader2,
   AlertCircle,
   Type,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Quote,
-  Heading1,
-  Heading2,
-  Heading3,
   Edit,
-  Trash2,
   Search,
   Check,
   Save,
-  Trash,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle,
+  Settings,
 } from "lucide-react";
 import ModuleSection from "./ModuleSection";
-import {
-  createPricingPlan,
-  deletePricingPlan,
-  getAllPricingPlansByCourse,
-} from "../../store/slices/plans";
-import toast from "react-hot-toast";
+
 import Faqs from "./components/Faqs";
-import PopupAlert from "../../components/popUpAlert";
+import QuillEditor from "../../components/QuillEditor"; // Import your QuillEditor
 
 const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:5000/";
 
-// Rich Text Editor Component
-type RichTextEditorProps = {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-};
-
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange }) => {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const [isPreview, setIsPreview] = useState(false);
-
-  const execCommand = (command: any, value?: string) => {
-    document.execCommand(command, false, value);
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
-    }
-  };
-
-  const handleInput = () => {
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
-    }
-  };
-
-  const insertLink = () => {
-    const url = prompt("Enter URL:");
-    if (url) {
-      execCommand("createLink", url);
-    }
-  };
-
-  const insertImage = () => {
-    const url = prompt("Enter image URL:");
-    if (url) {
-      execCommand("insertImage", url);
-    }
-  };
-
-  const toolbarButtons = [
-    { icon: Bold, command: "bold", title: "Bold" },
-    { icon: Italic, command: "italic", title: "Italic" },
-    { icon: Underline, command: "underline", title: "Underline" },
-    { icon: Heading1, command: "formatBlock", value: "h1", title: "Heading 1" },
-    { icon: Heading2, command: "formatBlock", value: "h2", title: "Heading 2" },
-    { icon: Heading3, command: "formatBlock", value: "h3", title: "Heading 3" },
-    { icon: AlignLeft, command: "justifyLeft", title: "Align Left" },
-    { icon: AlignCenter, command: "justifyCenter", title: "Align Center" },
-    { icon: AlignRight, command: "justifyRight", title: "Align Right" },
-    { icon: List, command: "insertUnorderedList", title: "Bullet List" },
-    {
-      icon: Quote,
-      command: "formatBlock",
-      value: "blockquote",
-      title: "Quote",
-    },
-  ];
+// Success Popup Component
+const SuccessPopup = ({
+  isVisible,
+  onClose,
+  message,
+  type = "success",
+}: {
+  isVisible: boolean;
+  onClose: () => void;
+  message: string;
+  type?: "success" | "error";
+}) => {
+  if (!isVisible) return null;
 
   return (
-    <div className="border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
-      <div className="border-b bg-gray-50 p-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          {toolbarButtons.map((button, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => execCommand(button.command, button.value)}
-              className="p-2 rounded hover:bg-gray-200 transition-colors"
-              title={button.title}
-            >
-              <button.icon className="w-4 h-4" />
-            </button>
-          ))}
-          <div className="w-px h-6 bg-gray-300 mx-2" />
+    <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
+        <div className="text-center">
+          <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+            type === "success" ? "bg-green-100" : "bg-red-100"
+          }`}>
+            {type === "success" ? (
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            ) : (
+              <AlertCircle className="w-8 h-8 text-red-600" />
+            )}
+          </div>
+          <h3 className={`text-xl font-semibold mb-2 ${
+            type === "success" ? "text-green-800" : "text-red-800"
+          }`}>
+            {type === "success" ? "Success!" : "Error!"}
+          </h3>
+          <p className="text-gray-600 mb-6">{message}</p>
           <button
-            type="button"
-            onClick={insertLink}
-            className="p-2 rounded hover:bg-gray-200 transition-colors"
-            title="Insert Link"
+            onClick={onClose}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              type === "success"
+                ? "bg-green-600 text-white hover:bg-green-700"
+                : "bg-red-600 text-white hover:bg-red-700"
+            }`}
           >
-            <Link className="w-4 h-4" />
+            Close
           </button>
-          <button
-            type="button"
-            onClick={insertImage}
-            className="p-2 rounded hover:bg-gray-200 transition-colors"
-            title="Insert Image"
-          >
-            <Image className="w-4 h-4" />
-          </button>
-          <div className="ml-auto">
-            <button
-              type="button"
-              onClick={() => setIsPreview(!isPreview)}
-              className="p-2 rounded hover:bg-gray-200 transition-colors"
-              title="Toggle Preview"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Accordion Section Component
+type AccordionSectionProps = {
+  title: string;
+  icon: React.ElementType;
+  children: React.ReactNode;
+  isOpen: boolean;
+  onToggle: () => void;
+  isCompleted?: boolean;
+  isRequired?: boolean;
+};
+
+const AccordionSection = ({ 
+  title, 
+  icon: Icon, 
+  children, 
+  isOpen, 
+  onToggle, 
+  isCompleted = false,
+  isRequired = false 
+}: AccordionSectionProps) => {
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div
+        className={`px-6 py-4 cursor-pointer transition-all duration-200 ${
+          isOpen ? "bg-blue-50 border-b border-gray-200" : "hover:bg-gray-50"
+        }`}
+        onClick={onToggle}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${
+              isCompleted ? "bg-green-100" : isOpen ? "bg-blue-100" : "bg-gray-100"
+            }`}>
+              <Icon className={`w-5 h-5 ${
+                isCompleted ? "text-green-600" : isOpen ? "text-blue-600" : "text-gray-600"
+              }`} />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                {title}
+                {isRequired && <span className="text-red-500 text-sm">*</span>}
+              </h3>
+              {isCompleted && (
+                <p className="text-sm text-green-600">Completed</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {isCompleted && (
+              <CheckCircle className="w-5 h-5 text-green-600" />
+            )}
+            {isOpen ? (
+              <ChevronUp className="w-5 h-5 text-gray-600" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-600" />
+            )}
           </div>
         </div>
       </div>
-      {isPreview ? (
-        <div
-          className="p-4 min-h-[200px] prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: value }}
-        />
-      ) : (
-        <div
-          ref={editorRef}
-          contentEditable
-          onInput={handleInput}
-          className="p-4 min-h-[200px] outline-none prose max-w-none"
-          style={{ minHeight: "200px" }}
-          suppressContentEditableWarning={true}
-          dangerouslySetInnerHTML={{ __html: value }}
-        />
+      {isOpen && (
+        <div className="px-6 py-6 animate-in slide-in-from-top-2 duration-200">
+          {children}
+        </div>
       )}
     </div>
   );
@@ -177,23 +157,23 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange }) => {
 
 // File Upload Component
 type FileUploadProps = {
-  label: any;
-  accept: any;
+  label: string;
+  accept: string;
   onFileChange: (file: File | null) => void;
   currentFile: File | null;
   icon: React.ElementType;
 };
 
-const FileUpload: React.FC<FileUploadProps> = ({
+const FileUpload = ({
   label,
   accept,
   onFileChange,
   currentFile,
   icon: Icon,
-}) => {
+}: FileUploadProps) => {
   const [dragOver, setDragOver] = useState(false);
 
-  const handleDrop = (e: any) => {
+  const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
     const files = e.dataTransfer.files;
@@ -202,7 +182,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
     }
   };
 
-  const handleDragOver = (e: any) => {
+  const handleDragOver = (e) => {
     e.preventDefault();
     setDragOver(true);
   };
@@ -250,7 +230,14 @@ const FileUpload: React.FC<FileUploadProps> = ({
 };
 
 // YouTube URL Input Component
-const YouTubeUrlInput = ({ label, value, onChange, error }) => {
+type YouTubeUrlInputProps = {
+  label: string;
+  value: string;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+  error?: string;
+};
+
+const YouTubeUrlInput = ({ label, value, onChange, error }: YouTubeUrlInputProps) => {
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
@@ -261,7 +248,7 @@ const YouTubeUrlInput = ({ label, value, onChange, error }) => {
         type="text"
         value={value}
         onChange={onChange}
-        className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+        className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
           error ? "border-red-400" : "border-gray-300"
         }`}
         placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=xyz)"
@@ -288,9 +275,9 @@ const YouTubeUrlInput = ({ label, value, onChange, error }) => {
 };
 
 const EditCourse = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const location = useLocation();
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useDispatch();
 
   // Fallback extraction from pathname
   const courseId = id || location.pathname.split("/").pop();
@@ -298,63 +285,42 @@ const EditCourse = () => {
     loading,
     error,
     data: courseData,
-  } = useSelector((state: RootState) => state.course);
-  const Plans = useSelector((state: RootState) => state.plan.data);
-  const [billingCycle, setBillingCycle] = useState("monthly");
+  } = useSelector((state) => state.course);
 
-  useEffect(() => {
-    if (!Plans || Plans.length === 0) {
-      console.error("Plans data is not available or empty");
-    }
-    dispatch(getAllPricingPlansByCourse(courseId));
-  }, [dispatch, courseId, Plans]);
+  // Accordion state
+  const [openSections, setOpenSections] = useState({
+    basic: true,
+    details: false,
+    media: false,
+    pricing: false,
+    features: false,
+    tags: false,
+    seo: false,
+    modules: false,
+    faqs: false,
+    publication: false,
+  });
 
   // Course state
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState([]);
   const [customTag, setCustomTag] = useState("");
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [coverImageFile, setCoverImageFile] = useState(null);
   const [demoVideoUrl, setDemoVideoUrl] = useState("");
   const [description, setDescription] = useState("");
   const [seoContent, setSeoContent] = useState("");
-  const [modules, setModules] = useState<any[]>([]);
+  const [modules, setModules] = useState([]);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [processedCourseData, setProcessedCourseData] = useState<any>(null);
-  const [showPlanPopup, setShowPlanPopup] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [currentPlan, setCurrentPlan] = useState({});
-  const [planData, setPlanData] = useState({
-    title: "",
-    startDate: "",
-    endDate: "",
-    discount: 0,
-    capacity: 0,
-  });
-  const [popup, setPopup] = useState<{
-    message: string;
-    type: "success" | "error";
-    isVisible: boolean;
-  }>({
+  const [processedCourseData, setProcessedCourseData] = useState(null);
+
+  const [popup, setPopup] = useState({
     message: "",
     type: "success",
     isVisible: false,
   });
-  type FormErrors = {
-    title?: string;
-    description?: string;
-    categoryId?: string;
-    subCategoryId?: string;
-    duration?: string;
-    price?: string;
-    seoMetaDescription?: string;
-    seoContent?: string;
-    tags?: string;
-    thumbnailFile?: string;
-    demoVideoUrl?: string;
-  };
-  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [formErrors, setFormErrors] = useState({});
 
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState({
     title: "",
     subtitle: "",
     seoMetaDescription: "",
@@ -388,21 +354,45 @@ const EditCourse = () => {
     "Web Development",
   ];
 
-  const cancelEdit = () => {
-    setShowPlanPopup(false);
-    setEditingId(null);
-    setCurrentPlan({
-      title: "",
-      startDate: "",
-      endDate: "",
-      discount: 0,
-      capacity: 0,
-    });
+  // Toggle accordion section
+  const toggleSection = (section) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  // Check if section is completed
+  const isSectionCompleted = (section) => {
+    switch (section) {
+      case 'basic':
+        return formData.title && description;
+      case 'details':
+        return formData.categoryId && formData.subCategoryId && formData.duration;
+      case 'media':
+        return (thumbnailFile || formData.thumbnail);
+      case 'pricing':
+        return formData.price;
+      case 'features':
+        return true; // Always completed as it has defaults
+      case 'tags':
+        return selectedTags.length > 0;
+      case 'seo':
+        return true; // Optional section
+      case 'modules':
+        return modules.length > 0;
+      case 'faqs':
+        return true; // Optional section
+      case 'publication':
+        return true; // Always completed as it has defaults
+      default:
+        return false;
+    }
   };
 
   // Validation schema
   const validateForm = (formData, description, seoContent, selectedTags, files, demoVideoUrl) => {
-    const errors: FormErrors = {};
+    const errors = {};
 
     if (!formData.title.trim()) {
       errors.title = "Course title is required";
@@ -479,7 +469,7 @@ const EditCourse = () => {
       const course = courseData.data || courseData;
 
       setProcessedCourseData(course);
-      setFormData((prev: any) => ({
+      setFormData((prev) => ({
         ...prev,
         title: course.title || "",
         subtitle: course.subtitle || "",
@@ -526,11 +516,11 @@ const EditCourse = () => {
       setDemoVideoUrl(course.demoVideo || "");
 
       const courseModules = course.modules || [];
-      const processedModules = courseModules.map((module: any) => ({
+      const processedModules = courseModules.map((module) => ({
         _id: module._id || undefined,
         title: module.title || "",
         description: module.description || "",
-        lessons: (module.lessons || []).map((lesson: any) => ({
+        lessons: (module.lessons || []).map((lesson) => ({
           _id: lesson._id || undefined,
           title: lesson.title || "",
           type: lesson.type || "video",
@@ -547,13 +537,9 @@ const EditCourse = () => {
     }
   }, [courseData, dataLoaded]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
+  const handleInputChange = (e) => {
     const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
+    const checked = e.target.checked;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -561,14 +547,14 @@ const EditCourse = () => {
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const addTag = (tag: string) => {
+  const addTag = (tag) => {
     if (!selectedTags.includes(tag) && selectedTags.length < 10) {
       setSelectedTags([...selectedTags, tag]);
       setFormErrors((prev) => ({ ...prev, tags: "" }));
     }
   };
 
-  const handleCategoryChange = (categoryId: string, categoryName: string) => {
+  const handleCategoryChange = (categoryId, categoryName) => {
     setFormData((prev) => ({
       ...prev,
       categoryId,
@@ -577,10 +563,7 @@ const EditCourse = () => {
     setFormErrors((prev) => ({ ...prev, categoryId: "", subCategoryId: "" }));
   };
 
-  const handleSubcategoryChange = (
-    subCategoryId: string,
-    subCategoryName: string
-  ) => {
+  const handleSubcategoryChange = (subCategoryId, subCategoryName) => {
     setFormData((prev) => ({
       ...prev,
       subCategoryId,
@@ -588,7 +571,7 @@ const EditCourse = () => {
     setFormErrors((prev) => ({ ...prev, subCategoryId: "" }));
   };
 
-  const removeTag = (tagToRemove: string) => {
+  const removeTag = (tagToRemove) => {
     setSelectedTags(selectedTags.filter((tag) => tag !== tagToRemove));
   };
 
@@ -600,11 +583,16 @@ const EditCourse = () => {
     }
   };
 
-  const handleModulesChange = (updatedModules: any[]) => {
+  const handleModulesChange = (updatedModules: any) => {
+    console.log("handleModulesChange called with:", updatedModules);
     setModules(updatedModules);
   };
 
-  const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
+  // REMOVED: refreshCourseData function - we no longer want automatic refreshes
+  // All module/lesson updates should happen via local state only for immediate UI updates
+  // const refreshCourseData = async () => { ... }
+
+  const handleSubmit = async (e, isDraft = false) => {
     e.preventDefault();
 
     const files = { thumbnailFile, coverImageFile };
@@ -622,7 +610,7 @@ const EditCourse = () => {
 
     const submitFormData = new FormData();
 
-    (Object.keys(formData) as (keyof typeof formData)[]).forEach((key) => {
+    Object.keys(formData).forEach((key) => {
       const value = formData[key];
       if (Array.isArray(value)) {
         submitFormData.append(key, value.length > 0 ? String(value[0]) : "");
@@ -651,10 +639,10 @@ const EditCourse = () => {
       ).unwrap();
       setPopup({
         isVisible: true,
-        message: isDraft ? "Course saved as draft!" : "Course updated successfully!",
+        message: isDraft ? "Course saved as draft successfully!" : "Course updated successfully!",
         type: "success",
       });
-    } catch (error: any) {
+    } catch (error) {
       setPopup({
         isVisible: true,
         message: error.message || "Failed to update course. Please try again.",
@@ -663,28 +651,7 @@ const EditCourse = () => {
     }
   };
 
-  const handelDeletePlan = async (planId: string) => {
-    try {
-      await dispatch(deletePricingPlan(planId)).unwrap();
-      setPopup({
-        message: "Plan deleted successfully!",
-        type: "success",
-        isVisible: true,
-      });
-      setEditingId(null);
-      setCurrentPlan({});
-      setShowPlanPopup(false);
-      dispatch(getAllPricingPlansByCourse(courseId || ""));
-    } catch (error) {
-      setPopup({
-        message: "Failed to delete plan",
-        type: "error",
-        isVisible: true,
-      });
-    }
-  };
-
-  const getUrlFromFile = (file: File | null) => {
+  const getUrlFromFile = (file) => {
     if (!file) return "";
     return URL.createObjectURL(file);
   };
@@ -700,9 +667,22 @@ const EditCourse = () => {
     );
   }
 
+  const accordionSections = [
+    { key: 'basic', title: 'Basic Information', icon: Type, isRequired: true },
+    { key: 'details', title: 'Course Details', icon: FileText, isRequired: true },
+    { key: 'media', title: 'Media Files', icon: Image, isRequired: true },
+    { key: 'pricing', title: 'Pricing', icon: DollarSign, isRequired: true },
+    { key: 'features', title: 'Course Features', icon: Award, isRequired: false },
+    { key: 'tags', title: 'Tags', icon: Tag, isRequired: true },
+    { key: 'seo', title: 'SEO Content', icon: Search, isRequired: false },
+    { key: 'modules', title: 'Course Modules', icon: Settings, isRequired: false },
+    { key: 'faqs', title: 'FAQs', icon: MessageCircle, isRequired: false },
+    { key: 'publication', title: 'Publication Status', icon: Eye, isRequired: false },
+  ];
+
   return (
     <>
-      <PopupAlert
+      <SuccessPopup
         message={popup.message}
         type={popup.type}
         isVisible={popup.isVisible}
@@ -735,627 +715,538 @@ const EditCourse = () => {
           )}
 
           <form onSubmit={(e) => handleSubmit(e, false)}>
-            <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <Type className="w-5 h-5 text-blue-600" />
-                  Basic Information
-                </h2>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Course Title *
-                      </label>
-                      <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          formErrors.title ? "border-red-400" : "border-gray-300"
-                        }`}
-                        placeholder="Enter course title"
-                        required
-                      />
-                      {formErrors.title && (
-                        <p className="mt-1 text-xs text-red-600">{formErrors.title}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Course Description *
-                    </label>
-                    <RichTextEditor
-                      value={description}
-                      onChange={setDescription}
-                      placeholder="Describe your course in detail..."
-                    />
-                    {formErrors.description && (
-                      <p className="mt-2 text-xs text-red-600">{formErrors.description}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-600" />
-                  Course Details
-                </h2>
-                <div className="space-y-4">
-                  <CategorySubcategoryDropdowns
-                    selectedCategoryId={formData.categoryId}
-                    selectedSubcategoryId={formData.subCategoryId}
-                    onCategoryChange={handleCategoryChange}
-                    onSubcategoryChange={handleSubcategoryChange}
-                  />
-                  {formErrors.categoryId && (
-                    <p className="mt-1 text-xs text-red-600">{formErrors.categoryId}</p>
-                  )}
-                  {formErrors.subCategoryId && (
-                    <p className="mt-1 text-xs text-red-600">{formErrors.subCategoryId}</p>
-                  )}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Level
-                    </label>
-                    <select
-                      name="level"
-                      value={formData.level}
-                      onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
-                      <option value="all">All Levels</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Duration (hours)
-                    </label>
-                    <input
-                      type="number"
-                      name="duration"
-                      value={formData.duration}
-                      onChange={handleInputChange}
-                      className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        formErrors.duration ? "border-red-400" : "border-gray-300"
-                      }`}
-                      placeholder="Course duration"
-                    />
-                    {formErrors.duration && (
-                      <p className="mt-1 text-xs text-red-600">{formErrors.duration}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <Image className="w-5 h-5 text-blue-600" />
-                  Media Files
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <FileUpload
-                    label="Course Thumbnail"
-                    accept="image/*"
-                    onFileChange={setThumbnailFile}
-                    currentFile={thumbnailFile}
-                    icon={Image}
-                  />
-                  <FileUpload
-                    label="Cover Image"
-                    accept="image/*"
-                    onFileChange={setCoverImageFile}
-                    currentFile={coverImageFile}
-                    icon={Image}
-                  />
-                  <YouTubeUrlInput
-                    label="Add YouTube Link"
-                    value={demoVideoUrl}
-                    onChange={(e) => {
-                      setDemoVideoUrl(e.target.value);
-                      setFormErrors((prev) => ({ ...prev, demoVideoUrl: "" }));
-                    }}
-                    error={formErrors.demoVideoUrl}
-                  />
-                </div>
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    {(formData.thumbnail || thumbnailFile) && (
-                      <div className="relative">
-                        <div
-                          onClick={() =>
-                            setFormData({ ...formData, thumbnail: "" })
-                          }
-                          className="absolute top-2 cursor-pointer right-2 p-1 rounded-sm bg-red-500/50"
-                        >
-                          <Plus className="h-4 w-4 rotate-[45deg]" />
-                        </div>
-                        <img
-                          className="h-40 w-full"
-                          src={
-                            thumbnailFile
-                              ? getUrlFromFile(thumbnailFile)
-                              : `${baseUrl}/${formData?.thumbnail}`
-                          }
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    {(formData.coverImage || coverImageFile) && (
-                      <div className="relative">
-                        <div
-                          onClick={() =>
-                            setFormData({ ...formData, coverImage: "" })
-                          }
-                          className="absolute top-2 cursor-pointer right-2 p-1 rounded-sm bg-red-500/50"
-                        >
-                          <Plus className="h-4 w-4 rotate-[45deg]" />
-                        </div>
-                        <img
-                          className="h-40 w-full"
-                          src={
-                            coverImageFile
-                              ? getUrlFromFile(coverImageFile)
-                              : `${baseUrl}/${formData?.coverImage}`
-                          }
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-blue-600" />
-                  Pricing
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Price
-                    </label>
-                    <input
-                      type="number"
-                      name="price"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        formErrors.price ? "border-red-400" : "border-gray-300"
-                      }`}
-                      placeholder="Course price"
-                    />
-                    {formErrors.price && (
-                      <p className="mt-1 text-xs text-red-600">{formErrors.price}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Currency
-                    </label>
-                    <select
-                      name="currency"
-                      value={formData.currency}
-                      onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="INR">INR (₹)</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (€)</option>
-                      <option value="GBP">GBP (£)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {showPlanPopup && (
-                <div className="fixed top-0 left-0 h-screen right-0 bottom-0 bg-black/50 z-9999 flex items-center justify-center">
-                  <div className="bg-white rounded-2xl shadow-xl p-8">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-2xl font-bold text-gray-900">
-                        {editingId ? "Edit Plan" : "Create New Plan"}
-                      </h2>
-                      <div
-                        onClick={cancelEdit}
-                        className="text-gray-500 hover:text-gray-700 transition-colors"
-                      >
-                        <X className="w-6 h-6" />
-                      </div>
-                    </div>
-                    <div className="space-y-6">
-                      <div className="grid md:grid-cols-1 gap-4">
+            <div className="space-y-4">
+              {accordionSections.map((section) => (
+                <AccordionSection
+                  key={section.key}
+                  title={section.title}
+                  icon={section.icon}
+                  isOpen={openSections[section.key]}
+                  onToggle={() => toggleSection(section.key)}
+                  // isCompleted={isSectionCompleted(section.key)}
+                  isRequired={section.isRequired}
+                >
+                  {section.key === 'basic' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Plan Name *
+                            Course Title *
                           </label>
                           <input
                             type="text"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleInputChange}
+                            className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                              formErrors.title ? "border-red-400" : "border-gray-300"
+                            }`}
+                            placeholder="Enter course title"
                             required
-                            value={
-                              editingId ? currentPlan?.title : planData?.title
-                            }
-                            onChange={(e) =>
-                              editingId
-                                ? setCurrentPlan({
-                                    ...currentPlan,
-                                    title: e.target.value,
-                                  })
-                                : setPlanData({
-                                    ...planData,
-                                    title: e.target.value,
-                                  })
-                            }
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                            placeholder="e.g., Basic, Pro, Enterprise"
+                          />
+                          {formErrors.title && (
+                            <p className="mt-1 text-xs text-red-600">{formErrors.title}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Course Subtitle
+                          </label>
+                          <input
+                            type="text"
+                            name="subtitle"
+                            value={formData.subtitle}
+                            onChange={handleInputChange}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter course subtitle"
                           />
                         </div>
                       </div>
                       <div>
-                        <div className="grid md:grid-cols-1 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Start Date*
-                            </label>
-                            <input
-                              type="date"
-                              required
-                              value={
-                                editingId
-                                  ? currentPlan?.startDate
-                                  : planData?.startDate
-                              }
-                              onChange={(e) =>
-                                editingId
-                                  ? setCurrentPlan({
-                                      ...currentPlan,
-                                      startDate: e.target.value,
-                                    })
-                                  : setPlanData({
-                                      ...planData,
-                                      startDate: e.target.value,
-                                    })
-                              }
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              End Date
-                            </label>
-                            <input
-                              type="date"
-                              required
-                              value={
-                                editingId
-                                  ? currentPlan?.endDate
-                                  : planData?.endDate
-                              }
-                              onChange={(e) =>
-                                editingId
-                                  ? setCurrentPlan({
-                                      ...currentPlan,
-                                      endDate: e.target.value,
-                                    })
-                                  : setPlanData({
-                                      ...planData,
-                                      endDate: e.target.value,
-                                    })
-                              }
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                            />
-                          </div>
-                          <div className="grid md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Discount
-                              </label>
-                              <input
-                                type="number"
-                                required
-                                min="0"
-                                value={
-                                  editingId
-                                    ? currentPlan?.discount
-                                    : planData?.discount
-                                }
-                                onChange={(e) =>
-                                  editingId
-                                    ? setCurrentPlan({
-                                        ...currentPlan,
-                                        discount: Number(e.target.value),
-                                      })
-                                    : setPlanData({
-                                        ...planData,
-                                        discount: Number(e.target.value),
-                                      })
-                                }
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                placeholder="29"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Capacity
-                              </label>
-                              <input
-                                type="number"
-                                required
-                                min="0"
-                                value={
-                                  editingId
-                                    ? currentPlan?.capacity
-                                    : planData?.capacity
-                                }
-                                onChange={(e) =>
-                                  editingId
-                                    ? setCurrentPlan({
-                                        ...currentPlan,
-                                        capacity: Number(e.target.value),
-                                      })
-                                    : setPlanData({
-                                        ...planData,
-                                        capacity: Number(e.target.value),
-                                      })
-                                }
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                placeholder="290"
-                              />
-                            </div>
-                          </div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Course Description *
+                        </label>
+                        <QuillEditor
+                          value={description}
+                          onChange={setDescription}
+                          placeholder="Describe your course in detail..."
+                        />
+                        {formErrors.description && (
+                          <p className="mt-2 text-xs text-red-600">{formErrors.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {section.key === 'details' && (
+                    <div className="space-y-4">
+                      <CategorySubcategoryDropdowns
+                        selectedCategoryId={formData.categoryId}
+                        selectedSubcategoryId={formData.subCategoryId}
+                        onCategoryChange={handleCategoryChange}
+                        onSubcategoryChange={handleSubcategoryChange}
+                      />
+                      {formErrors.categoryId && (
+                        <p className="mt-1 text-xs text-red-600">{formErrors.categoryId}</p>
+                      )}
+                      {formErrors.subCategoryId && (
+                        <p className="mt-1 text-xs text-red-600">{formErrors.subCategoryId}</p>
+                      )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Level
+                          </label>
+                          <select
+                            name="level"
+                            value={formData.level}
+                            onChange={handleInputChange}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                            <option value="all">All Levels</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Duration (hours) *
+                          </label>
+                          <input
+type="number"
+                            name="duration"
+                            value={formData.duration}
+                            onChange={handleInputChange}
+                            className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                              formErrors.duration ? "border-red-400" : "border-gray-300"
+                            }`}
+                            placeholder="Enter duration in hours"
+                            required
+                          />
+                          {formErrors.duration && (
+                            <p className="mt-1 text-xs text-red-600">{formErrors.duration}</p>
+                          )}
                         </div>
                       </div>
-                      <div className="flex gap-3">
-                        {editingId && (
-                          <div
-                            onClick={() => handelDeletePlan(editingId)}
-                            className="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Enrollment Type
+                          </label>
+                          <select
+                            name="enrollmentType"
+                            value={formData.enrollmentType}
+                            onChange={handleInputChange}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           >
-                            <Trash className="w-5 h-5" />
-                            Delete Plan
-                          </div>
-                        )}
-                        <div
-                          onClick={() => {
-                            // Placeholder for handelAddPlan function
-                            console.log("Add/Update plan clicked");
-                          }}
-                          disabled={editingId ? false : !planData.title}
-                          className="flex-1 bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                        >
-                          <Save className="w-5 h-5" />
-                          {editingId ? "Update Plan" : "Create Plan"}
+                            <option value="open">Open Enrollment</option>
+                            <option value="restricted">Restricted</option>
+                            <option value="invitation">Invitation Only</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Maximum Students
+                          </label>
+                          <input
+                            type="number"
+                            name="maxStudents"
+                            value={formData.maxStudents}
+                            onChange={handleInputChange}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Leave empty for unlimited"
+                          />
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-blue-600" />
-                  Course Features
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {[
-                    {
-                      key: "certificateTemplate",
-                      label: "Certificate",
-                      icon: Award,
-                    },
-                    {
-                      key: "isDownloadable",
-                      label: "Downloadable",
-                      icon: Download,
-                    },
-                    { key: "courseForum", label: "Forum", icon: MessageCircle },
-                    {
-                      key: "isSubscription",
-                      label: "Subscription",
-                      icon: Calendar,
-                    },
-                    { key: "isPrivate", label: "Private", icon: Lock },
-                    { key: "enableWaitlist", label: "Waitlist", icon: Users },
-                  ].map(({ key, label, icon: Icon }) => (
-                    <label
-                      key={key}
-                      className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        name={key}
-                        checked={formData[key]}
-                        onChange={handleInputChange}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <Icon className="w-5 h-5 text-gray-600" />
-                      <span className="text-sm font-medium text-gray-700">
-                        {label}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <Tag className="w-5 h-5 text-blue-600" />
-                  Tags
-                </h2>
-                <div className="space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    {predefinedTags.map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => addTag(tag)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                          selectedTags.includes(tag)
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={customTag}
-                      onChange={(e) => setCustomTag(e.target.value)}
-                      placeholder="Add custom tag"
-                      className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      onKeyDown={(e) =>
-                        e.key === "Enter" &&
-                        (e.preventDefault(), addCustomTag())
-                      }
-                    />
-                    <button
-                      type="button"
-                      onClick={addCustomTag}
-                      className="px-4 py-2 flex items-center gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Tag
-                    </button>
-                  </div>
-                  {formErrors.tags && (
-                    <p className="mt-1 text-xs text-red-600">{formErrors.tags}</p>
                   )}
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {selectedTags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center gap-1"
-                      >
-                        {tag}
-                        <button
-                          type="button"
-                          onClick={() => removeTag(tag)}
-                          className="text-blue-500 hover:text-blue-700"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
 
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <Search className="w-5 h-5 text-blue-600" />
-                  SEO Content
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      SEO Meta Description
-                    </label>
-                    <textarea
-                      name="seoMetaDescription"
-                      value={formData.seoMetaDescription}
-                      onChange={handleInputChange}
-                      className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        formErrors.seoMetaDescription ? "border-red-400" : "border-gray-300"
-                      }`}
-                      rows={3}
-                      placeholder="Enter SEO meta description"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      {formData.seoMetaDescription.length}/160 characters
-                    </p>
-                    {formErrors.seoMetaDescription && (
-                      <p className="mt-1 text-xs text-red-600">{formErrors.seoMetaDescription}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      SEO Content
-                    </label>
-                    <RichTextEditor
-                      value={seoContent}
-                      onChange={setSeoContent}
-                      placeholder="Enter SEO-friendly content..."
-                    />
-                    {formErrors.seoContent && (
-                      <p className="mt-2 text-xs text-red-600">{formErrors.seoContent}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+                  {section.key === 'media' && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FileUpload
+                          label="Course Thumbnail *"
+                          accept="image/*"
+                          onFileChange={setThumbnailFile}
+                          currentFile={thumbnailFile}
+                          icon={Image}
+                        />
+                        <FileUpload
+                          label="Cover Image"
+                          accept="image/*"
+                          onFileChange={setCoverImageFile}
+                          currentFile={coverImageFile}
+                          icon={Image}
+                        />
+                      </div>
+                      {formErrors.thumbnailFile && (
+                        <p className="text-xs text-red-600">{formErrors.thumbnailFile}</p>
+                      )}
+                      
+                      {/* Show current images if available */}
+                      {(formData.thumbnail || formData.coverImage) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {formData.thumbnail && (
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-700 mb-2">Current Thumbnail</h4>
+                              <img
+                                src={`${baseUrl}/${formData.thumbnail}`}
+                                alt="Current thumbnail"
+                                className="w-full h-40 object-cover rounded-lg border"
+                              />
+                            </div>
+                          )}
+                          {formData.coverImage && (
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-700 mb-2">Current Cover Image</h4>
+                              <img
+                                src={`${baseUrl}/${formData.coverImage}`}
+                                alt="Current cover"
+                                className="w-full h-40 object-cover rounded-lg border"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      <YouTubeUrlInput
+                        label="Demo Video (YouTube URL)"
+                        value={demoVideoUrl}
+                        onChange={(e) => {
+                          setDemoVideoUrl(e.target.value);
+                          setFormErrors((prev) => ({ ...prev, demoVideoUrl: "" }));
+                        }}
+                        error={formErrors.demoVideoUrl}
+                      />
+                    </div>
+                  )}
 
-              <ModuleSection
-                modules={modules}
-                onModulesChange={handleModulesChange}
-                courseId={courseId || ""}
-                courseData={courseData}
-                isEditing={true}
-              />
-              <Faqs courseID={courseId} />
+                  {section.key === 'pricing' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <DollarSign className="w-4 h-4" />
+                            Price *
+                          </label>
+                          <input
+                            type="number"
+                            name="price"
+                            value={formData.price}
+                            onChange={handleInputChange}
+                            className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                              formErrors.price ? "border-red-400" : "border-gray-300"
+                            }`}
+                            placeholder="Enter price"
+                            required
+                          />
+                          {formErrors.price && (
+                            <p className="mt-1 text-xs text-red-600">{formErrors.price}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Currency
+                          </label>
+                          <select
+                            name="currency"
+                            value={formData.currency}
+                            onChange={handleInputChange}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="INR">INR (₹)</option>
+                            <option value="USD">USD ($)</option>
+                            <option value="EUR">EUR (€)</option>
+                            <option value="GBP">GBP (£)</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            name="isSubscription"
+                            checked={formData.isSubscription}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">Subscription-based pricing</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
 
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <Eye className="w-5 h-5 text-blue-600" />
-                  Publication Status
-                </h2>
-                <div className="space-y-4">
-                  <label className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      name="isPublished"
-                      checked={formData.isPublished}
-                      onChange={handleInputChange}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-medium text-gray-700">
-                      Publish Course (Make it visible to students)
-                    </span>
-                  </label>
-                  <p className="text-sm text-gray-600">
-                    When published, this course will be visible to students and
-                    available for enrollment.
-                  </p>
-                </div>
-              </div>
+                  {section.key === 'features' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            name="certificateTemplate"
+                            checked={formData.certificateTemplate}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <Award className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm text-gray-700">Certificate Available</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            name="isDownloadable"
+                            checked={formData.isDownloadable}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <Download className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm text-gray-700">Downloadable Content</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            name="courseForum"
+                            checked={formData.courseForum}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <MessageCircle className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm text-gray-700">Course Forum</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            name="isPrivate"
+                            checked={formData.isPrivate}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <Lock className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm text-gray-700">Private Course</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            name="enableWaitlist"
+                            checked={formData.enableWaitlist}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <Users className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm text-gray-700">Enable Waitlist</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
 
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex flex-col sm:flex-row gap-4 justify-end">
-                  <button
-                    type="button"
-                    onClick={(e) => handleSubmit(e, true)}
-                    disabled={loading}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <FileText className="w-4 h-4" />
-                    )}
+                  {section.key === 'tags' && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                          <Tag className="w-4 h-4" />
+                          Course Tags *
+                        </label>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {predefinedTags.map((tag) => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => addTag(tag)}
+                              className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                                selectedTags.includes(tag)
+                                  ? "bg-blue-100 text-blue-800 border border-blue-300"
+                                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                              }`}
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={customTag}
+                            onChange={(e) => setCustomTag(e.target.value)}
+                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Add custom tag"
+                            onKeyPress={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                addCustomTag();
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={addCustomTag}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+                        {formErrors.tags && (
+                          <p className="mt-1 text-xs text-red-600">{formErrors.tags}</p>
+                        )}
+                      </div>
+                      
+                      {selectedTags.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Tags:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedTags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                              >
+                                {tag}
+                                <button
+                                  type="button"
+                                  onClick={() => removeTag(tag)}
+                                  className="text-blue-600 hover:text-blue-800"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {section.key === 'seo' && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          SEO Meta Description
+                        </label>
+                        <textarea
+                          name="seoMetaDescription"
+                          value={formData.seoMetaDescription}
+                          onChange={handleInputChange}
+                          rows={3}
+                          className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            formErrors.seoMetaDescription ? "border-red-400" : "border-gray-300"
+                          }`}
+                          placeholder="Enter meta description for search engines (max 160 characters)"
+                          maxLength={160}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formData.seoMetaDescription.length}/160 characters
+                        </p>
+                        {formErrors.seoMetaDescription && (
+                          <p className="mt-1 text-xs text-red-600">{formErrors.seoMetaDescription}</p>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          SEO Content
+                        </label>
+                        <QuillEditor
+                          value={seoContent}
+                          onChange={setSeoContent}
+                          placeholder="Add SEO-friendly content for better search rankings..."
+                        />
+                        {formErrors.seoContent && (
+                          <p className="mt-2 text-xs text-red-600">{formErrors.seoContent}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {section.key === 'modules' && (
+                    <div>
+                      <ModuleSection
+                        modules={modules}
+                        onModulesChange={handleModulesChange}
+                        courseId={courseId}
+                        courseData={processedCourseData}
+                      />
+                    </div>
+                  )}
+
+                  {section.key === 'faqs' && (
+                    <div>
+                      <Faqs courseId={courseId} />
+                    </div>
+                  )}
+
+                  {section.key === 'publication' && (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <h4 className="font-medium text-blue-900 mb-2">Publication Status</h4>
+                        <p className="text-sm text-blue-700 mb-3">
+                          Choose whether to publish your course immediately or save as draft.
+                        </p>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            name="isPublished"
+                            checked={formData.isPublished}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <Eye className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm text-gray-700">Publish Course</span>
+                        </label>
+                      </div>
+                      
+                      {formData.isPublished && (
+                        <div className="p-4 bg-green-50 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                            <span className="font-medium text-green-900">Ready to Publish</span>
+                          </div>
+                          <p className="text-sm text-green-700">
+                            Your course will be visible to students once published.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </AccordionSection>
+              ))}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-8 flex gap-4 justify-end bg-white rounded-lg shadow-sm p-6">
+              <button
+                type="button"
+                onClick={(e) => handleSubmit(e, true)}
+                disabled={loading}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Save className="w-4 h-4" />
                     Save as Draft
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Upload className="w-4 h-4" />
-                    )}
+                  </span>
+                )}
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Updating...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Check className="w-4 h-4" />
                     Update Course
-                  </button>
-                </div>
-              </div>
+                  </span>
+                )}
+              </button>
             </div>
           </form>
         </div>

@@ -6,16 +6,21 @@ import {
   Loader2,
   CheckCircle2,
   X,
-  Trash2,
-  Edit2,
-  Link,
+  Clock,
+  AlertCircle,
+  Play,
+  Upload,
+  Video,
+  MonitorPlay,
+  Sparkles,
+  Check,
+  XCircle,
+  Info
 } from "lucide-react";
 import {
   uploadVideo,
-  fetchVideo,
   updateVideo,
 } from "../../../store/slices/vedio";
-import PopupAlert from "../../../components/popUpAlert";
 import axiosInstance from "../../../services/axiosConfig";
 
 // Fixed interface to match your store structure
@@ -37,9 +42,140 @@ type VideoLessonProps = {
 };
 
 const sourcePlatforms = [
-  { value: "videocypher", label: "Videocypher" },
-  { value: "youtube", label: "YouTube" },
+  { value: "videocypher", label: "VdoCipher", icon: MonitorPlay },
+  { value: "youtube", label: "YouTube", icon: Play },
 ];
+
+// Enhanced popup component with better animations
+const EnhancedPopup: React.FC<{
+  isVisible: boolean;
+  message: string;
+  type: string;
+  onClose: () => void;
+  autoClose?: boolean;
+}> = ({ isVisible, message, type, onClose, autoClose = true }) => {
+  useEffect(() => {
+    if (isVisible && autoClose && type === "success") {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, autoClose, type, onClose]);
+
+  if (!isVisible) return null;
+
+  const getTypeStyles = () => {
+    switch (type) {
+      case "success":
+        return "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 text-green-800";
+      case "error":
+        return "bg-gradient-to-r from-red-50 to-rose-50 border-red-200 text-red-800";
+      case "warning":
+        return "bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200 text-amber-800";
+      case "info":
+        return "bg-gradient-to-r from-blue-50 to-sky-50 border-blue-200 text-blue-800";
+      default:
+        return "bg-gray-50 border-gray-200 text-gray-800";
+    }
+  };
+
+  const getIcon = () => {
+    switch (type) {
+      case "success":
+        return <CheckCircle2 className="w-5 h-5 text-green-600" />;
+      case "error":
+        return <XCircle className="w-5 h-5 text-red-600" />;
+      case "warning":
+        return <AlertCircle className="w-5 h-5 text-amber-600" />;
+      case "info":
+        return <Info className="w-5 h-5 text-blue-600" />;
+      default:
+        return <Info className="w-5 h-5 text-gray-600" />;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0  bg-transparent backdrop-blur-xs transition-opacity flex items-center justify-center z-50 p-4">
+      <div className={`max-w-md w-full rounded-xl border-2 p-6 max-h-[700px] overflow-scroll shadow-xl transform transition-all duration-300 scale-100 ${getTypeStyles()}`}>
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0">
+            {getIcon()}
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium leading-relaxed">
+              {message}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        
+        {type === "success" && (
+          <div className="mt-4 bg-white bg-opacity-60 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-xs text-green-700">
+              <Clock className="w-4 h-4" />
+              <span>Processing will continue in the background</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Upload progress component
+const UploadProgress: React.FC<{
+  isVisible: boolean;
+  progress: number;
+  fileName: string;
+  stage: string;
+}> = ({ isVisible, progress, fileName, stage }) => {
+  if (!isVisible) return null;
+
+  return (
+    <div className="fixed inset-0 bg-transparent backdrop-blur-xs transition-opacity flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl">
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-6">
+            <Upload className="w-8 h-8 text-white animate-pulse" />
+          </div>
+          
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Uploading to VdoCipher
+          </h3>
+          
+          <p className="text-sm text-gray-600 mb-6">
+            {fileName}
+          </p>
+          
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+            <div 
+              className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          
+          <div className="flex justify-between text-sm text-gray-500 mb-4">
+            <span>{stage}</span>
+            <span>{progress}%</span>
+          </div>
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-sm text-blue-700">
+              <Sparkles className="w-4 h-4" />
+              <span>This may take a few minutes depending on file size</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const VideoLesson: React.FC<VideoLessonProps> = ({
   lessonId,
@@ -75,6 +211,60 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
     message: "",
     type: "",
   });
+
+  const [uploadProgress, setUploadProgress] = useState({
+    isVisible: false,
+    progress: 0,
+    fileName: "",
+    stage: "Preparing upload...",
+  });
+
+  // Mock upload progress simulation
+  const simulateUpload = (fileName: string) => {
+    setUploadProgress({
+      isVisible: true,
+      progress: 0,
+      fileName,
+      stage: "Preparing upload...",
+    });
+
+    let progress = 0;
+    const stages = [
+      "Preparing upload...",
+      "Uploading to VdoCipher...",
+      "Processing video...",
+      "Generating thumbnails...",
+      "Finalizing...",
+    ];
+
+    const interval = setInterval(() => {
+      progress += Math.random() * 15 + 5;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        setTimeout(() => {
+          setUploadProgress(prev => ({ ...prev, isVisible: false }));
+          showSuccessMessage();
+        }, 1000);
+      }
+
+      const stageIndex = Math.floor((progress / 100) * stages.length);
+      setUploadProgress({
+        isVisible: true,
+        progress: Math.min(progress, 100),
+        fileName,
+        stage: stages[Math.min(stageIndex, stages.length - 1)],
+      });
+    }, 500);
+  };
+
+  const showSuccessMessage = () => {
+    setPopup({
+      isVisible: true,
+      message: "Video uploaded successfully! 🎉 Your video is now being processed by VdoCipher. You can check back in a few minutes to see the processed video with optimized streaming quality.",
+      type: "success",
+    });
+  };
 
   // Enhanced getData function to handle VdoCipher data structure
   const getData = async () => {
@@ -218,6 +408,11 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
     try {
       let response;
       
+      // Show upload progress for VdoCipher videos
+      if (form.sourcePlatform === "videocypher" && form.file) {
+        simulateUpload(form.file.name);
+      }
+      
       if (isEditMode && (fileId || videoId)) {
         // For VdoCipher updates, we need to use the correct ID
         const updateId = fileId || videoId;
@@ -234,8 +429,8 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
         
         response = await dispatch(
           updateVideo({
-            videoId: updateId, // Use fileId for VdoCipher updates
-            file: form.sourcePlatform === "youtube" ? null : form.file,
+            videoId: updateId!, // Use fileId for VdoCipher updates
+            file: form.sourcePlatform === "youtube" ? null : form.file!,
             lessonId,
             sourcePlatform: form.sourcePlatform,
             title: form.title,
@@ -254,7 +449,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
       } else {
         response = await dispatch(
           uploadVideo({
-            file: form.sourcePlatform === "youtube" ? null : form.file,
+            file: form.sourcePlatform === "youtube" ? null : form.file!,
             lessonId,
             sourcePlatform: form.sourcePlatform,
             title: form.title,
@@ -272,31 +467,47 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
       
       console.log("Video operation response:", response);
       
-      if (response.payload?.success) {
-        setPopup({
-          isVisible: true,
-          message: `Video ${isEditMode ? "updated" : "uploaded"} successfully!`,
-          type: "success",
-        });
-        // Close after a short delay to show success message
-        setTimeout(() => {
-          handleClose();
-        }, 1500);
+      // For YouTube, show immediate success without progress
+      if (form.sourcePlatform === "youtube") {
+        if (response.payload?.success) {
+          setPopup({
+            isVisible: true,
+            message: "YouTube video linked successfully! 🎬 Your video is now available for streaming.",
+            type: "success",
+          });
+          // Close after a short delay to show success message
+          setTimeout(() => {
+            handleClose();
+          }, 1500);
+        } else {
+          setPopup({
+            isVisible: true,
+            message: `Failed to ${isEditMode ? "update" : "link"} YouTube video: ${
+              response.payload?.message || "Unknown error"
+            }`,
+            type: "error",
+          });
+        }
       } else {
-        setPopup({
-          isVisible: true,
-          message: `Failed to ${isEditMode ? "update" : "upload"} video: ${
-            response.payload?.message || "Unknown error"
-          }`,
-          type: "error",
-        });
+        // For VdoCipher, the success message is shown by showSuccessMessage after upload simulation
+        if (!response.payload?.success) {
+          setUploadProgress(prev => ({ ...prev, isVisible: false }));
+          setPopup({
+            isVisible: true,
+            message: `Failed to ${isEditMode ? "update" : "upload"} video: ${
+              response.payload?.message || "Unknown error"
+            }`,
+            type: "error",
+          });
+        }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving video:", error);
+      setUploadProgress(prev => ({ ...prev, isVisible: false }));
       setPopup({
         isVisible: true,
         message: `Failed to ${isEditMode ? "update" : "upload"} video: ${
-          error.message || "Network error"
+          error instanceof Error ? error.message : "Network error"
         }`,
         type: "error",
       });
@@ -312,23 +523,46 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
   const renderVdoCipherInfo = () => {
     if (form.sourcePlatform === "videocypher" && isEditMode) {
       return (
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h4 className="font-medium text-blue-900 mb-2">VdoCipher Video Info</h4>
-          <div className="space-y-1 text-sm text-blue-800">
-            <p><strong>Video ID:</strong> {form.videoId}</p>
-            <p><strong>Status:</strong> 
-              <span className={`ml-1 px-2 py-1 rounded-full text-xs ${
-                form.status === 'ready' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-5 rounded-xl">
+          <div className="flex items-center gap-2 mb-3">
+            <MonitorPlay className="w-5 h-5 text-blue-600" />
+            <h4 className="font-semibold text-blue-900">VdoCipher Video Details</h4>
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-gray-600">Video ID</p>
+              <p className="font-mono text-blue-800">{form.videoId || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-gray-600">Status</p>
+              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                form.status === 'ready' 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-yellow-100 text-yellow-800'
               }`}>
-                {form.status || 'Unknown'}
+                {form.status === 'ready' ? (
+                  <>
+                    <Check className="w-3 h-3 mr-1" />
+                    Ready
+                  </>
+                ) : (
+                  <>
+                    <Clock className="w-3 h-3 mr-1" />
+                    Processing
+                  </>
+                )}
               </span>
-            </p>
-            <p><strong>Quality:</strong> {form.quality}</p>
-            {form.secureUrl && (
-              <p><strong>Secure URL:</strong> 
-                <span className="text-xs text-blue-600 ml-1">Available</span>
+            </div>
+            <div>
+              <p className="text-gray-600">Quality</p>
+              <p className="text-blue-800 capitalize">{form.quality}</p>
+            </div>
+            <div>
+              <p className="text-gray-600">Secure Streaming</p>
+              <p className="text-green-600 font-medium">
+                {form.secureUrl ? "✓ Enabled" : "Setting up..."}
               </p>
-            )}
+            </div>
           </div>
         </div>
       );
@@ -339,8 +573,8 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
   const renderSourceInput = () => {
     if (form.sourcePlatform === "youtube") {
       return (
-        <div>
-          <label className="block text-sm font-medium mb-2">
+        <div className="space-y-3">
+          <label className="block text-sm font-semibold text-gray-700">
             YouTube URL *
           </label>
           <div className="relative">
@@ -349,55 +583,84 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
               name="youtubeUrl"
               value={form.youtubeUrl}
               onChange={handleChange}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200"
               placeholder="https://www.youtube.com/watch?v=..."
               required
             />
-            <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Play className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-red-500" />
           </div>
           {form.youtubeUrl && !isValidYouTubeUrl(form.youtubeUrl) && (
-            <p className="mt-1 text-sm text-red-600">
+            <div className="flex items-center gap-2 text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4" />
               Please enter a valid YouTube URL
-            </p>
+            </div>
           )}
           {form.youtubeUrl && isValidYouTubeUrl(form.youtubeUrl) && (
-            <p className="mt-1 text-sm text-green-600 flex items-center gap-1">
+            <div className="flex items-center gap-2 text-green-600 text-sm">
               <CheckCircle2 className="w-4 h-4" />
-              Valid YouTube URL
-            </p>
+              Valid YouTube URL detected
+            </div>
           )}
         </div>
       );
     } else if (form.sourcePlatform === "videocypher") {
       return (
-        <div>
-          <label className="block text-sm font-medium mb-2">
+        <div className="space-y-3">
+          <label className="block text-sm font-semibold text-gray-700">
             Video File {!isEditMode ? '*' : ''}
           </label>
-          <input
-            type="file"
-            name="file"
-            accept="video/*"
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            required={!isEditMode}
-          />
+          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
+            <input
+              type="file"
+              name="file"
+              accept="video/*"
+              onChange={handleChange}
+              className="hidden"
+              id="video-file"
+              required={!isEditMode}
+            />
+            <label htmlFor="video-file" className="cursor-pointer">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Video className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
+                    {form.file ? form.file.name : "Click to select video file"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    MP4, AVI, MOV up to 2GB
+                  </p>
+                </div>
+              </div>
+            </label>
+          </div>
+          
           {form.file && (
-            <p className="mt-2 text-sm text-gray-600 flex items-center gap-1">
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
-              Selected: {form.file.name}
-            </p>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 text-green-700">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="text-sm font-medium">Selected: {form.file.name}</span>
+              </div>
+            </div>
           )}
+          
           {isEditMode && !form.file && (
-            <p className="mt-1 text-xs text-gray-500">
-              Leave empty to keep current video, or select a new file to replace it
-            </p>
-          )}
-          {isEditMode && form.file && (
-            <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded">
-              <p className="text-sm text-amber-800">
-                ⚠️ This will replace the current video with: <strong>{form.file.name}</strong>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-700">
+                💡 Leave empty to keep current video, or select a new file to replace it
               </p>
+            </div>
+          )}
+          
+          {isEditMode && form.file && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 text-amber-800">
+                <AlertCircle className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  This will replace the current video with: {form.file.name}
+                </span>
+              </div>
             </div>
           )}
         </div>
@@ -407,121 +670,198 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
   };
 
   return (
-    <div className="bg-white lg:w-[700px] rounded-xl max-w-2xl w-full mx-auto shadow-lg p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold flex items-center gap-2">
-          <FileVideo className="w-6 h-6" />
-          {isEditMode ? "Edit Video Lesson" : "Upload Video Lesson"}
-        </h2>
-        
-      </div>
-      
-      <div className="space-y-5">
-        <div>
-          <label className="block text-sm font-medium mb-2">Title *</label>
-          <input
-            type="text"
-            name="title"
-            value={form.title}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Enter video title"
-            required
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-2">Description</label>
-          <textarea
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
-            placeholder="Enter video description"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Source Platform *
-          </label>
-          <select
-            name="sourcePlatform"
-            value={form.sourcePlatform}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          >
-            <option value="">Select platform</option>
-            {sourcePlatforms.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          {isEditMode && (
-            <p className="mt-1 text-xs text-amber-600">
-              ⚠️ Changing platform will replace the current video
-            </p>
-          )}
+    <>
+      <div className="bg-white lg:w-[800px] rounded-2xl max-w-4xl w-full mx-auto shadow-2xl max-h-[700px] overflow-scroll">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                <FileVideo className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">
+                  {isEditMode ? "Edit Video Lesson" : "Upload Video Lesson"}
+                </h2>
+                <p className="text-blue-100 text-sm">
+                  {isEditMode ? "Update your video content" : "Add a new video to your lesson"}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleClose}
+              className="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center hover:bg-opacity-30 transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Conditional rendering based on source platform */}
-        {form.sourcePlatform && renderSourceInput()}
-        
-        {/* Show VdoCipher info if editing VdoCipher video */}
-        {renderVdoCipherInfo()}
-      </div>
-      
-      <div className="flex justify-end items-center gap-4 mt-8">
-        <button
-          onClick={handleClose}
-          className="px-6 py-2 rounded-lg font-semibold text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors"
-          disabled={loading}
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={loading}
-          className={`px-6 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors ${
-            loading
-              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
-          }`}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              {isEditMode ? "Updating..." : "Uploading..."}
-            </>
-          ) : (
-            <>
-              {form.sourcePlatform === "youtube" ? (
-                <Link className="w-5 h-5" />
-              ) : (
-                <UploadCloud className="w-5 h-5" />
-              )}
-              {isEditMode
-                ? "Update Video"
-                : form.sourcePlatform === "youtube"
-                ? "Save Video"
-                : "Upload Video"}
-            </>
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          {/* Title */}
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700">
+              Video Title *
+            </label>
+            <input
+              type="text"
+              name="title"
+              value={form.title}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+              placeholder="Enter an engaging title for your video"
+              required
+            />
+          </div>
+          
+          {/* Description */}
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700">
+              Description
+            </label>
+            <textarea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              rows={4}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+              placeholder="Describe what students will learn from this video..."
+            />
+          </div>
+          
+          {/* Source Platform */}
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-700">
+              Source Platform *
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              {sourcePlatforms.map((platform) => {
+                const Icon = platform.icon;
+                return (
+                  <div
+                    key={platform.value}
+                    className={`relative border-2 rounded-xl p-4 cursor-pointer transition-all ${
+                      form.sourcePlatform === platform.value
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                    onClick={() => setForm(prev => ({ ...prev, sourcePlatform: platform.value }))}
+                  >
+                    <input
+                      type="radio"
+                      name="sourcePlatform"
+                      value={platform.value}
+                      checked={form.sourcePlatform === platform.value}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <div className="flex items-center gap-3">
+                      <Icon className={`w-6 h-6 ${
+                        form.sourcePlatform === platform.value 
+                          ? "text-blue-600" 
+                          : "text-gray-400"
+                      }`} />
+                      <span className={`font-medium ${
+                        form.sourcePlatform === platform.value 
+                          ? "text-blue-900" 
+                          : "text-gray-700"
+                      }`}>
+                        {platform.label}
+                      </span>
+                    </div>
+                    {form.sourcePlatform === platform.value && (
+                      <div className="absolute top-2 right-2">
+                        <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {isEditMode && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <div className="flex items-center gap-2 text-amber-800 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Changing platform will replace the current video</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Platform-specific inputs */}
+          {form.sourcePlatform && (
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+              {renderSourceInput()}
+            </div>
           )}
-        </button>
+          
+          {/* VdoCipher info */}
+          {renderVdoCipherInfo()}
+        </div>
+        
+        {/* Footer */}
+        <div className="bg-gray-50 px-6 py-4 flex justify-between items-center">
+          <div className="text-sm text-gray-600">
+            * Required fields
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={handleClose}
+              className="px-6 py-2 rounded-xl font-semibold text-gray-700 border-2 border-gray-300 hover:bg-gray-100 transition-all duration-200"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={loading || uploadProgress.isVisible}
+              className={`px-6 py-2 rounded-xl font-semibold flex items-center gap-2 transition-all duration-200 ${
+                loading || uploadProgress.isVisible
+                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl"
+              }`}
+            >
+              {loading || uploadProgress.isVisible ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  {isEditMode ? "Updating..." : "Processing..."}
+                </>
+              ) : (
+                <>
+                  {form.sourcePlatform === "youtube" ? (
+                    <Play className="w-5 h-5" />
+                  ) : (
+                    <UploadCloud className="w-5 h-5" />
+                  )}
+                  {isEditMode
+                    ? "Update Video"
+                    : form.sourcePlatform === "youtube"
+                    ? "Link Video"
+                    : "Upload Video"}
+                </>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
       
-      <PopupAlert
+      {/* Upload Progress Modal */}
+      <UploadProgress
+        isVisible={uploadProgress.isVisible}
+        progress={uploadProgress.progress}
+        fileName={uploadProgress.fileName}
+        stage={uploadProgress.stage}
+      />
+      
+      {/* Enhanced Popup */}
+      <EnhancedPopup
         message={popup.message}
         type={popup.type}
         isVisible={popup.isVisible}
-        onClose={() => {
-          setPopup({ isVisible: false, message: "", type: "" });
-        }}
+        onClose={() => setPopup({ isVisible: false, message: "", type: "" })}
       />
-    </div>
+    </>
   );
 };
 

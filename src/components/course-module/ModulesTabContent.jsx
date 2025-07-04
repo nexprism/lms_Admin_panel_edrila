@@ -17,7 +17,8 @@ const ModulesTabContent = ({
     removeLessonFromModule, 
     moduleLoading, 
     moduleError, 
-    setShowCreateForm 
+    setShowCreateForm,
+    isEditing = false
 }) => {
     return (
         <div>
@@ -34,7 +35,7 @@ const ModulesTabContent = ({
                         </div>
                     </div>
                 </div>
-                <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                {/* <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-green-100 rounded-lg">
                             <CheckCircle className="w-5 h-5 text-green-600" />
@@ -44,7 +45,7 @@ const ModulesTabContent = ({
                             <p className="text-2xl font-bold text-gray-900">{publishedModules}</p>
                         </div>
                     </div>
-                </div>
+                </div> */}
                 <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-yellow-100 rounded-lg">
@@ -79,6 +80,7 @@ const ModulesTabContent = ({
                         onAddLesson={(newLesson) => addLessonToModule(index, newLesson)}
                         onLessonChange={(lessonIndex, updatedLesson) => updateLessonInModule(index, lessonIndex, updatedLesson)}
                         onLessonRemove={(lessonIndex) => removeLessonFromModule(index, lessonIndex)}
+                        isEditing={isEditing}
                     />
                 ))}
 

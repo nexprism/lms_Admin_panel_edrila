@@ -32,17 +32,37 @@ export const createCourseBundle = createAsyncThunk(
 
 
 
-export const fetchCourseBundles = createAsyncThunk(
+interface CourseBundlePaginationData {
+    bundles: any[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export const fetchCourseBundles = createAsyncThunk<
+    CourseBundlePaginationData,
+    { page?: number; limit?: number } | undefined
+>(
     'courseBundle/fetchAll',
-    async (_, { rejectWithValue }) => {
+    async (params = {}, { rejectWithValue }) => {
         try {
+            const { page = 1, limit = 10 } = params;
             const response = await axiosInstance.get('/bundle', {
+                params: { page, limit },
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
-            console.log('Fetched course bundles:', response?.data?.data);  
-            return response.data?.data || [];
+            const data = response.data;
+            console.log('Fetched course bundles:', data);
+            return {
+                bundles: data?.data || [],
+                total: data?.total || 0,
+                page: data?.page || 1,
+                limit: data?.limit || 10,
+                totalPages: data?.totalPages || 0,
+            };
         } catch (err: any) {
             return rejectWithValue(err.response?.data?.message || err.message);
         }

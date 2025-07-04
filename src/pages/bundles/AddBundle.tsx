@@ -3,18 +3,35 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createCourseBundle } from '../../store/slices/courseBundle';
 import { fetchCourses } from '../../store/slices/course';
 import { RootState } from '../../hooks/redux';
+import QuillEditor from '../../components/QuillEditor';
 
-import { ChevronDown, X, Check } from 'lucide-react';
+import { ChevronDown, X, Check, CheckCircle, XCircle } from 'lucide-react';
 
-const MultiSelectDropdown = ({ courses, selectedCourses, onChange, loading }) => {
+interface Course {
+  _id: string;
+  id?: string;
+  title: string;
+  name?: string;
+}
+
+interface MultiSelectDropdownProps {
+  courses: {
+    courses: Course[];
+  };
+  selectedCourses: string[];
+  onChange: (courses: string[]) => void;
+  loading: boolean;
+}
+
+const MultiSelectDropdown = ({ courses, selectedCourses, onChange, loading }: MultiSelectDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -26,11 +43,11 @@ const MultiSelectDropdown = ({ courses, selectedCourses, onChange, loading }) =>
   }, []);
 
   // Filter courses based on search term
-  const filteredCourses = courses?.data?.filter(course =>
+  const filteredCourses = courses?.courses?.filter((course: Course) =>
     (course.title || course.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const handleCourseToggle = (courseId) => {
+  const handleCourseToggle = (courseId: string) => {
     const newSelection = selectedCourses.includes(courseId)
       ? selectedCourses.filter(id => id !== courseId)
       : [...selectedCourses, courseId];
@@ -38,7 +55,7 @@ const MultiSelectDropdown = ({ courses, selectedCourses, onChange, loading }) =>
     onChange(newSelection);
   };
 
-  const removeCourse = (courseId) => {
+  const removeCourse = (courseId: string) => {
     onChange(selectedCourses.filter(id => id !== courseId));
   };
 
@@ -48,7 +65,7 @@ const MultiSelectDropdown = ({ courses, selectedCourses, onChange, loading }) =>
       <div className="mb-2">
         <div className="flex flex-wrap gap-2">
           {selectedCourses.map(courseId => {
-            const course = courses?.data?.find(c => (c._id || c.id) === courseId);
+            const course = courses?.courses?.find((c: any) => (c._id || c.id) === courseId);
             const courseName = course?.title || course?.name || 'Unknown Course';
             
             return (
@@ -114,7 +131,9 @@ const MultiSelectDropdown = ({ courses, selectedCourses, onChange, loading }) =>
               filteredCourses.map(course => {
                 const courseId = course._id || course.id;
                 const courseName = course.title || course.name || 'Untitled Course';
-                const isSelected = selectedCourses.includes(courseId);
+                const isSelected = courseId ? selectedCourses.includes(courseId) : false;
+
+                if (!courseId) return null;
 
                 return (
                   <div
@@ -132,7 +151,7 @@ const MultiSelectDropdown = ({ courses, selectedCourses, onChange, loading }) =>
                     )}
                   </div>
                 );
-              })
+              }).filter(Boolean)
             )}
           </div>
         </div>
@@ -141,17 +160,66 @@ const MultiSelectDropdown = ({ courses, selectedCourses, onChange, loading }) =>
   );
 };
 
+// Custom Popup Component
+const CustomPopup = ({ popup, onClose }: { 
+    popup: { show: boolean; type: 'success' | 'error'; title: string; message: string; }; 
+    onClose: () => void; 
+}) => {
+    if (!popup.show) return null;
+
+    return (
+        <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+                <div className="flex items-center mb-4">
+                    {popup.type === 'success' ? (
+                        <CheckCircle className="w-6 h-6 text-green-600 mr-3" />
+                    ) : (
+                        <XCircle className="w-6 h-6 text-red-600 mr-3" />
+                    )}
+                    <h3 className={`text-lg font-semibold ${
+                        popup.type === 'success' ? 'text-green-800' : 'text-red-800'
+                    }`}>
+                        {popup.title}
+                    </h3>
+                </div>
+                <p className="text-gray-600 mb-6">{popup.message}</p>
+                <div className="flex justify-end">
+                    <button
+                        onClick={onClose}
+                        className={`px-4 py-2 rounded-md font-medium ${
+                            popup.type === 'success'
+                                ? 'bg-green-600 hover:bg-green-700'
+                                : 'bg-red-600 hover:bg-red-700'
+                        } text-white transition duration-200`}
+                    >
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const AddBundleForm = () => {
-
-
-
-    
     const dispatch = useDispatch();
     
     // Redux state
     const { loading: bundleLoading, error: bundleError } = useSelector((state: RootState) => state.courseBundle);
     const { data: courses, loading: coursesLoading } = useSelector((state: RootState) => state.course);
     console.log('Courses:', courses);
+    
+    // Popup state
+    const [popup, setPopup] = useState<{
+        show: boolean;
+        type: 'success' | 'error';
+        title: string;
+        message: string;
+    }>({
+        show: false,
+        type: 'success',
+        title: '',
+        message: ''
+    });
     
     // Form state
     const [formData, setFormData] = useState({
@@ -164,7 +232,7 @@ const AddBundleForm = () => {
         price: '',
         discount: '',
         currency: 'INR',
-        courses: [],
+        courses: [] as string[],
         certificate: false,
         featured: false,
         downloadable: false,
@@ -175,45 +243,33 @@ const AddBundleForm = () => {
         seoDescription: ''
     });
     
-    const [files, setFiles] = useState({
+    const [files, setFiles] = useState<{[key: string]: File | null}>({
         thumbnail: null,
-        banner: null,
-        video: null,
-        attachmentFile: null,
-        documentFile: null
+        banner: null
     });
     
-    const [selectedCourses, setSelectedCourses] = useState([]);
+    const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
 
     // Fetch courses on component mount
     useEffect(() => {
-        dispatch(fetchCourses());
+        dispatch(fetchCourses({ page: 1, limit: 100 }) as any); // Fetch more courses for dropdown
     }, [dispatch]);
 
-    const handleInputChange = (e) => {
-        const { name, value, type, checked } = e.target;
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value, type } = e.target;
+        const checked = (e.target as HTMLInputElement).checked;
         setFormData(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, files: fileList } = e.target;
         setFiles(prev => ({
             ...prev,
-            [name]: fileList[0]
+            [name]: fileList?.[0] || null
         }));
-    };
-
-    const handleCourseSelection = (courseId) => {
-        setSelectedCourses(prev => {
-            if (prev.includes(courseId)) {
-                return prev.filter(id => id !== courseId);
-            } else {
-                return [...prev, courseId];
-            }
-        });
     };
 
     const handleSubmit = async () => {
@@ -230,7 +286,7 @@ const AddBundleForm = () => {
                     bundleFormData.append('tags', tag);
                 });
             } else {
-                bundleFormData.append(key, formData[key]);
+                bundleFormData.append(key, (formData as any)[key]);
             }
         });
         
@@ -247,8 +303,16 @@ const AddBundleForm = () => {
         });
 
         try {
-            await dispatch(createCourseBundle(bundleFormData)).unwrap();
-            alert('Bundle created successfully!');
+            await (dispatch(createCourseBundle(bundleFormData)) as any).unwrap();
+            
+            // Show success popup
+            setPopup({
+                show: true,
+                type: 'success',
+                title: 'Success!',
+                message: 'Bundle created successfully!'
+            });
+            
             // Reset form
             setFormData({
                 title: '',
@@ -272,14 +336,19 @@ const AddBundleForm = () => {
             });
             setFiles({
                 thumbnail: null,
-                banner: null,
-                video: null,
-                attachmentFile: null,
-                documentFile: null
+                banner: null
             });
             setSelectedCourses([]);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating bundle:', error);
+            
+            // Show error popup
+            setPopup({
+                show: true,
+                type: 'error',
+                title: 'Error!',
+                message: error?.message || 'Failed to create bundle. Please try again.'
+            });
         }
     };
 
@@ -345,13 +414,12 @@ const AddBundleForm = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                         Description
                     </label>
-                    <textarea
-                        name="description"
+                    <QuillEditor
                         value={formData.description}
-                        onChange={handleInputChange}
-                        rows={4}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(value: string) => setFormData(prev => ({ ...prev, description: value }))}
                         placeholder="This bundle includes beginner to advanced courses..."
+                        height="200px"
+                        toolbar="full"
                     />
                 </div>
 
@@ -483,45 +551,6 @@ const AddBundleForm = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Video
-                        </label>
-                        <input
-                            type="file"
-                            name="video"
-                            onChange={handleFileChange}
-                            accept="video/*"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Attachment File
-                        </label>
-                        <input
-                            type="file"
-                            name="attachmentFile"
-                            onChange={handleFileChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Document File
-                        </label>
-                        <input
-                            type="file"
-                            name="documentFile"
-                            onChange={handleFileChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                </div>
-
                 {/* Boolean Options */}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {['certificate', 'featured', 'downloadable', 'popular', 'private'].map((field) => (
@@ -530,7 +559,7 @@ const AddBundleForm = () => {
                                 type="checkbox"
                                 name={field}
                                 id={field}
-                                checked={formData[field]}
+                                checked={(formData as any)[field]}
                                 onChange={handleInputChange}
                                 className="mr-2"
                             />
@@ -603,6 +632,12 @@ const AddBundleForm = () => {
                     </button>
                 </div>
             </div>
+            
+            {/* Custom Popup */}
+            <CustomPopup 
+                popup={popup} 
+                onClose={() => setPopup(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 };

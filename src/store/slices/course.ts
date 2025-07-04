@@ -33,22 +33,39 @@ export const createCourse = createAsyncThunk(
   }
 );
 
-export const fetchCourses = createAsyncThunk(
+interface PaginationData {
+  courses: any[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export const fetchCourses = createAsyncThunk<
+  PaginationData,
+  { page?: number; limit?: number } | undefined
+>(
   "course/fetchCourses",
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(
-        "/courses/",
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      console.log("Fetched courses:", response.data?.data?.data);
-      return response.data?.data || [];
+      const { page = 1, limit = 10 } = params;
+      const response = await axiosInstance.get("/courses/", {
+        params: { page, limit },
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = response.data?.data;
+      console.log("Fetched vfgbhcourses:", data);
+      return {
+        courses: data?.data || [],
+        total: data?.total || 0,
+        page: data?.page || 1,
+        limit: data?.limit || 10,
+        totalPages: data?.totalPages || 0,
+      };
     } catch (error: any) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch courses");
     }
   }
 );

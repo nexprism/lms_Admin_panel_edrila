@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import { ScrollToTop } from "./components/common/ScrollToTop";
@@ -54,26 +54,24 @@ const CreateCertificateTemplate = lazy(
 );
 
 export default function App() {
-  const user = useSelector(selectIsAuthenticated);
-
-  if (
-    !user &&
-    !window.location.pathname.includes("/signin") &&
-    !window.location.pathname.includes("/signup")
-  ) {
-    window.location.href = "/signin";
-  }
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
   return (
     <Router>
       <ScrollToTop />
       <Suspense fallback={<div className="text-center mt-20">Loading...</div>}>
         <Routes>
-          {/* Public Routes */}
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
+          {/* Public Routes - Only accessible when NOT authenticated */}
+          <Route 
+            path="/signin" 
+            element={!isAuthenticated ? <SignIn /> : <Navigate to="/" replace />} 
+          />
+          <Route 
+            path="/signup" 
+            element={!isAuthenticated ? <SignUp /> : <Navigate to="/" replace />} 
+          />
 
-          {/* Protected Routes */}
+          {/* Protected Routes - Only accessible when authenticated */}
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route index path="/" element={<Home />} />
@@ -81,48 +79,48 @@ export default function App() {
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/add-category" element={<AddCategory />} />
               <Route path="/categories" element={<CategoryList />} />
-              {/* Add more protected routes here if needed */}
+              
+              {/* Filters */}
               <Route path="/filters/add" element={<AddFilter />} />
               <Route path="/filters/all" element={<FilterList />} />
+              
+              {/* Courses */}
               <Route path="/courses/add" element={<AddCourse />} />
               <Route path="/courses/all/courses" element={<CourseList />} />
               <Route path="/courses/edit/:courseId" element={<EditCourse />} />
+              <Route path="/courses/all/text-courses" element={<TextLessonPage />} />
+              <Route path="/courses/text-courses/:lessonId" element={<EditTextLessonEditor />} />
+              
+              {/* Bundles */}
               <Route path="/bundles/create" element={<AddBundle />} />
               <Route path="/bundles/all" element={<BundleList />} />
               <Route path="/bundles/:bundleId" element={<EditBundleForm />} />
+              
+              {/* Quiz */}
               <Route path="/quiz/all" element={<QuizList />} />
               <Route path="/quiz/edit/:quizId" element={<EditQuiz />} />
+              
+              {/* Assignments */}
               <Route path="/assignments/all" element={<AssignmentList />} />
-              <Route path="/support-tickets/view/:ticketId" element={< TicketDetails isEditMode={false} />} />
-              <Route path="/support-tickets/edit/:ticketId" element={< TicketDetails isEditMode={true} />} />
-              <Route
-                path="/certificates/add"
-                element={<CreateCertificateTemplate />}
-              />
-              <Route
-                path="/assignments/edit/:assignmentId"
-                element={<EditAssignmentForm />}
-              />
-              <Route
-                path="/courses/all/text-courses"
-                element={<TextLessonPage />}
-              />
-              <Route
-                path="/courses/text-courses/:lessonId"
-                element={<EditTextLessonEditor />}
-              />
-
+              <Route path="/assignments/edit/:assignmentId" element={<EditAssignmentForm />} />
+              <Route path="/assignments/submissions" element={<AssignmentList />} />
+              <Route path="/assignments/submissions/:id" element={<AssignmentSubmissionReview />} />
+              
+              {/* Support Tickets */}
+              <Route path="/support-tickets/view/:ticketId" element={<TicketDetails isEditMode={false} />} />
+              <Route path="/support-tickets/edit/:ticketId" element={<TicketDetails isEditMode={true} />} />
+              <Route path="/requests" element={<HelpDesk />} />
+              
+              {/* Certificates */}
+              <Route path="/certificates/add" element={<CreateCertificateTemplate />} />
+              
+              {/* Files */}
               <Route path="/files/all" element={<FileList />} />
               <Route path="/files/add" element={<AddFile />} />
               <Route path="/files/sessions" element={<Session />} />
 
-              {/* Analytics */}
-
-              {/* Nested Routes */}
-
-              {/* students */}
+              {/* Students */}
               <Route path="/students/all" element={<StudentList />} />
-              {/* <Route path="/students/add" element={<AddStudent />} /> */}
               <Route path="/students/:studentId" element={<StudentDetail />} />
 
               {/* Forms */}
@@ -130,17 +128,6 @@ export default function App() {
 
               {/* Tables */}
               <Route path="/basic-tables" element={<BasicTables />} />
-
-              <Route
-                path="/assignments/submissions"
-                element={<AssignmentList />}
-              />
-              <Route
-                path="/assignments/submissions/:id"
-                element={<AssignmentSubmissionReview />}
-              />
-
-              <Route path="/requests" element={<HelpDesk />} />
 
               {/* UI Elements */}
               <Route path="/alerts" element={<Alerts />} />
@@ -156,8 +143,15 @@ export default function App() {
             </Route>
           </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<NotFound />} />
+          {/* Redirect unauthenticated users to signup instead of signin */}
+          <Route 
+            path="*" 
+            element={
+              !isAuthenticated ? 
+                <Navigate to="/signup" replace /> : 
+                <NotFound />
+            } 
+          />
         </Routes>
       </Suspense>
     </Router>

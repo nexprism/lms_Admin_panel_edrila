@@ -11,33 +11,31 @@ import {
   Video,
   Plus,
   X,
-  Bold,
-  Italic,
-  Underline,
-  List,
-  Link,
   Award,
   Download,
   MessageCircle,
   Lock,
   Calendar,
   Upload,
-  Eye,
   Save,
   Loader2,
   AlertCircle,
   Type,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Quote,
-  Heading1,
-  Heading2,
-  Heading3,
+  CheckCircle,
+  ArrowRight,
+  Sparkles,
+  Target,
+  BookOpenCheck,
+  PlayCircle,
+  FileEdit,
+  Layers
 } from "lucide-react";
 import { createCourse } from "../../store/slices/course";
 import CategorySubcategoryDropdowns from "../../components/CategorySubcategoryDropdowns";
 import PopupAlert from "../../components/popUpAlert";
+
+import QuillEditor from "../../components/QuillEditor";
+import { useNavigate } from "react-router-dom";
 
 // Validation schema
 type FormErrors = {
@@ -125,120 +123,95 @@ const validateForm = (
   return errors;
 };
 
-// Rich Text Editor Component
-type RichTextEditorProps = {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-};
+// Success Popup Component
+const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
+  const navigate = useNavigate();
 
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeholder = "Start typing..." }) => {
-  const editorRef = useRef(null);
-  const [isPreview, setIsPreview] = useState(false);
+  if (!isVisible) return null;
 
-  const execCommand = (command, value = null) => {
-    document.execCommand(command, false, value);
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
+  const handleAddContent = () => {
+    if (courseId) {
+      navigate(`/courses/edit/${courseId}`);
+    } else if (onAddContent) {
+      onAddContent();
     }
   };
-
-  const handleInput = () => {
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
-    }
-  };
-
-  const insertLink = () => {
-    const url = prompt("Enter URL:");
-    if (url && /^https?:\/\/[^\s]+$/.test(url)) {
-      execCommand("createLink", url);
-    } else {
-      alert("Please enter a valid URL");
-    }
-  };
-
-  const insertImage = () => {
-    const url = prompt("Enter image URL:");
-    if (url && /\.(jpg|jpeg|png|gif)$/i.test(url)) {
-      execCommand("insertImage", url);
-    } else {
-      alert("Please enter a valid image URL");
-    }
-  };
-
-  const toolbarButtons = [
-    { icon: Bold, command: "bold", title: "Bold" },
-    { icon: Italic, command: "italic", title: "Italic" },
-    { icon: Underline, command: "underline", title: "Underline" },
-    { icon: Heading1, command: "formatBlock", value: "h1", title: "Heading 1" },
-    { icon: Heading2, command: "formatBlock", value: "h2", title: "Heading 2" },
-    { icon: Heading3, command: "formatBlock", value: "h3", title: "Heading 3" },
-    { icon: AlignLeft, command: "justifyLeft", title: "Align Left" },
-    { icon: AlignCenter, command: "justifyCenter", title: "Align Center" },
-    { icon: AlignRight, command: "justifyRight", title: "Align Right" },
-    { icon: List, command: "insertUnorderedList", title: "Bullet List" },
-    { icon: Quote, command: "formatBlock", value: "blockquote", title: "Quote" },
-  ];
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-lg">
-      <div className="border-b bg-gray-50 p-3 flex flex-wrap gap-2">
-        {toolbarButtons.map((button, index) => (
-          <button
-            key={index}
-            type="button"
-            onClick={() => execCommand(button.command, button.value)}
-            className="p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-            title={button.title}
-          >
-            <button.icon className="w-5 h-5 text-gray-600" />
-          </button>
-        ))}
-        <div className="w-px h-6 bg-gray-200 mx-2" />
-        <button
-          type="button"
-          onClick={insertLink}
-          className="p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-          title="Insert Link"
-        >
-          <Link className="w-5 h-5 text-gray-600" />
-        </button>
-        <button
-          type="button"
-          onClick={insertImage}
-          className="p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-          title="Insert Image"
-        >
-          <Image className="w-5 h-5 text-gray-600" />
-        </button>
-        <div className="ml-auto">
-          <button
-            type="button"
-            onClick={() => setIsPreview(!isPreview)}
-            className="p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-            title="Toggle Preview"
-          >
-            <Eye className="w-5 h-5 text-gray-600" />
-          </button>
+    <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl max-w-lg w-full mx-4 overflow-hidden transform transition-all duration-300 scale-100">
+        {/* Header with gradient */}
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-8 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-white opacity-10 transform rotate-12 scale-150"></div>
+          <div className="relative z-10">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4">
+              <CheckCircle className="w-12 h-12 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Course Created Successfully! 🎉</h2>
+            <p className="text-emerald-100 text-lg">Your course has been created and is ready for content</p>
+          </div>
+          <Sparkles className="absolute top-4 right-4 w-6 h-6 text-white opacity-30" />
+          <Sparkles className="absolute bottom-4 left-4 w-4 h-4 text-white opacity-30" />
+        </div>
+
+        {/* Content */}
+        <div className="p-8">
+          <div className="text-center mb-8">
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">What's Next?</h3>
+            <p className="text-gray-600">Add modules and lessons to make your course complete</p>
+          </div>
+
+          {/* Next Steps */}
+          <div className="space-y-4 mb-8">
+            <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
+              <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <Layers className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-800">Create Modules</h4>
+                <p className="text-sm text-gray-600">Organize your course into logical sections</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 p-4 bg-purple-50 rounded-xl">
+              <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                <FileEdit className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-800">Add Lessons</h4>
+                <p className="text-sm text-gray-600">Create engaging lessons with videos and content</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 p-4 bg-green-50 rounded-xl">
+              <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <PlayCircle className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-800">Upload Videos</h4>
+                <p className="text-sm text-gray-600">Add video content to your lessons</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 py-3 px-4 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium"
+            >
+              Close
+            </button>
+            <button
+              onClick={handleAddContent}
+              className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-medium flex items-center justify-center gap-2"
+            >
+              Add Content
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
-      {isPreview ? (
-        <div
-          className="p-6 min-h-[250px] prose max-w-none bg-gray-50"
-          dangerouslySetInnerHTML={{ __html: value }}
-        />
-      ) : (
-        <div
-          ref={editorRef}
-          contentEditable
-          onInput={handleInput}
-          className="p-6 min-h-[250px] outline-none prose max-w-none bg-white"
-          style={{ minHeight: "250px" }}
-          suppressContentEditableWarning={true}
-          dangerouslySetInnerHTML={{ __html: value }}
-        />
-      )}
     </div>
   );
 };
@@ -344,7 +317,7 @@ const YouTubeUrlInput = ({ label, value, onChange, error }) => {
         className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
           error ? "border-red-400" : "border-gray-200"
         }`}
-        placeholder="Enter demo vedio YouTube URL"
+        placeholder="Enter demo video YouTube URL"
       />
       {error && (
         <p className="mt-1 text-xs text-red-600">{error}</p>
@@ -378,25 +351,13 @@ const AddCourse = () => {
   const [demoVideoUrl, setDemoVideoUrl] = useState("");
   const [description, setDescription] = useState("");
   const [seoContent, setSeoContent] = useState("");
-  type FormErrors = {
-    title?: string;
-    description?: string;
-    categoryId?: string;
-    subCategoryId?: string;
-    duration?: string;
-    price?: string;
-    seoMetaDescription?: string;
-    seoContent?: string;
-    tags?: string;
-    thumbnailFile?: string;
-    demoVideoUrl?: string;
-  };
-  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [formErrors, setFormErrors] = useState({});
   const [popup, setPopup] = useState({
     isVisible: false,
     message: "",
     type: "",
   });
+  const [successPopup, setSuccessPopup] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -513,11 +474,18 @@ const AddCourse = () => {
 
     try {
       await dispatch(createCourse(submitFormData)).unwrap();
-      setPopup({
-        isVisible: true,
-        message: isDraft ? "Course saved as draft!" : "Course published successfully!",
-        type: "success",
-      });
+      
+      if (!isDraft) {
+        setSuccessPopup(true);
+      } else {
+        setPopup({
+          isVisible: true,
+          message: "Course saved as draft!",
+          type: "success",
+        });
+      }
+      
+      // Reset form
       setFormData({
         title: "",
         subtitle: "",
@@ -553,6 +521,17 @@ const AddCourse = () => {
       });
     }
   };
+
+  const navigate = useNavigate();
+
+  const handleAddContent = () => {
+    setSuccessPopup(false);
+
+    // Use the created course ID from the redux state (data)
+    if (data && data?.data?.course?._id) {
+      window.location.href = `/courses/edit/${data?.data?.course?._id}`;
+    }
+  }; 
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -606,15 +585,30 @@ const AddCourse = () => {
                     <p className="mt-1 text-xs text-red-600">{formErrors.title}</p>
                   )}
                 </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    Course Subtitle
+                  </label>
+                  <input
+                    type="text"
+                    name="subtitle"
+                    value={formData.subtitle}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                    placeholder="Enter course subtitle"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-2">
                   Course Description *
                 </label>
-                <RichTextEditor
+                <QuillEditor
                   value={description}
                   onChange={setDescription}
                   placeholder="Describe your course in detail..."
+                  height="300px"
+                  toolbar="full"
                 />
                 {formErrors.description && (
                   <p className="mt-2 text-xs text-red-600">{formErrors.description}</p>
@@ -704,7 +698,7 @@ const AddCourse = () => {
                 icon={Image}
               />
               <YouTubeUrlInput
-                label="Add Demo YouTube Link"
+                label="Demo Video URL"
                 value={demoVideoUrl}
                 onChange={(e) => {
                   setDemoVideoUrl(e.target.value);
@@ -790,41 +784,8 @@ const AddCourse = () => {
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
                   <option value="GBP">GBP (£)</option>
-                </select>
+                  </select>
               </div>
-            </div>
-          </div>
-
-          {/* Course Features */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Award className="w-6 h-6 text-blue-600" />
-              Course Features
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {[
-                { key: "certificateTemplate", label: "Certificate", icon: Award },
-                { key: "isDownloadable", label: "Downloadable", icon: Download },
-                { key: "courseForum", label: "Forum", icon: MessageCircle },
-                { key: "isSubscription", label: "Subscription", icon: Calendar },
-                { key: "isPrivate", label: "Private", icon: Lock },
-                { key: "enableWaitlist", label: "Waitlist", icon: Users },
-              ].map(({ key, label, icon: Icon }) => (
-                <label
-                  key={key}
-                  className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors duration-200"
-                >
-                  <input
-                    type="checkbox"
-                    name={key}
-                    checked={formData[key]}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <Icon className="w-5 h-5 text-gray-600" />
-                  <span className="text-sm font-semibold text-gray-700">{label}</span>
-                </label>
-              ))}
             </div>
           </div>
 
@@ -834,98 +795,202 @@ const AddCourse = () => {
               <Tag className="w-6 h-6 text-blue-600" />
               Tags
             </h2>
-            <div className="space-y-6">
-              <div className="flex flex-wrap gap-3">
-                {predefinedTags.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => addTag(tag)}
-                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors duration-200 ${
-                      selectedTags.includes(tag)
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                ))}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Select Tags *
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {predefinedTags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => addTag(tag)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
+                        selectedTags.includes(tag)
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <input
                   type="text"
                   value={customTag}
                   onChange={(e) => setCustomTag(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && addCustomTag()}
                   placeholder="Add custom tag"
-                  className="flex-1 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomTag())}
+                  className="flex-1 border border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                 />
                 <button
                   type="button"
                   onClick={addCustomTag}
-                  className="px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-200"
                 >
                   <Plus className="w-5 h-5" />
-                  Add
                 </button>
               </div>
-              {formErrors.tags && (
-                <p className="mt-1 text-xs text-red-600">{formErrors.tags}</p>
-              )}
               {selectedTags.length > 0 && (
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2">
                   {selectedTags.map((tag) => (
                     <span
                       key={tag}
-                      className="flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium"
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
                     >
                       {tag}
-                      <button onClick={() => removeTag(tag)}>
-                        <X className="w-4 h-4 hover:text-blue-600" />
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="hover:text-red-500 transition-colors duration-200"
+                      >
+                        <X className="w-4 h-4" />
                       </button>
                     </span>
                   ))}
                 </div>
               )}
+              {formErrors.tags && (
+                <p className="mt-1 text-xs text-red-600">{formErrors.tags}</p>
+              )}
             </div>
           </div>
 
-          {/* SEO */}
+          {/* Advanced Settings */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Tag className="w-6 h-6 text-blue-600" />
+              <Users className="w-6 h-6 text-blue-600" />
+              Advanced Settings
+            </h2>
+            <div className="space-y-6">
+          
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="certificateTemplate"
+                    checked={formData.certificateTemplate}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Award className="w-4 h-4" />
+                    Certificate Template
+                  </span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="isDownloadable"
+                    checked={formData.isDownloadable}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Download className="w-4 h-4" />
+                    Downloadable Content
+                  </span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="courseForum"
+                    checked={formData.courseForum}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4" />
+                    Course Forum
+                  </span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="isSubscription"
+                    checked={formData.isSubscription}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Subscription Based
+                  </span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="isPrivate"
+                    checked={formData.isPrivate}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Lock className="w-4 h-4" />
+                    Private Course
+                  </span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="enableWaitlist"
+                    checked={formData.enableWaitlist}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Enable Waitlist
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* SEO Settings */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Target className="w-6 h-6 text-blue-600" />
               SEO Settings
             </h2>
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-2">
-                  Meta Description
+                  SEO Meta Description
                 </label>
                 <textarea
                   name="seoMetaDescription"
                   value={formData.seoMetaDescription}
                   onChange={handleInputChange}
+                  rows={3}
                   className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
                     formErrors.seoMetaDescription ? "border-red-400" : "border-gray-200"
                   }`}
-                  rows={3}
                   placeholder="Brief description for search engines (max 160 characters)"
+                  maxLength={160}
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  {formData.seoMetaDescription.length}/160 characters
-                </p>
-                {formErrors.seoMetaDescription && (
-                  <p className="mt-1 text-xs text-red-600">{formErrors.seoMetaDescription}</p>
-                )}
+                <div className="flex justify-between items-center mt-1">
+                  {formErrors.seoMetaDescription && (
+                    <p className="text-xs text-red-600">{formErrors.seoMetaDescription}</p>
+                  )}
+                  <span className="text-xs text-gray-500 ml-auto">
+                    {formData.seoMetaDescription.length}/160
+                  </span>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-2">
                   SEO Content
                 </label>
-                <RichTextEditor
+                <QuillEditor
                   value={seoContent}
                   onChange={setSeoContent}
-                  placeholder="Additional SEO content..."
+                  placeholder="Additional SEO content for better search visibility..."
+                  height="200px"
+                  toolbar="minimal"
                 />
                 {formErrors.seoContent && (
                   <p className="mt-2 text-xs text-red-600">{formErrors.seoContent}</p>
@@ -934,14 +999,14 @@ const AddCourse = () => {
             </div>
           </div>
 
-          {/* Submit Buttons */}
+          {/* Action Buttons */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="flex gap-4 justify-end">
+            <div className="flex flex-col sm:flex-row gap-4 justify-end">
               <button
                 type="button"
                 onClick={(e) => handleSubmit(e, true)}
                 disabled={loading}
-                className="px-8 py-4 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm font-semibold"
+                className="flex items-center justify-center gap-2 px-8 py-4 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -954,24 +1019,33 @@ const AddCourse = () => {
                 type="button"
                 onClick={(e) => handleSubmit(e, false)}
                 disabled={loading}
-                className="px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm font-semibold"
+                className="flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <BookOpen className="w-5 h-5" />
+                  <BookOpenCheck className="w-5 h-5" />
                 )}
-                Publish Course
+                Create Course
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Success Popup */}
+      <SuccessPopup
+        isVisible={successPopup}
+        onClose={() => setSuccessPopup(false)}
+        onAddContent={handleAddContent}
+      />
+
+      {/* General Popup */}
       <PopupAlert
+        isVisible={popup.isVisible}
         message={popup.message}
         type={popup.type}
-        isVisible={popup.isVisible}
-        onClose={() => setPopup({ ...popup, isVisible: false })}
+        onClose={() => setPopup({ isVisible: false, message: "", type: "" })}
       />
     </div>
   );

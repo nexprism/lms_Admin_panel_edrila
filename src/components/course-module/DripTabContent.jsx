@@ -277,27 +277,27 @@ const CourseAccordion = ({ courseId }) => {
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-green-100 rounded-lg">
+            {/* <div className="p-2 bg-green-100 rounded-lg">
               <Users className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
+            </div> */}
+            {/* <div>
               <p className="text-sm font-medium text-gray-600">Progress</p>
               <p className="text-2xl font-bold text-gray-900">
                 {completedLessons}/{totalLessons}
               </p>
-            </div>
+            </div> */}
           </div>
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
+            {/* <div className="p-2 bg-purple-100 rounded-lg">
               <Clock className="w-6 h-6 text-purple-600" />
-            </div>
+            </div> */}
             <div>
-              <p className="text-sm font-medium text-gray-600">
+              {/* <p className="text-sm font-medium text-gray-600">
                 Total Duration
-              </p>
-              <p className="text-2xl font-bold text-gray-900">
+              </p> */}
+              {/* <p className="text-2xl font-bold text-gray-900">
                 {Math.floor(totalDuration / 60)}h {totalDuration % 60}m
-              </p>
+              </p> */}
             </div>
           </div>
         </div>
@@ -341,12 +341,12 @@ const CourseAccordion = ({ courseId }) => {
                   <div className="text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full font-medium">
                     {module.lessons?.length || 0} lessons
                   </div>
-                  {module.estimatedDuration && (
+                  {/* {module.estimatedDuration && (
                     <div className="text-sm text-gray-500 flex items-center">
                       <Clock className="w-4 h-4 mr-1" />
                       {module.estimatedDuration}min
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
 
@@ -434,7 +434,7 @@ const CourseAccordion = ({ courseId }) => {
                           }}
                           className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-md transition-colors duration-200"
                         >
-                          <Settings className="w-4 h-4" />
+                          {/* <Settings className="w-4 h-4" /> */}
                         </button>
                       </div>
                     </div>

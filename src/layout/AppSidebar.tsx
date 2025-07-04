@@ -38,7 +38,7 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    path: "/dashboard",
+    path: "/",
   },
   {
     icon: <ListIcon />,
@@ -144,22 +144,22 @@ const navItems: NavItem[] = [
       { name: "Reports", path: "/grades/reports" },
     ],
   },
-  {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/calendar",
-  },
+  // {
+  //   icon: <CalenderIcon />,
+  //   name: "Calendar",
+  //   path: "/calendar",
+  // },
 ];
 
 const othersItems: NavItem[] = [
-  {
-    icon: <PlugInIcon />,
-    name: "Settings",
-    subItems: [
-      { name: "Profile Settings", path: "/settings/profile" },
-      { name: "Account Settings", path: "/settings/account" },
-    ],
-  },
+  // {
+  //   icon: <PlugInIcon />,
+  //   name: "Settings",
+  //   subItems: [
+  //     { name: "Profile Settings", path: "/settings/profile" },
+  //     { name: "Account Settings", path: "/settings/account" },
+  //   ],
+  // },
 ];
 
 const AppSidebar: React.FC = () => {
@@ -211,7 +211,6 @@ const AppSidebar: React.FC = () => {
     };
 
     checkMenuItems(navItems, "main");
-    checkMenuItems(othersItems, "others");
 
     setOpenSubmenu(activeMenus);
   }, [location, hasActiveSubItem]);
