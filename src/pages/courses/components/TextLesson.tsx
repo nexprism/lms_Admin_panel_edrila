@@ -313,7 +313,7 @@ const TextLessonEditor = ({
 
   return (
     <>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mx-h-[700px]">
+      <div className="w-full max-w-7xl mx-auto max-h-[700px]">
         {/* Enhanced Header - Responsive */}
         <div className="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 sm:p-6 text-white">
