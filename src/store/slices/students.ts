@@ -1,14 +1,17 @@
 // studentSlice.ts
-import { createAsyncThunk } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../../services/axiosConfig";
-import { Student, FetchStudentsParams } from "./types";
-import { createSlice } from "@reduxjs/toolkit";
+
 // types.ts
 export interface Student {
   _id: string;
   name: string;
+  fullName: string;
   email: string;
   status: string;
+  isActive: boolean;
+  profilePicture?: string;
+  image?: string;
   createdAt: string;
   updatedAt: string;
   isDeleted?: boolean;
@@ -27,6 +30,8 @@ interface StudentState {
   studentDetails: Student | null;
   loading: boolean;
   error: string | null;
+  searchQuery: string;
+  filters: Record<string, any>;
   pagination: {
     total: number;
     page: number;
@@ -68,10 +73,10 @@ export const fetchAllStudents = createAsyncThunk<
     return {
       students: data?.students || [],
       pagination: {
-        total: data?.total || 0,
-        page: data?.page || 1,
-        limit: data?.limit || 10,
-        totalPages: Math.ceil(data?.total / data?.limit),
+        total: data?.pagination?.total || 0,
+        page: data?.pagination?.page || 1,
+        limit: data?.pagination?.limit || 10, // Default limit if not provided
+        totalPages: data?.pagination?.totalPages || 1,
       },
     };
   } catch (error: any) {
@@ -93,13 +98,25 @@ export const fetchStudentById = createAsyncThunk<Student, string>(
   }
 );
 
-// studentSlice.ts
+export const deleteStudent = createAsyncThunk<string, string>(
+  "students/delete",
+  async (id, { rejectWithValue }) => {
+    try {
+      await axiosInstance.delete(`${API_BASE_URL}/students/${id}`);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
 
 const initialState: StudentState = {
   students: [],
   studentDetails: null,
   loading: false,
   error: null,
+  searchQuery: "",
+  filters: {},
   pagination: {
     total: 0,
     page: 1,
@@ -114,6 +131,22 @@ const studentSlice = createSlice({
   reducers: {
     clearStudentDetails: (state) => {
       state.studentDetails = null;
+    },
+    setSearchQuery: (state, action) => {
+      state.searchQuery = action.payload;
+      state.pagination.page = 1; // Reset to first page when searching
+    },
+    setFilters: (state, action) => {
+      state.filters = action.payload;
+      state.pagination.page = 1; // Reset to first page when filtering
+    },
+    resetFilters: (state) => {
+      state.searchQuery = "";
+      state.filters = {};
+      state.pagination.page = 1;
+    },
+    setCurrentPage: (state, action) => {
+      state.pagination.page = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -140,14 +173,40 @@ const studentSlice = createSlice({
       })
       .addCase(fetchStudentById.fulfilled, (state, action) => {
         state.loading = false;
-        // state.studentDetails = action.payload;
+        state.studentDetails = action.payload;
       })
       .addCase(fetchStudentById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // deleteStudent
+      .addCase(deleteStudent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteStudent.fulfilled, (state, action) => {
+        state.loading = false;
+        state.students = state.students.filter(
+          (student) => student._id !== action.payload
+        );
+      })
+      .addCase(deleteStudent.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
   },
 });
 
-export const { clearStudentDetails } = studentSlice.actions;
+export const { 
+  clearStudentDetails, 
+  setSearchQuery, 
+  setFilters, 
+  resetFilters, 
+  setCurrentPage 
+} = studentSlice.actions;
+
 export default studentSlice.reducer;
+
+// Selector to get all students
+export const getAllStudents = (state: { students: StudentState }) => state.students;

@@ -1167,6 +1167,7 @@ type="number"
                     </div>
                   )}
 
+
                   {section.key === 'faqs' && (
                     <div>
                       <Faqs courseId={courseId} />

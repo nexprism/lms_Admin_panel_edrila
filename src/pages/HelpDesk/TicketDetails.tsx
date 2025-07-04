@@ -52,7 +52,7 @@ const TicketDetails: React.FC<{ isEditMode: boolean }> = ({ isEditMode }) => {
     return (
         <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
             <button
-                onClick={() => navigate("requests")}
+                onClick={() => navigate("/requests")}
                 className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 mb-6"
             >
                 <ArrowLeft className="w-5 h-5" />
