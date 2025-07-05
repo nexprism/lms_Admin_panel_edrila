@@ -1000,7 +1000,7 @@ const AddCourse = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="flex flex-col sm:flex-row gap-4 justify-end">
               <button
                 type="button"
@@ -1029,7 +1029,25 @@ const AddCourse = () => {
                 Create Course
               </button>
             </div>
+          </div> */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="flex flex-col sm:flex-row gap-4 justify-end">
+              <button
+                type="button"
+                onClick={(e) => handleSubmit(e, false)}
+                disabled={loading}
+                className="flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <BookOpenCheck className="w-5 h-5" />
+                )}
+                Create Course
+              </button>
+            </div>
           </div>
+
         </div>
       </div>
 

@@ -111,7 +111,7 @@ const navItems: NavItem[] = [
     name: "Analytics",
     subItems: [
       { name: "Dashboard", path: "/files/all" },
-      { name: "Vedio logs", path: "/files/sessions" },
+      { name: "Video  Logs", path: "/files/sessions" },
     ],
   },
 

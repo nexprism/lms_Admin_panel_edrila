@@ -51,7 +51,7 @@ export const fetchAllStudents = createAsyncThunk<
       page = 1,
       limit = 10,
       filters = {},
-      searchFields = {},
+      searchFields,
       sort = { createdAt: "desc" },
     } = params;
 
@@ -60,17 +60,18 @@ export const fetchAllStudents = createAsyncThunk<
     queryParams.append("page", String(page));
     queryParams.append("limit", String(limit));
 
-    // Append filters
     if (Object.keys(filters).length) {
       queryParams.append("filters", JSON.stringify(filters));
     }
 
-    // ✅ Send unified search query
-    if (searchFields.search) {
-      queryParams.append("search", searchFields.search);
+    if (
+      searchFields &&
+      typeof searchFields.search === "string" &&
+      searchFields.search.trim()
+    ) {
+      queryParams.append("search", searchFields.search.trim());
     }
 
-    // Append sort
     if (Object.keys(sort).length) {
       queryParams.append("sort", JSON.stringify(sort));
     }
@@ -78,6 +79,7 @@ export const fetchAllStudents = createAsyncThunk<
     const response = await axiosInstance.get(
       `${API_BASE_URL}/students?${queryParams.toString()}`
     );
+
     const data = response.data?.data;
 
     return {
@@ -93,9 +95,6 @@ export const fetchAllStudents = createAsyncThunk<
     return rejectWithValue(error.response?.data?.message || error.message);
   }
 });
-
-
-
 
 
 export const fetchStudentById = createAsyncThunk<Student, string>(
