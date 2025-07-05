@@ -320,7 +320,7 @@ const TextLessonEditor = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
                 </div>
                 <div>
                   <h2 className="text-lg sm:text-xl md:text-2xl font-bold">
@@ -343,7 +343,7 @@ const TextLessonEditor = ({
           </div>
 
           {/* Content - Responsive */}
-          <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-h-[700px] overflow-scroll">
+          <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 !pb-24 max-h-[700px] overflow-scroll">
             {/* Mobile/Tablet responsive grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               {/* Left Column */}
@@ -559,7 +559,7 @@ const TextLessonEditor = ({
           </div>
 
           {/* Enhanced Footer - Responsive */}
-          <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-t border-gray-200">
+          <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-4 fixed bottom-0 w-full sm:px-6 lg:px-8 py-4 sm:py-6 border-t border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="text-sm text-gray-600 order-2 sm:order-1">
                 <span className="text-red-500">*</span> Required fields

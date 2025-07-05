@@ -677,7 +677,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                <FileVideo className="w-6 h-6" />
+                <FileVideo className="w-6 h-6 text-black" />
               </div>
               <div>
                 <h2 className="text-xl font-bold">
@@ -692,13 +692,13 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
               onClick={handleClose}
               className="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center hover:bg-opacity-30 transition-all"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-black" />
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 pb-36">
           {/* Title */}
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
@@ -801,7 +801,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
         </div>
         
         {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 flex justify-between items-center">
+        <div className="bg-gray-50 px-6 py-4 flex fixed bottom-0 w-full justify-between items-center">
           <div className="text-sm text-gray-600">
             * Required fields
           </div>
