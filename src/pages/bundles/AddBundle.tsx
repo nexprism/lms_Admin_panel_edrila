@@ -509,15 +509,26 @@ const AddBundleForm = () => {
                     
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Discount Price
+                            Discount (%) (max 100)
                         </label>
                         <input
                             type="number"
                             name="discount"
                             value={formData.discount}
-                            onChange={handleInputChange}
+                            onChange={e => {
+                                let value = e.target.value;
+                                // Only allow numbers between 0 and 100
+                                if (Number(value) > 100) value = '100';
+                                if (Number(value) < 0) value = '0';
+                                setFormData(prev => ({
+                                    ...prev,
+                                    discount: value
+                                }));
+                            }}
+                            min={0}
+                            max={100}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="249"
+                            placeholder="10"
                         />
                     </div>
                 </div>

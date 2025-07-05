@@ -171,15 +171,19 @@ console.log('Total items:', pagination.total);
       ...(localFilters.status ? { status: localFilters.status } : {}),
     };
 
-    dispatch(
-      fetchAllStudents({
-        page: pagination.page,
-        limit: pagination.limit,
-        filters: activeFilters,
-        searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
-        sort: { createdAt: "desc" },
-      })
-    );
+dispatch(
+  fetchAllStudents({
+    page: pagination.page,
+    limit: pagination.limit,
+    filters: activeFilters,
+    searchFields: searchQuery ? { search: searchQuery } : {}, // ✅ changed
+    sort: { createdAt: "desc" },
+  })
+);
+
+
+
+
   }, [dispatch, pagination.page, pagination.limit, searchQuery, localFilters]);
 
   const handlePageChange = (newPage: number) => {

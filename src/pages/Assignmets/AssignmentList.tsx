@@ -450,13 +450,13 @@ const AssignmentList = () => {
                     >
                       <Pencil className="h-5 w-5" />
                     </button>
-                    <button
+                    {/* <button
                       onClick={() => openDeleteModal(assignment)}
                       className="text-red-500 hover:text-red-700 transition-colors"
                       title="Delete Submission"
                     >
                       <Trash2 className="h-5 w-5" />
-                    </button>
+                    </button> */}
                   </td>
                 </tr>
               ))}
