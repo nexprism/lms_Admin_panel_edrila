@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   fetchAllStudents,
   setSearchQuery,
@@ -131,18 +131,15 @@ const StudentList: React.FC = () => {
   const { students, loading, error, pagination, searchQuery, filters } =
     useAppSelector((state) => state.students);
 
-// Add this after the useAppSelector line
-console.log('Pagination state:', pagination);
-console.log('Total pages:', pagination.totalPages);
-console.log('Current page:', pagination.page);
-console.log('Total items:', pagination.total);
+  // Local state for client-side filtering
+  const [searchInput, setSearchInput] = useState(searchQuery);
+  const [statusFilter, setStatusFilter] = useState<string>(""); // "active", "inactive", or ""
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const [searchInput, setSearchInput] = useState(searchQuery);
-  const [localFilters, setLocalFilters] = useState<Record<string, any>>(filters);
 
   const [popup, setPopup] = useState<{
     message: string;
@@ -154,80 +151,71 @@ console.log('Total items:', pagination.total);
     isVisible: false,
   });
 
-  // Debounce search input
+  // Client-side filtering logic
+  const filteredStudents = useMemo(() => {
+    let filtered = students.filter(student => !student.isDeleted);
+
+    // Apply search filter
+    
+
+    // Apply status filter
+    if (statusFilter === "active") {
+      filtered = filtered.filter(student => student.isActive === true);
+    } else if (statusFilter === "inactive") {
+      filtered = filtered.filter(student => student.isActive === false);
+    }
+
+    return filtered;
+  }, [students, searchInput, statusFilter]);
+
+  // Client-side pagination
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredStudents.slice(startIndex, endIndex);
+  }, [filteredStudents, currentPage, itemsPerPage]);
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const totalItems = filteredStudents.length;
+
+  // Fetch all students initially (without server-side filtering)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchInput !== searchQuery) {
-        dispatch(setSearchQuery(searchInput));
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchInput, searchQuery, dispatch]);
+    dispatch(
+      fetchAllStudents({
+        page: 1,
+        limit: 1000, // Fetch all students for client-side filtering
+        filters: { isDeleted: false },
+        searchFields: {},
+        sort: { createdAt: "desc" },
+      })
+    );
+  }, [dispatch]);
 
-  // Fetch students
+  // Reset to first page when filters change
   useEffect(() => {
-    const activeFilters = {
-      isDeleted: false,
-      ...(localFilters.status ? { status: localFilters.status } : {}),
-    };
-
-dispatch(
-  fetchAllStudents({
-    page: pagination.page,
-    limit: pagination.limit,
-    filters: activeFilters,
-    searchFields: searchQuery ? { search: searchQuery } : {}, // ✅ changed
-    sort: { createdAt: "desc" },
-  })
-);
-
-
-
-
-  }, [dispatch, pagination.page, pagination.limit, searchQuery, localFilters]);
+    setCurrentPage(1);
+  }, [searchInput, statusFilter]);
 
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages) {
-      dispatch(
-        fetchAllStudents({
-          page: newPage,
-          limit: pagination.limit,
-          filters: {
-            isDeleted: false,
-            ...(localFilters.status ? { status: localFilters.status } : {}),
-          },
-          searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
-          sort: { createdAt: "desc" },
-        })
-      );
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
     }
   };
 
   const handleLimitChange = (newLimit: number) => {
-    dispatch(
-      fetchAllStudents({
-        page: 1,
-        limit: newLimit,
-        filters: {
-          isDeleted: false,
-          ...(localFilters.status ? { status: localFilters.status } : {}),
-        },
-        searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
-        sort: { createdAt: "desc" },
-      })
-    );
+    setItemsPerPage(newLimit);
+    setCurrentPage(1);
   };
 
-  const handleFilterChange = (key: string, value: string) => {
-    const updated = { ...localFilters, [key]: value };
-    setLocalFilters(updated);
-    dispatch(setFilters(updated));
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
   };
 
   const handleResetFilters = () => {
     setSearchInput("");
-    setLocalFilters({});
-    dispatch(resetFilters());
+    setStatusFilter("");
+    setCurrentPage(1);
   };
 
   const openDeleteModal = (student: Student) => {
@@ -245,7 +233,6 @@ dispatch(
     if (studentToDelete) {
       setIsDeleting(true);
       try {
-        // Dispatch the delete action
         await dispatch(deleteStudent(studentToDelete._id)).unwrap();
 
         setPopup({
@@ -254,21 +241,15 @@ dispatch(
           isVisible: true,
         });
 
-        // Close modal and reset state
         closeDeleteModal();
 
         // Refresh the students list
-        const activeFilters = {
-          isDeleted: false,
-          ...(localFilters.status ? { status: localFilters.status } : {}),
-        };
-
         dispatch(
           fetchAllStudents({
-            page: pagination.page,
-            limit: pagination.limit,
-            filters: activeFilters,
-            searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
+            page: 1,
+            limit: 1000,
+            filters: { isDeleted: false },
+            searchFields: {},
             sort: { createdAt: "desc" },
           })
         );
@@ -286,11 +267,9 @@ dispatch(
 
   const generatePageNumbers = () => {
     const pages = [];
-    const totalPages = pagination.totalPages;
-    const current = pagination.page;
     const maxPages = 5;
 
-    const start = Math.max(1, current - Math.floor(maxPages / 2));
+    const start = Math.max(1, currentPage - Math.floor(maxPages / 2));
     const end = Math.min(totalPages, start + maxPages - 1);
 
     if (start > 1) pages.push(1, "...");
@@ -313,7 +292,7 @@ dispatch(
             Students
           </h1>
           <span className="text-gray-500 text-sm dark:text-gray-400">
-            Total: {pagination.total}
+            Total: {totalItems} {statusFilter && `(${statusFilter})`}
           </span>
         </div>
 
@@ -335,21 +314,21 @@ dispatch(
             <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-gray-400" />
               <select
-                value={localFilters.status || ""}
-                onChange={(e) => handleFilterChange("status", e.target.value)}
+                value={statusFilter}
+                onChange={(e) => handleStatusFilterChange(e.target.value)}
                 className="border border-gray-300 rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               >
                 <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active">Active </option>
+                <option value="inactive">Inactive </option>
               </select>
             </div>
 
-            {/* Limit */}
+            {/* Items per page */}
             <div className="flex items-center gap-2">
               <span className="text-sm dark:text-gray-300">Show:</span>
               <select
-                value={pagination.limit}
+                value={itemsPerPage}
                 onChange={(e) => handleLimitChange(Number(e.target.value))}
                 className="border border-gray-300 rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               >
@@ -369,6 +348,34 @@ dispatch(
             </button>
           </div>
         </div>
+
+        {/* Active Filters Display */}
+        {(searchInput || statusFilter) && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {searchInput && (
+              <span className="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-sm">
+                Search: "{searchInput}"
+                <button
+                  onClick={() => setSearchInput("")}
+                  className="hover:text-blue-600 dark:hover:text-blue-300"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {statusFilter && (
+              <span className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-2 py-1 rounded-full text-sm">
+                Status: {statusFilter}
+                <button
+                  onClick={() => setStatusFilter("")}
+                  className="hover:text-green-600 dark:hover:text-green-300"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
@@ -413,20 +420,36 @@ dispatch(
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
-              {students.length === 0 && !loading ? (
+              {paginatedStudents.length === 0 && !loading ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                    No students found.
+                    {filteredStudents.length === 0 ? (
+                      searchInput || statusFilter ? (
+                        <div className="py-8">
+                          <div className="text-gray-400 mb-2">No students found matching your filters</div>
+                          <button
+                            onClick={handleResetFilters}
+                            className="text-indigo-600 hover:text-indigo-800 text-sm"
+                          >
+                            Clear filters
+                          </button>
+                        </div>
+                      ) : (
+                        "No students found."
+                      )
+                    ) : (
+                      "No students on this page."
+                    )}
                   </td>
                 </tr>
               ) : (
-                students.map((student, idx) => (
+                paginatedStudents.map((student, idx) => (
                   <tr
                     key={student._id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                      {(pagination.page - 1) * pagination.limit + idx + 1}
+                      {(currentPage - 1) * itemsPerPage + idx + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <img
@@ -472,12 +495,12 @@ dispatch(
                             <Eye className="h-5 w-5" />
                           </button>
                         </Link>
-                        {/* <button
+                        <button
                           onClick={() => openDeleteModal(student)}
                           className="text-red-500 hover:text-red-700 transition-colors p-1"
                         >
                           <Trash2 className="h-5 w-5" />
-                        </button> */}
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -488,17 +511,17 @@ dispatch(
         </div>
 
         {/* Pagination */}
-        {pagination.totalPages > 1 && (
+        {totalPages > 1 && (
           <div className="flex items-center justify-between mt-6">
             <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-              Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-              {pagination.total} results
+              Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+              {Math.min(currentPage * itemsPerPage, totalItems)} of{" "}
+              {totalItems} results
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
                 className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -509,7 +532,7 @@ dispatch(
                     key={idx}
                     onClick={() => handlePageChange(page)}
                     className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                      pagination.page === page
+                      currentPage === page
                         ? "bg-indigo-500 text-white"
                         : "bg-gray-100 dark:bg-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
                     }`}
@@ -523,8 +546,8 @@ dispatch(
                 )
               )}
               <button
-                onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page === pagination.totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
                 className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 <ChevronRight className="w-5 h-5" />
