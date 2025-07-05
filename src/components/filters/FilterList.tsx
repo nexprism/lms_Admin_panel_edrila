@@ -676,7 +676,16 @@ const FilterList: React.FC = () => {
   };
 
   const handleFilterChange = (key: string, value: string) => {
-    const updated = { ...localFilters, [key]: value };
+    const updated = { ...localFilters };
+    if (key === "language") {
+      if (value === "") {
+        delete updated.language;
+      } else {
+        updated.language = value;
+      }
+    } else {
+      updated[key] = value;
+    }
     setLocalFilters(updated);
   };
 
