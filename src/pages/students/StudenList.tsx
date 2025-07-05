@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import {
   fetchAllStudents,
   setSearchQuery,
@@ -131,15 +131,18 @@ const StudentList: React.FC = () => {
   const { students, loading, error, pagination, searchQuery, filters } =
     useAppSelector((state) => state.students);
 
-  // Local state for client-side filtering
-  const [searchInput, setSearchInput] = useState(searchQuery);
-  const [statusFilter, setStatusFilter] = useState<string>(""); // "active", "inactive", or ""
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+// Add this after the useAppSelector line
+console.log('Pagination state:', pagination);
+console.log('Total pages:', pagination.totalPages);
+console.log('Current page:', pagination.page);
+console.log('Total items:', pagination.total);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [searchInput, setSearchInput] = useState(searchQuery);
+  const [localFilters, setLocalFilters] = useState<Record<string, any>>(filters);
 
   const [popup, setPopup] = useState<{
     message: string;
@@ -151,71 +154,88 @@ const StudentList: React.FC = () => {
     isVisible: false,
   });
 
-  // Client-side filtering logic
-  const filteredStudents = useMemo(() => {
-    let filtered = students.filter(student => !student.isDeleted);
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== searchQuery) {
+        dispatch(setSearchQuery(searchInput));
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput, searchQuery, dispatch]);
 
-    // Apply search filter
-    
+  // Fetch students
+  useEffect(() => {
+    // Build filters object for API query
+    const activeFilters: Record<string, any> = {
+    };
 
-    // Apply status filter
-    if (statusFilter === "active") {
-      filtered = filtered.filter(student => student.isActive === true);
-    } else if (statusFilter === "inactive") {
-      filtered = filtered.filter(student => student.isActive === false);
+    // Set isActive based on status filter
+    if (localFilters.status === "active") {
+      activeFilters.isActive = true;
+
+
+
+      activeFilters.isActive = false;
     }
 
-    return filtered;
-  }, [students, searchInput, statusFilter]);
+    // If isActive is explicitly set (true/false), override with it
+    if (typeof localFilters.isActive === "boolean") {
+      activeFilters.isActive = localFilters.isActive;
+    }
 
-  // Client-side pagination
-  const paginatedStudents = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredStudents.slice(startIndex, endIndex);
-  }, [filteredStudents, currentPage, itemsPerPage]);
-
-  // Calculate pagination info
-  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
-  const totalItems = filteredStudents.length;
-
-  // Fetch all students initially (without server-side filtering)
-  useEffect(() => {
     dispatch(
       fetchAllStudents({
-        page: 1,
-        limit: 1000, // Fetch all students for client-side filtering
-        filters: { isDeleted: false },
-        searchFields: {},
+        page: pagination.page,
+        limit: pagination.limit,
+        filters: activeFilters,
+        searchFields: searchQuery ? { search: searchQuery } : {},
         sort: { createdAt: "desc" },
       })
     );
-  }, [dispatch]);
-
-  // Reset to first page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchInput, statusFilter]);
+  }, [dispatch, pagination.page, pagination.limit, searchQuery, localFilters]);
 
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      dispatch(
+        fetchAllStudents({
+          page: newPage,
+          limit: pagination.limit,
+          filters: {
+            ...(localFilters.status ? { status: localFilters.status } : {}),
+          },
+          searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
+          sort: { createdAt: "desc" },
+        })
+      );
     }
   };
 
   const handleLimitChange = (newLimit: number) => {
-    setItemsPerPage(newLimit);
-    setCurrentPage(1);
+    dispatch(
+      fetchAllStudents({
+        page: 1,
+        limit: newLimit,
+        filters: {
+          isDeleted: false,
+          ...(localFilters.status ? { status: localFilters.status } : {}),
+        },
+        searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
+        sort: { createdAt: "desc" },
+      })
+    );
   };
 
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value);
+  const handleFilterChange = (key: string, value: string) => {
+    const updated = { ...localFilters, [key]: value };
+    setLocalFilters(updated);
+    dispatch(setFilters(updated));
   };
 
   const handleResetFilters = () => {
     setSearchInput("");
-    setStatusFilter("");
-    setCurrentPage(1);
+    setLocalFilters({});
+    dispatch(resetFilters());
   };
 
   const openDeleteModal = (student: Student) => {
@@ -233,6 +253,7 @@ const StudentList: React.FC = () => {
     if (studentToDelete) {
       setIsDeleting(true);
       try {
+        // Dispatch the delete action
         await dispatch(deleteStudent(studentToDelete._id)).unwrap();
 
         setPopup({
@@ -241,15 +262,21 @@ const StudentList: React.FC = () => {
           isVisible: true,
         });
 
+        // Close modal and reset state
         closeDeleteModal();
 
         // Refresh the students list
+        const activeFilters = {
+          isDeleted: false,
+          ...(localFilters.status ? { status: localFilters.status } : {}),
+        };
+
         dispatch(
           fetchAllStudents({
-            page: 1,
-            limit: 1000,
-            filters: { isDeleted: false },
-            searchFields: {},
+            page: pagination.page,
+            limit: pagination.limit,
+            filters: activeFilters,
+            searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
             sort: { createdAt: "desc" },
           })
         );
@@ -267,9 +294,11 @@ const StudentList: React.FC = () => {
 
   const generatePageNumbers = () => {
     const pages = [];
+    const totalPages = pagination.totalPages;
+    const current = pagination.page;
     const maxPages = 5;
 
-    const start = Math.max(1, currentPage - Math.floor(maxPages / 2));
+    const start = Math.max(1, current - Math.floor(maxPages / 2));
     const end = Math.min(totalPages, start + maxPages - 1);
 
     if (start > 1) pages.push(1, "...");
@@ -292,7 +321,7 @@ const StudentList: React.FC = () => {
             Students
           </h1>
           <span className="text-gray-500 text-sm dark:text-gray-400">
-            Total: {totalItems} {statusFilter && `(${statusFilter})`}
+            Total: {pagination.total}
           </span>
         </div>
 
@@ -314,21 +343,21 @@ const StudentList: React.FC = () => {
             <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-gray-400" />
               <select
-                value={statusFilter}
-                onChange={(e) => handleStatusFilterChange(e.target.value)}
+                value={localFilters.status || ""}
+                onChange={(e) => handleFilterChange("status", e.target.value)}
                 className="border border-gray-300 rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               >
                 <option value="">All Status</option>
-                <option value="active">Active </option>
-                <option value="inactive">Inactive </option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
               </select>
             </div>
 
-            {/* Items per page */}
+            {/* Limit */}
             <div className="flex items-center gap-2">
               <span className="text-sm dark:text-gray-300">Show:</span>
               <select
-                value={itemsPerPage}
+                value={pagination.limit}
                 onChange={(e) => handleLimitChange(Number(e.target.value))}
                 className="border border-gray-300 rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               >
@@ -348,34 +377,6 @@ const StudentList: React.FC = () => {
             </button>
           </div>
         </div>
-
-        {/* Active Filters Display */}
-        {(searchInput || statusFilter) && (
-          <div className="mb-4 flex flex-wrap gap-2">
-            {searchInput && (
-              <span className="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-sm">
-                Search: "{searchInput}"
-                <button
-                  onClick={() => setSearchInput("")}
-                  className="hover:text-blue-600 dark:hover:text-blue-300"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-            {statusFilter && (
-              <span className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-2 py-1 rounded-full text-sm">
-                Status: {statusFilter}
-                <button
-                  onClick={() => setStatusFilter("")}
-                  className="hover:text-green-600 dark:hover:text-green-300"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-          </div>
-        )}
 
         {/* Error Message */}
         {error && (
@@ -420,39 +421,23 @@ const StudentList: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
-              {paginatedStudents.length === 0 && !loading ? (
+              {students.length === 0 && !loading ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                    {filteredStudents.length === 0 ? (
-                      searchInput || statusFilter ? (
-                        <div className="py-8">
-                          <div className="text-gray-400 mb-2">No students found matching your filters</div>
-                          <button
-                            onClick={handleResetFilters}
-                            className="text-indigo-600 hover:text-indigo-800 text-sm"
-                          >
-                            Clear filters
-                          </button>
-                        </div>
-                      ) : (
-                        "No students found."
-                      )
-                    ) : (
-                      "No students on this page."
-                    )}
+                    No students found.
                   </td>
                 </tr>
               ) : (
-                paginatedStudents.map((student, idx) => (
+                students.map((student, idx) => (
                   <tr
                     key={student._id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                      {(currentPage - 1) * itemsPerPage + idx + 1}
+                      {(pagination.page - 1) * pagination.limit + idx + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {/* <img
+                      <img
                         src={
                           student?.profilePicture || student?.image
                             ? `${import.meta.env.VITE_IMAGE_URL}/${
@@ -464,21 +449,7 @@ const StudentList: React.FC = () => {
                         }
                         alt={student?.fullName || student?.name || "Student"}
                         className="w-10 h-10 rounded-full object-cover"
-                      /> */}
-                      <img
-                      src={
-                        student?.profilePicture || student?.image
-                          ? `${import.meta.env.VITE_IMAGE_URL}/${student.profilePicture || student.image}`
-                          : "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg"
-                      }
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
-                      }}
-                      alt={student?.fullName || student?.name || "Student"}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-
+                      />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {student.fullName || student.name}
@@ -509,12 +480,12 @@ const StudentList: React.FC = () => {
                             <Eye className="h-5 w-5" />
                           </button>
                         </Link>
-                        <button
+                        {/* <button
                           onClick={() => openDeleteModal(student)}
                           className="text-red-500 hover:text-red-700 transition-colors p-1"
                         >
                           <Trash2 className="h-5 w-5" />
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                   </tr>
@@ -525,17 +496,17 @@ const StudentList: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {pagination.totalPages > 1 && (
           <div className="flex items-center justify-between mt-6">
             <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-              {Math.min(currentPage * itemsPerPage, totalItems)} of{" "}
-              {totalItems} results
+              Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+              {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
+              {pagination.total} results
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page === 1}
                 className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -546,7 +517,7 @@ const StudentList: React.FC = () => {
                     key={idx}
                     onClick={() => handlePageChange(page)}
                     className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                      currentPage === page
+                      pagination.page === page
                         ? "bg-indigo-500 text-white"
                         : "bg-gray-100 dark:bg-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
                     }`}
@@ -560,8 +531,8 @@ const StudentList: React.FC = () => {
                 )
               )}
               <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page === pagination.totalPages}
                 className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 <ChevronRight className="w-5 h-5" />
