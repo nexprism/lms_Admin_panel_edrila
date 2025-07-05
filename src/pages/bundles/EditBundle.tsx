@@ -548,25 +548,35 @@ const EditBundleForm = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Discount (%) (max 100)
                         </label>
-                        <input
-                            type="number"
-                            name="discount"
-                            value={formData.discount}
-                            onChange={e => {
-                                let value = e.target.value;
-                                // Only allow numbers between 0 and 100
-                                if (Number(value) > 100) value = '100';
-                                if (Number(value) < 0) value = '0';
-                                setFormData(prev => ({
-                                    ...prev,
-                                    discount: value
-                                }));
-                            }}
-                            min={0}
-                            max={100}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="10"
+                       <input
+                          type="number"
+                          name="discount"
+                          value={formData.discount}
+                          onChange={e => {
+                            let value = e.target.value;
+                            // Ensure number is between 0 and 100
+                            let numericValue = Number(value);
+                            if (isNaN(numericValue)) value = '0';
+                            if (numericValue > 100) value = '100';
+                            if (numericValue < 0) value = '0';
+                        
+                            setFormData(prev => ({
+                              ...prev,
+                              discount: value
+                            }));
+                          }}
+                          onInput={(e) => {
+                            const input = e.target as HTMLInputElement;
+                            if (input.validity.rangeOverflow) input.value = '100';
+                            if (input.validity.rangeUnderflow) input.value = '0';
+                          }}
+                          min={0}
+                          max={100}
+                          step="any"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="10"
                         />
+
                     </div>
                 </div>
                 

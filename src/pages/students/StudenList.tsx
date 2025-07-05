@@ -452,7 +452,7 @@ const StudentList: React.FC = () => {
                       {(currentPage - 1) * itemsPerPage + idx + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <img
+                      {/* <img
                         src={
                           student?.profilePicture || student?.image
                             ? `${import.meta.env.VITE_IMAGE_URL}/${
@@ -464,7 +464,21 @@ const StudentList: React.FC = () => {
                         }
                         alt={student?.fullName || student?.name || "Student"}
                         className="w-10 h-10 rounded-full object-cover"
-                      />
+                      /> */}
+                      <img
+                      src={
+                        student?.profilePicture || student?.image
+                          ? `${import.meta.env.VITE_IMAGE_URL}/${student.profilePicture || student.image}`
+                          : "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg"
+                      }
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
+                      }}
+                      alt={student?.fullName || student?.name || "Student"}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {student.fullName || student.name}
