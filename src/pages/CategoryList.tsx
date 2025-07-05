@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import PageBreadcrumb from "../components/common/PageBreadCrumb";
 import PageMeta from "../components/common/PageMeta";
-import EditCategoryModal from "../components/modals/EditCategoryModal"; // Import the modal
+import EditCategoryModal from "../components/modals/EditCategoryModal";
 import toast from "react-hot-toast";
 import PopupAlert from "../components/popUpAlert";
 
@@ -169,7 +169,7 @@ const CategoryList: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchInput, searchQuery, dispatch]);
 
-  // Fetch categories
+  // Fetch categories - FIXED: Using 'search' instead of 'searchFields'
   useEffect(() => {
     const activeFilters = {
       isDeleted: false,
@@ -181,7 +181,7 @@ const CategoryList: React.FC = () => {
         page: pagination.page,
         limit: pagination.limit,
         filters: activeFilters,
-        searchFields: searchQuery ? { name: searchQuery } : {},
+        search: searchQuery || '', // Changed from searchFields to search
         sort: { createdAt: "desc" },
       })
     );
@@ -197,7 +197,7 @@ const CategoryList: React.FC = () => {
             isDeleted: false,
             ...(localFilters.status ? { status: localFilters.status } : {}),
           },
-          searchFields: searchQuery ? { name: searchQuery } : {},
+          search: searchQuery || '', // Changed from searchFields to search
           sort: { createdAt: "desc" },
         })
       );
@@ -213,7 +213,7 @@ const CategoryList: React.FC = () => {
           isDeleted: false,
           ...(localFilters.status ? { status: localFilters.status } : {}),
         },
-        searchFields: searchQuery ? { name: searchQuery } : {},
+        search: searchQuery || '', // Changed from searchFields to search
         sort: { createdAt: "desc" },
       })
     );
@@ -258,7 +258,7 @@ const CategoryList: React.FC = () => {
         page: pagination.page,
         limit: pagination.limit,
         filters: activeFilters,
-        searchFields: searchQuery ? { name: searchQuery } : {},
+        search: searchQuery || '', // Changed from searchFields to search
         sort: { createdAt: "desc" },
       })
     );
@@ -302,7 +302,7 @@ const CategoryList: React.FC = () => {
             page: pagination.page,
             limit: pagination.limit,
             filters: activeFilters,
-            searchFields: searchQuery ? { name: searchQuery } : {},
+            search: searchQuery || '', // Changed from searchFields to search
             sort: { createdAt: "desc" },
           })
         );
@@ -367,6 +367,7 @@ const CategoryList: React.FC = () => {
                 className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               />
             </div>
+
 
             {/* Status Filter */}
             <div className="flex items-center gap-2">
