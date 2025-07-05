@@ -492,7 +492,7 @@ const Quiz = ({
                 onClick={handleClose}
                 className="w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center hover:bg-opacity-30 transition-all duration-200"
               >
-                <X className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
               </button>
             </div>
           </div>
