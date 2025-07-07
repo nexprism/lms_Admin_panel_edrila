@@ -1212,7 +1212,7 @@ type="number"
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-8 flex gap-4 justify-end bg-white rounded-lg shadow-sm p-6">
+            {/* <div className="mt-8 flex gap-4 justify-end bg-white rounded-lg shadow-sm p-6">
               <button
                 type="button"
                 onClick={(e) => handleSubmit(e, true)}
@@ -1248,7 +1248,27 @@ type="number"
                   </span>
                 )}
               </button>
+            </div> */}
+            <div className="mt-8 flex justify-end bg-white rounded-lg shadow-sm p-6">
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Updating...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Check className="w-4 h-4" />
+                    Update Course
+                  </span>
+                )}
+              </button>
             </div>
+
           </form>
         </div>
       </div>

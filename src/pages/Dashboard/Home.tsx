@@ -9,13 +9,14 @@ import {
   TrendingUp,
   DollarSign,
   Calendar,
+  IndianRupee,
   Eye,
   ChevronRight,
   AlertCircle,
   CheckCircle,
-  Clock,
-} from "lucide-react";
-
+  Clock
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 const Home: React.FC = () => {
   const dispatch = useAppDispatch();
   const { overview, loading, error } = useAppSelector(
@@ -23,6 +24,7 @@ const Home: React.FC = () => {
   );
   console.log("Dashboard Overview:", overview);
 
+  const navigate = useNavigate();
   useEffect(() => {
     dispatch(fetchOverview());
   }, [dispatch]);
@@ -57,9 +59,9 @@ const Home: React.FC = () => {
   const { counts, latest } = overview;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'Inr',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
@@ -217,7 +219,7 @@ const Home: React.FC = () => {
           <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-sm p-6 text-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Platform Revenue</h3>
-              <DollarSign className="w-5 h-5" />
+              <IndianRupee className="w-5 h-5" />
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold">
@@ -263,7 +265,9 @@ const Home: React.FC = () => {
                 </div>
               ))}
             </div>
-            <button className="w-full mt-4 flex items-center justify-center space-x-2 text-sm text-blue-600 hover:text-blue-700 py-2">
+            <button
+            onClick={()=>navigate('/courses/all/courses')}
+            className="w-full mt-4 flex items-center justify-center space-x-2 text-sm text-blue-600 hover:text-blue-700 py-2">
               <span>View All Courses</span>
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -305,7 +309,9 @@ const Home: React.FC = () => {
                 </div>
               ))}
             </div>
-            <button className="w-full mt-4 flex items-center justify-center space-x-2 text-sm text-blue-600 hover:text-blue-700 py-2">
+            <button 
+            onClick={()=>navigate('/requests')}
+            className="w-full mt-4 flex items-center justify-center space-x-2 text-sm text-blue-600 hover:text-blue-700 py-2">
               <span>View All Tickets</span>
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -348,10 +354,6 @@ const Home: React.FC = () => {
                 </div>
               ))}
             </div>
-            <button className="w-full mt-4 flex items-center justify-center space-x-2 text-sm text-blue-600 hover:text-blue-700 py-2">
-              <span>View All Threads</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </div>

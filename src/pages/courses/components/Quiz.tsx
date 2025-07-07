@@ -470,14 +470,14 @@ const Quiz = ({
 
   return (
     <>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 max-h-[700px]">
+      <div className="w-full max-w-7xl mx-auto max-h-[700px]">
         {/* Enhanced Header - Responsive */}
         <div className="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex items-center justify-center">
-                  <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
                 </div>
                 <div>
                   <h2 className="text-lg sm:text-xl md:text-2xl font-bold">
@@ -492,13 +492,13 @@ const Quiz = ({
                 onClick={handleClose}
                 className="w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center hover:bg-opacity-30 transition-all duration-200"
               >
-                <X className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
               </button>
             </div>
           </div>
 
           {/* Content - Responsive */}
-          <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-h-[600px] overflow-y-auto">
+          <div className="p-4 sm:p-6 lg:p-8 space-y-6 !pb-36 sm:space-y-8 max-h-[600px] overflow-y-auto">
             {/* Basic Quiz Information */}
             <div className=" rounded-xl p-4 sm:p-6 border-2 border-indigo-200 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -749,7 +749,7 @@ const Quiz = ({
           </div>
 
           {/* Enhanced Footer - Responsive */}
-          <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-t border-gray-200">
+          <div className="bg-gradient-to-r from-gray-50 to-slate-50 fixed bottom-0 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-t border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="text-sm text-gray-600 order-2 sm:order-1">
                 <span className="text-red-500">*</span> Required fields

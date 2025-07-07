@@ -733,13 +733,13 @@ export default function FileUploadForm({
 
   return (
     <>
-      <div className="bg-white lg:w-[800px] rounded-2xl max-w-4xl w-full mx-auto shadow-2xl max-h-[700px] overflow-scroll">
+      <div className="bg-white lg:w-[800px]  rounded-2xl max-w-4xl w-full mx-auto shadow-2xl max-h-[700px] overflow-scroll">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                <FileUp className="w-6 h-6" />
+                <FileUp className="w-6 h-6 text-black" />
               </div>
               <div>
                 <h2 className="text-xl font-bold">
@@ -755,14 +755,14 @@ export default function FileUploadForm({
                 onClick={handleClose}
                 className="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center hover:bg-opacity-30 transition-all"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 text-black" />
               </button>
             )}
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 pb-36">
           {/* Debug info - remove this after testing */}
           {console.log("Debug - isEditMode:", isEditMode, "fetchedFile:", fetchedFile, "currentFileData:", currentFileData)}
           
@@ -1012,7 +1012,7 @@ export default function FileUploadForm({
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 flex justify-between items-center">
+        <div className="bg-gray-50 px-6 py-4 fixed bottom-0 w-full flex justify-between items-center">
           <div className="text-sm text-gray-600">
             * Required fields
           </div>

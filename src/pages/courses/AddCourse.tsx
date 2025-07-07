@@ -165,12 +165,8 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
         {/* Content */}
         <div className="p-8">
           <div className="text-center mb-8">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              What's Next?
-            </h3>
-            <p className="text-gray-600">
-              Add modules and lessons to make your course complete
-            </p>
+            <h3 className="text-xl font-semibold dark:text-white/90 mb-2">What's Next?</h3>
+            <p className="text-gray-600">Add modules and lessons to make your course complete</p>
           </div>
 
           {/* Next Steps */}
@@ -180,10 +176,8 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
                 <Layers className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h4 className="font-semibold text-gray-800">Create Modules</h4>
-                <p className="text-sm text-gray-600">
-                  Organize your course into logical sections
-                </p>
+                <h4 className="font-semibold dark:text-white/90">Create Modules</h4>
+                <p className="text-sm text-gray-600">Organize your course into logical sections</p>
               </div>
             </div>
 
@@ -192,10 +186,8 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
                 <FileEdit className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <h4 className="font-semibold text-gray-800">Add Lessons</h4>
-                <p className="text-sm text-gray-600">
-                  Create engaging lessons with videos and content
-                </p>
+                <h4 className="font-semibold dark:text-white/90">Add Lessons</h4>
+                <p className="text-sm text-gray-600">Create engaging lessons with videos and content</p>
               </div>
             </div>
 
@@ -204,10 +196,8 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
                 <PlayCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <h4 className="font-semibold text-gray-800">Upload Videos</h4>
-                <p className="text-sm text-gray-600">
-                  Add video content to your lessons
-                </p>
+                <h4 className="font-semibold dark:text-white/90">Upload Videos</h4>
+                <p className="text-sm text-gray-600">Add video content to your lessons</p>
               </div>
             </div>
           </div>
@@ -284,7 +274,7 @@ const FileUpload = ({
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-semibold text-gray-800 flex items-center gap-2">
+      <label className="block text-sm font-semibold dark:text-white/90 flex items-center gap-2">
         <Icon className="w-5 h-5 text-blue-600" />
         {label}
       </label>
@@ -329,7 +319,7 @@ const FileUpload = ({
 const YouTubeUrlInput = ({ label, value, onChange, error }) => {
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-semibold text-gray-800 flex items-center gap-2">
+      <label className="block text-sm font-semibold dark:text-white/90 flex items-center gap-2">
         <Video className="w-5 h-5 text-blue-600" />
         {label}
       </label>
@@ -566,17 +556,18 @@ const AddCourse = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen rounded-2xl border-gray-200 dark:border-gray-800 dark:bg-white/[0.03]">
+      {/* min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12 */}
       <div className="mx-auto py-12 px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-          <h1 className="text-4xl font-extrabold flex items-center gap-3 text-gray-900">
+        <div className="dark:bg-gray-900 rounded-2xl shadow-xl p-8 mb-8">
+          <h1 className="text-4xl dark:text-white/90 font-extrabold flex items-center gap-3 text-gray-900">
             <div className="p-3 bg-blue-100 rounded-full">
               <BookOpen className="w-10 h-10 text-blue-600" />
             </div>
             Create New Course
           </h1>
-          <p className="text-gray-600 mt-3 text-lg">
+          <p className=" dark:text-white/90 mt-3 text-lg">
             Build an engaging course by filling in the details below
           </p>
         </div>
@@ -591,15 +582,15 @@ const AddCourse = () => {
 
         <div className="space-y-8">
           {/* Basic Information */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <div className="rounded-2xl border-gray-200 dark:border-gray-800 dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl dark:text-white/90 font-bold mb-6 flex items-center gap-2">
               <Type className="w-6 h-6 text-blue-600" />
               Basic Information
             </h2>
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-semibold dark:text-white/90 mb-2">
                     Course Title *
                   </label>
                   <input
@@ -607,7 +598,7 @@ const AddCourse = () => {
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
-                    className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                    className={`w-full border rounded-xl dark:text-white/90 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
                       formErrors.title ? "border-red-400" : "border-gray-200"
                     }`}
                     placeholder="Enter course title"
@@ -620,7 +611,7 @@ const AddCourse = () => {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-semibold dark:text-white/90 mb-2">
                     Course Subtitle
                   </label>
                   <input
@@ -634,7 +625,7 @@ const AddCourse = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                <label className="block text-sm font-semibold dark:text-white/90 mb-2">
                   Course Description *
                 </label>
                 <QuillEditor
@@ -654,8 +645,8 @@ const AddCourse = () => {
           </div>
 
           {/* Course Details */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <div className="rounded-2xl border-gray-200 dark:border-gray-800 dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl dark:text-white/90 font-bold mb-6 flex items-center gap-2">
               <FileText className="w-6 h-6 text-blue-600" />
               Course Details
             </h2>
@@ -678,14 +669,14 @@ const AddCourse = () => {
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-semibold dark:text-white/90 mb-2">
                     Level
                   </label>
                   <select
                     name="level"
                     value={formData.level}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 dark:text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                   >
                     <option value="beginner">Beginner</option>
                     <option value="intermediate">Intermediate</option>
@@ -694,7 +685,7 @@ const AddCourse = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-semibold dark:text-white/90 mb-2">
                     Duration (mins) *
                   </label>
                   <input
@@ -702,7 +693,7 @@ const AddCourse = () => {
                     name="duration"
                     value={formData.duration}
                     onChange={handleInputChange}
-                    className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                    className={`w-full border rounded-xl px-4 py-3 dark:text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
                       formErrors.duration ? "border-red-400" : "border-gray-200"
                     }`}
                     placeholder="Course duration"
@@ -796,7 +787,7 @@ const AddCourse = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                <label className="block text-sm font-semibold dark:text-white/90 mb-2">
                   Price *
                 </label>
                 <input
@@ -817,7 +808,7 @@ const AddCourse = () => {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                <label className="block text-sm font-semibold dark:text-white/90 mb-2">
                   Currency
                 </label>
                 <select
@@ -843,7 +834,7 @@ const AddCourse = () => {
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                <label className="block text-sm font-semibold dark:text-white/90 mb-2">
                   Select Tags *
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -1003,7 +994,7 @@ const AddCourse = () => {
             </h2>
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                <label className="block text-sm font-semibold dark:text-white/90 mb-2">
                   SEO Meta Description
                 </label>
                 <textarea
@@ -1031,7 +1022,7 @@ const AddCourse = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                <label className="block text-sm font-semibold dark:text-white/90 mb-2">
                   SEO Content
                 </label>
                 <QuillEditor
@@ -1051,7 +1042,7 @@ const AddCourse = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="flex flex-col sm:flex-row gap-4 justify-end">
               <button
                 type="button"
@@ -1080,7 +1071,25 @@ const AddCourse = () => {
                 Create Course
               </button>
             </div>
+          </div> */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="flex flex-col sm:flex-row gap-4 justify-end">
+              <button
+                type="button"
+                onClick={(e) => handleSubmit(e, false)}
+                disabled={loading}
+                className="flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <BookOpenCheck className="w-5 h-5" />
+                )}
+                Create Course
+              </button>
+            </div>
           </div>
+
         </div>
       </div>
 

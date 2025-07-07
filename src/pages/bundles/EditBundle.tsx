@@ -444,338 +444,334 @@ const EditBundleForm = () => {
     );
   }
 
-  return (
-    <div className="mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        Edit Course Bundle {id && `(ID: ${id})`}
-      </h2>
-
-      {bundleError && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          Error: {bundleError}
-        </div>
-      )}
-
-      {bundleLoading && (
-        <div className="mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded">
-          Loading bundle data...
-        </div>
-      )}
-
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Title *
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Complete Solar Energy Design Master Bundle"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Subtitle
-            </label>
-            <input
-              type="text"
-              name="subtitle"
-              value={formData.subtitle}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Master 3 solar courses in one"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Slug *
-          </label>
-          <input
-            type="text"
-            name="slug"
-            value={formData.slug}
-            onChange={handleInputChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="complete-solar-bundle"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description
-          </label>
-          <QuillEditor
-            value={formData.description}
-            onChange={(value: string) =>
-              setFormData((prev) => ({ ...prev, description: value }))
-            }
-            placeholder="This bundle includes beginner to advanced courses..."
-            height="200px"
-            toolbar="full"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Courses *
-          </label>
-          <MultiSelectDropdown
-            courses={courses}
-            selectedCourses={selectedCourses}
-            onChange={setSelectedCourses}
-            loading={coursesLoading}
-          />
-          {selectedCourses.length === 0 && (
-            <p className="text-sm text-red-600 mt-1">
-              Please select at least one course
-            </p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Language
-            </label>
-            <select
-              name="language"
-              value={formData.language}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="English">English</option>
-              <option value="Hindi">Hindi</option>
-              <option value="Spanish">Spanish</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Level
-            </label>
-            <select
-              name="level"
-              value={formData.level}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Currency
-            </label>
-            <select
-              name="currency"
-              value={formData.currency}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="INR">INR</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Price *
-            </label>
-            <input
-              type="number"
-              name="price"
-              value={formData.price}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="699"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Discount Price
-            </label>
-            <input
-              type="number"
-              name="discount"
-              value={formData.discount}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="249"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Thumbnail
-            </label>
-            <input
-              type="file"
-              name="thumbnail"
-              onChange={handleFileChange}
-              accept="image/*"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {(files.thumbnail || bundleData?.thumbnail) && (
-              <div className="mt-2">
-                <img
-                  src={
-                    files.thumbnail
-                      ? URL.createObjectURL(files.thumbnail)
-                      : `${import.meta.env.VITE_BASE_URL_ADMIN}/${
-                          bundleData?.thumbnail
-                        }`
-                  }
-                  alt="Thumbnail preview"
-                  className="w-32 h-20 object-cover rounded-md border"
-                />
-              </div>
+    return (
+        <div className="mx-auto p-6 bg-white shadow-lg rounded-lg">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">
+                Edit Course Bundle {id && `(ID: ${id})`}
+            </h2>
+            
+            {bundleError && (
+                <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                    Error: {bundleError}
+                </div>
             )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Banner
-            </label>
-            <input
-              type="file"
-              name="banner"
-              onChange={handleFileChange}
-              accept="image/*"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {(files.banner || bundleData?.banner) && (
-              <div className="mt-2">
-                <img
-                  src={
-                    files.banner
-                      ? URL.createObjectURL(files.banner)
-                      : `${import.meta.env.VITE_BASE_URL_ADMIN}/${
-                          bundleData?.banner
-                        }`
-                  }
-                  alt="Banner preview"
-                  className="w-32 h-20 object-cover rounded-md border"
-                />
-              </div>
+            
+            {bundleLoading && (
+                <div className="mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded">
+                    Loading bundle data...
+                </div>
             )}
-          </div>
-        </div>
+            
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Title *
+                        </label>
+                        <input
+                            type="text"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Complete Solar Energy Design Master Bundle"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Subtitle
+                        </label>
+                        <input
+                            type="text"
+                            name="subtitle"
+                            value={formData.subtitle}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Master 3 solar courses in one"
+                        />
+                    </div>
+                </div>
+                
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Slug *
+                    </label>
+                    <input
+                        type="text"
+                        name="slug"
+                        value={formData.slug}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="complete-solar-bundle"
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Description
+                    </label>
+                    <QuillEditor
+                        value={formData.description}
+                        onChange={(value: string) => setFormData(prev => ({ ...prev, description: value }))}
+                        placeholder="This bundle includes beginner to advanced courses..."
+                        height="200px"
+                        toolbar="full"
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Select Courses *
+                    </label>
+                    <MultiSelectDropdown
+                        courses={courses}
+                        selectedCourses={selectedCourses}
+                        onChange={setSelectedCourses}
+                        loading={coursesLoading}
+                    />
+                    {selectedCourses.length === 0 && (
+                        <p className="text-sm text-red-600 mt-1">Please select at least one course</p>
+                    )}
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Language
+                        </label>
+                        <select
+                            name="language"
+                            value={formData.language}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="English">English</option>
+                            <option value="Hindi">Hindi</option>
+                            <option value="Spanish">Spanish</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Level
+                        </label>
+                        <select
+                            name="level"
+                            value={formData.level}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Currency
+                        </label>
+                        <select
+                            name="currency"
+                            value={formData.currency}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="INR">INR</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Price *
+                        </label>
+                        <input
+                            type="number"
+                            name="price"
+                            value={formData.price}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="699"
+                        />
+                    </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Discount (%) (max 100)
+                        </label>
+                       <input
+                          type="number"
+                          name="discount"
+                          value={formData.discount}
+                          onChange={e => {
+                            let value = e.target.value;
+                            // Ensure number is between 0 and 100
+                            let numericValue = Number(value);
+                            if (isNaN(numericValue)) value = '0';
+                            if (numericValue > 100) value = '100';
+                            if (numericValue < 0) value = '0';
+                        
+                            setFormData(prev => ({
+                              ...prev,
+                              discount: value
+                            }));
+                          }}
+                          onInput={(e) => {
+                            const input = e.target as HTMLInputElement;
+                            if (input.validity.rangeOverflow) input.value = '100';
+                            if (input.validity.rangeUnderflow) input.value = '0';
+                          }}
+                          min={0}
+                          max={100}
+                          step="any"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="10"
+                        />
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {[
-            "certificate",
-            "featured",
-            "downloadable",
-            "popular",
-            "private",
-          ].map((field) => (
-            <div key={field} className="flex items-center">
-              <input
-                type="checkbox"
-                name={field}
-                id={field}
-                checked={(formData as any)[field]}
-                onChange={handleInputChange}
-                className="mr-2"
-              />
-              <label
-                htmlFor={field}
-                className="text-sm font-medium text-gray-700 capitalize"
-              >
-                {field}
-              </label>
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Thumbnail
+                        </label>
+                        <input
+                            type="file"
+                            name="thumbnail"
+                            onChange={handleFileChange}
+                            accept="image/*"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        {(files.thumbnail || bundleData?.thumbnail) && (
+                            <div className="mt-2">
+                                <img
+                                    src={files.thumbnail ? URL.createObjectURL(files.thumbnail) : `${import.meta.env.VITE_BASE_URL_ADMIN}/${bundleData?.thumbnail}`}
+                                    alt="Thumbnail preview"
+                                    className="w-32 h-20 object-cover rounded-md border"
+                                />
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Banner
+                        </label>
+                        <input
+                            type="file"
+                            name="banner"
+                            onChange={handleFileChange}
+                            accept="image/*"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        {(files.banner || bundleData?.banner) && (
+                            <div className="mt-2">
+                                <img
+                                    src={files.banner ? URL.createObjectURL(files.banner) : `${import.meta.env.VITE_BASE_URL_ADMIN}/${bundleData?.banner}`}
+                                    alt="Banner preview"
+                                    className="w-32 h-20 object-cover rounded-md border"
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {['certificate', 'featured', 'downloadable', 'popular', 'private'].map((field) => (
+                        <div key={field} className="flex items-center">
+                            <input
+                                type="checkbox"
+                                name={field}
+                                id={field}
+                                checked={(formData as any)[field]}
+                                onChange={handleInputChange}
+                                className="mr-2"
+                            />
+                            <label htmlFor={field} className="text-sm font-medium text-gray-700 capitalize">
+                                {field}
+                            </label>
+                        </div>
+                    ))}
+                </div>
+                
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Tags (comma-separated)
+                    </label>
+                    <input
+                        type="text"
+                        name="tags"
+                        value={formData.tags}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="solar, engineering, renewable"
+                    />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            SEO Title
+                        </label>
+                        <input
+                            type="text"
+                            name="seoTitle"
+                            value={formData.seoTitle}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Solar Energy Design Course Bundle"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            SEO Description
+                        </label>
+                        <textarea
+                            name="seoDescription"
+                            value={formData.seoDescription}
+                            onChange={handleInputChange}
+                            rows={2}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Get 3-in-1 solar courses and start your career in renewable energy."
+                        />
+                    </div>
+                </div>
+                
+                <div className="flex justify-end gap-4">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/bundles/all')}
+                        className="px-6 py-3 rounded-md font-medium bg-gray-500 hover:bg-gray-600 text-white transition duration-200"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={bundleLoading || selectedCourses.length === 0}
+                        className={`px-6 py-3 rounded-md font-medium ${
+                            bundleLoading || selectedCourses.length === 0
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-700'
+                        } text-white transition duration-200`}
+                    >
+                        {bundleLoading ? 'Updating Bundle...' : 'Update Bundle'}
+                    </button>
+                </div>
             </div>
-          ))}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Tags (comma-separated)
-          </label>
-          <input
-            type="text"
-            name="tags"
-            value={formData.tags}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="solar, engineering, renewable"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              SEO Title
-            </label>
-            <input
-              type="text"
-              name="seoTitle"
-              value={formData.seoTitle}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Solar Energy Design Course Bundle"
+            
+            {/* Custom Popup */}
+            <CustomPopup 
+                popup={popup} 
+                onClose={() => setPopup(prev => ({ ...prev, show: false }))}
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              SEO Description
-            </label>
-            <textarea
-              name="seoDescription"
-              value={formData.seoDescription}
-              onChange={handleInputChange}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Get 3-in-1 solar courses and start your career in renewable energy."
-            />
-          </div>
         </div>
-
-        <div className="flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => navigate("/bundles/all")}
-            className="px-6 py-3 rounded-md font-medium bg-gray-500 hover:bg-gray-600 text-white transition duration-200"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={bundleLoading || selectedCourses.length === 0}
-            className={`px-6 py-3 rounded-md font-medium ${
-              bundleLoading || selectedCourses.length === 0
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            } text-white transition duration-200`}
-          >
-            {bundleLoading ? "Updating Bundle..." : "Update Bundle"}
-          </button>
-        </div>
-      </div>
-
-      {/* Custom Popup */}
-      <CustomPopup
-        popup={popup}
-        onClose={() => setPopup((prev) => ({ ...prev, show: false }))}
-      />
-    </div>
-  );
+    );
 };
 
 export default EditBundleForm;

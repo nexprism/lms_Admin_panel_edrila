@@ -23,9 +23,7 @@ interface FetchCategoriesParams {
         status?: string;
         isDeleted?: boolean;
     };
-    searchFields?: {
-        name?: string;
-    };
+    search?: string; // Changed from searchFields to search
     sort?: {
         createdAt?: 'asc' | 'desc';
         name?: 'asc' | 'desc';
@@ -49,8 +47,6 @@ interface CourseCategoryState {
     };
 }
 
-
-
 const initialState: CourseCategoryState = {
     categories: [],
     loading: false,
@@ -70,7 +66,7 @@ const initialState: CourseCategoryState = {
 
 const API_BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000';
 
-// 1. Define the SubCategory interface
+// Define the SubCategory interface
 interface SubCategory {
     _id: string;
     name: string;
@@ -83,7 +79,7 @@ interface SubCategory {
     __v?: number;
 }
 
-// 2. Add the async thunk for creating a subcategory
+// Add the async thunk for creating a subcategory
 export const createSubCategory = createAsyncThunk<
     SubCategory,
     {
@@ -109,7 +105,7 @@ export const createSubCategory = createAsyncThunk<
     }
 });
 
-// Async thunk to fetch course categories with pagination and search
+// FIXED: Updated async thunk to use 'search' parameter instead of 'searchFields'
 export const fetchCourseCategories = createAsyncThunk<
     {
         categories: CourseCategory[];
@@ -127,7 +123,7 @@ export const fetchCourseCategories = createAsyncThunk<
             page = 1,
             limit = 10,
             filters = {},
-            searchFields = {},
+            search = '', // Changed from searchFields
             sort = { createdAt: 'desc' }
         } = params;
 
@@ -136,12 +132,13 @@ export const fetchCourseCategories = createAsyncThunk<
         queryParams.append('page', page.toString());
         queryParams.append('limit', limit.toString());
         
-        if (Object.keys(filters).length > 0) {
-            queryParams.append('filters', JSON.stringify(filters));
+        // Add search parameter if it exists
+        if (search && search.trim()) {
+            queryParams.append('search', search.trim());
         }
         
-        if (Object.keys(searchFields).length > 0) {
-            queryParams.append('searchFields', JSON.stringify(searchFields));
+        if (Object.keys(filters).length > 0) {
+            queryParams.append('filters', JSON.stringify(filters));
         }
         
         if (Object.keys(sort).length > 0) {
@@ -152,7 +149,7 @@ export const fetchCourseCategories = createAsyncThunk<
             page,
             limit,
             filters,
-            searchFields,
+            search, // Updated log
             sort,
             queryParams: queryParams.toString()
         });
@@ -180,8 +177,8 @@ export const fetchCourseCategories = createAsyncThunk<
 
 // Async thunk to delete a course category by ID
 export const deleteCourseCategory = createAsyncThunk<
-    string, // Return the deleted category ID
-    string  // Accept the category ID as argument
+    string,
+    string
 >('courseCategories/delete', async (categoryId, { rejectWithValue }) => {
     try {
         await axiosInstance.delete(`${API_BASE_URL}/coursecategories/${categoryId}`);
@@ -190,7 +187,6 @@ export const deleteCourseCategory = createAsyncThunk<
         return rejectWithValue(err.response?.data?.message || err.message);
     }
 });
-
 
 export const createCourseCategory = createAsyncThunk<
     CourseCategory,
@@ -218,12 +214,11 @@ export const deleteSubCategory = createAsyncThunk<
 >('subCategories/delete', async ({ subCategoryId }, { rejectWithValue }) => {
     try {
         await axiosInstance.delete(`${API_BASE_URL}/subcategories/${subCategoryId}`);
-        return { subCategoryId, categoryId: '' }; // categoryId will be set in the dispatch
+        return { subCategoryId, categoryId: '' };
     } catch (err: any) {
         return rejectWithValue(err.response?.data?.message || err.message);
     }
 });
-
 
 export const updateCourseCategory = createAsyncThunk<
     CourseCategory,
@@ -245,7 +240,6 @@ export const updateCourseCategory = createAsyncThunk<
     }
 });
 
-
 export const fetchCourseCategoryById = createAsyncThunk<
     CourseCategory,
     string
@@ -259,7 +253,6 @@ export const fetchCourseCategoryById = createAsyncThunk<
         return rejectWithValue(err.response?.data?.message || err.message);
     }
 });
-
 
 export const updateSubCategory = createAsyncThunk<
     SubCategory,
@@ -281,7 +274,6 @@ export const updateSubCategory = createAsyncThunk<
     }
 });
 
-
 const courseCategorySlice = createSlice({
     name: 'courseCategories',
     initialState,
@@ -296,7 +288,6 @@ const courseCategorySlice = createSlice({
             state.filters = initialState.filters;
             state.searchQuery = '';
         },
-
     },
     extraReducers: (builder) => {
         builder
@@ -316,13 +307,11 @@ const courseCategorySlice = createSlice({
             .addCase(createCourseCategory.pending, (state:any) => {
                 state.loading = true;
                 state.error = null;
-            }
-            )
+            })
             .addCase(createCourseCategory.fulfilled, (state:any, action:any) => {
                 state.loading = false;
                 state.categories.push(action.payload);
-            }
-            )
+            })
             .addCase(createCourseCategory.rejected, (state:any, action:any) => {
                 state.loading = false;
                 state.error = action.payload as string;
@@ -333,12 +322,11 @@ const courseCategorySlice = createSlice({
             })
             .addCase(createSubCategory.fulfilled, (state:any, action:any) => {
                 state.loading = false;
-                // Assuming you want to add the new subcategory to the categories array
                 const categoryIndex = state.categories.findIndex(
                     (cat: CourseCategory) => cat._id === action.payload.categoryId
                 );
                 if (categoryIndex !== -1) {
-                    state.categories[categoryIndex].subCategoryCount += 1; // Update subcategory count
+                    state.categories[categoryIndex].subCategoryCount += 1;
                 }
             })
             .addCase(createSubCategory.rejected, (state:any, action:any) => {
@@ -351,7 +339,6 @@ const courseCategorySlice = createSlice({
             })
             .addCase(deleteCourseCategory.fulfilled, (state:any, action:any) => {
                 state.loading = false;
-                // Remove the deleted category from the state
                 state.categories = state.categories.filter(
                     (category: CourseCategory) => category._id !== action.payload
                 );
@@ -366,7 +353,6 @@ const courseCategorySlice = createSlice({
             })
             .addCase(updateCourseCategory.fulfilled, (state:any, action:any) => {
                 state.loading = false;
-                // Update the category in the state
                 const index = state.categories.findIndex(
                     (category: CourseCategory) => category._id === action.payload._id
                 );
@@ -384,14 +370,13 @@ const courseCategorySlice = createSlice({
             })
             .addCase(fetchCourseCategoryById.fulfilled, (state:any, action:any) => {
                 state.loading = false;
-                // Assuming you want to update the category in the state
                 const index = state.categories.findIndex(
                     (category: CourseCategory) => category._id === action.payload._id
                 );
                 if (index !== -1) {
                     state.categories[index] = action.payload;
                 } else {
-                    state.categories.push(action.payload); // If not found, add it
+                    state.categories.push(action.payload);
                 }
             })
             .addCase(fetchCourseCategoryById.rejected, (state:any, action:any) => {
@@ -404,7 +389,6 @@ const courseCategorySlice = createSlice({
             })
             .addCase(updateSubCategory.fulfilled, (state:any, action:any) => {
                 state.loading = false;
-                // Assuming you want to update the subcategory in the categories array
                 const categoryIndex = state.categories.findIndex(
                     (cat: CourseCategory) => cat._id === action.payload.categoryId
                 );
@@ -427,7 +411,6 @@ const courseCategorySlice = createSlice({
             })
             .addCase(deleteSubCategory.fulfilled, (state:any, action:any) => {
                 state.loading = false;
-                // Remove the subcategory from the categories array
                 const categoryIndex = state.categories.findIndex(
                     (cat: CourseCategory) => cat._id === action.payload.categoryId
                 );
@@ -435,17 +418,13 @@ const courseCategorySlice = createSlice({
                     state.categories[categoryIndex].subCategories = state.categories[categoryIndex].subCategories.filter(
                         (subCat: SubCategory) => subCat._id !== action.payload.subCategoryId
                     );
-                    state.categories[categoryIndex].subCategoryCount -= 1; // Update subcategory count
+                    state.categories[categoryIndex].subCategoryCount -= 1;
                 }
             })
             .addCase(deleteSubCategory.rejected, (state:any, action:any) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });
-
-
-
-
     },
 });
 

@@ -151,10 +151,10 @@ function StudentDetail() {
                   <Edit className="w-4 h-4 mr-2" />
                   Edit
                 </button> */}
-                <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                {/* <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
-                </button>
+                </button> */}
               </div>
             </div>
           </div>

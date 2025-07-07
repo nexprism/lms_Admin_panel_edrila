@@ -188,7 +188,7 @@ const VideoAnalyticsDashboard = () => {
           {openUserEngagement ? <ChevronUp size={20} className="text-gray-500" /> : <ChevronDown size={20} className="text-gray-500" />}
         </h2>
         {openUserEngagement && (
-          <div className="overflow-x-auto rounded-lg border border-gray-200 mt-4">
+          <div className="overflow-x-auto rounded-lg border  max-h-[700px] overflow-scroll border-gray-200 mt-4">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-100">
                 <tr>
@@ -198,12 +198,12 @@ const VideoAnalyticsDashboard = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {dashboard.userEngagement?.slice(0, 4).map(user => (
+                {dashboard.userEngagement?.map(user => (
                   <tr key={user.userId} className="hover:bg-gray-50 transition-colors duration-200">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">{user?.userId?.fullName || 'N/A'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">{user.videosWatched}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.lastActive ? new Date(user.lastActive).toLocaleString() : 'N/A'}
+                      {user.lastActive ? user.lastActive : 'Never Active'}
                     </td>
                   </tr>
                 ))}
@@ -217,7 +217,7 @@ const VideoAnalyticsDashboard = () => {
       </section>
 
       {/* Security Incidents Section */}
-      <section className="mb-10 bg-white p-6 rounded-xl shadow-md border border-gray-200">
+      {/* <section className="mb-10 bg-white p-6 rounded-xl shadow-md border border-gray-200">
         <h2 className="text-xl sm:text-2xl font-bold mb-5 text-gray-800 flex items-center justify-between cursor-pointer"
           onClick={() => setOpenSecurityIncidents(!openSecurityIncidents)}>
           <div className="flex items-center gap-2">
@@ -261,7 +261,7 @@ const VideoAnalyticsDashboard = () => {
             )}
           </div>
         )}
-      </section>
+      </section> */}
     </div>
   );
 };

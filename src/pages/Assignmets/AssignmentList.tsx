@@ -429,63 +429,52 @@ const AssignmentList = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
-              {!loading &&
-                assignments.map((assignment, idx) => (
-                  <tr
-                    key={assignment._id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800"
-                  >
-                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                      {(pagination.page - 1) * pagination.limit + idx + 1}
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                      <div
-                        className="max-w-xs truncate"
-                        title={
-                          assignment.assignmentId?.title || assignment.title
-                        }
-                      >
-                        {assignment.assignmentId?.title ||
-                          assignment.title ||
-                          "N/A"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                      <div
-                        className="max-w-xs truncate"
-                        title={assignment.courseId?.title}
-                      >
-                        {assignment.courseId?.title || "No Course"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                          assignment.status || "pending"
-                        )}`}
-                      >
-                        {assignment.status || "pending"}
-                      </span>
-                    </td>
-
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <button
-                        onClick={() => handleEditClick(assignment._id)}
-                        className="text-blue-500 hover:text-blue-700 transition-colors"
-                        title="View Submission"
-                      >
-                        <Pencil className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => openDeleteModal(assignment)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                        title="Delete Submission"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+              {!loading && assignments.map((assignment, idx) => (
+                <tr
+                  key={assignment._id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                    {(pagination.page - 1) * pagination.limit + idx + 1}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="max-w-xs truncate" title={assignment.assignmentId?.title || assignment.title}>
+                      {assignment.assignmentId?.title || assignment.title || "N/A"}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                    <div className="max-w-xs truncate" title={assignment.courseId?.title}>
+                      {assignment.courseId?.title || "No Course"}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                        assignment.status || "pending"
+                      )}`}
+                    >
+                      {assignment.status || "pending"}
+                    </span>
+                  </td>
+                
+                  <td className="px-6 py-4 text-right space-x-2">
+                    <button
+                      onClick={() => handleEditClick(assignment._id)}
+                      className="text-blue-500 hover:text-blue-700 transition-colors"
+                      title="View Submission"
+                    >
+                      <Pencil className="h-5 w-5" />
+                    </button>
+                    {/* <button
+                      onClick={() => openDeleteModal(assignment)}
+                      className="text-red-500 hover:text-red-700 transition-colors"
+                      title="Delete Submission"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button> */}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
 

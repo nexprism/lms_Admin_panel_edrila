@@ -167,19 +167,30 @@ const StudentList: React.FC = () => {
 
   // Fetch students
   useEffect(() => {
-    const activeFilters = {
-      isDeleted: false,
-      ...(localFilters.status ? { status: localFilters.status } : {}),
+    // Build filters object for API query
+    const activeFilters: Record<string, any> = {
     };
+
+    // Set isActive based on status filter
+    if (localFilters.status === "active") {
+      activeFilters.isActive = true;
+
+
+
+      activeFilters.isActive = false;
+    }
+
+    // If isActive is explicitly set (true/false), override with it
+    if (typeof localFilters.isActive === "boolean") {
+      activeFilters.isActive = localFilters.isActive;
+    }
 
     dispatch(
       fetchAllStudents({
         page: pagination.page,
         limit: pagination.limit,
         filters: activeFilters,
-        searchFields: searchQuery
-          ? { name: searchQuery, email: searchQuery }
-          : {},
+        searchFields: searchQuery ? { search: searchQuery } : {},
         sort: { createdAt: "desc" },
       })
     );
@@ -192,7 +203,6 @@ const StudentList: React.FC = () => {
           page: newPage,
           limit: pagination.limit,
           filters: {
-            isDeleted: false,
             ...(localFilters.status ? { status: localFilters.status } : {}),
           },
           searchFields: searchQuery
