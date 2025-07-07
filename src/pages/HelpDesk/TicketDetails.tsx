@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { fetchSupportTicketById, updateSupportTicketStatus } from "../../store/slices/support";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download, FileText, Image, File } from "lucide-react";
 
 interface SupportTicket {
     _id: string;
@@ -12,6 +12,7 @@ interface SupportTicket {
     description: string;
     priority: string;
     status: string;
+    attachments: string[];
     createdAt: string;
     updatedAt: string;
 }
@@ -24,6 +25,9 @@ const TicketDetails: React.FC<{ isEditMode: boolean }> = ({ isEditMode }) => {
 
     const ticket = tickets.find((t) => t._id === ticketId);
     const [status, setStatus] = useState(ticket?.status || "open");
+
+
+    const ImageUrl = import.meta.env.VITE_IMAGE_URL || "http://localhost:5000/uploads/";
 
     useEffect(() => {
         if (ticketId && !ticket) {
@@ -47,6 +51,35 @@ const TicketDetails: React.FC<{ isEditMode: boolean }> = ({ isEditMode }) => {
             await dispatch(updateSupportTicketStatus({ ticketId, status }));
             navigate("/requests");
         }
+    };
+
+    const getFileIcon = (filename: string) => {
+        const ext = filename.split('.').pop()?.toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) {
+            return <Image className="w-4 h-4" />;
+        } else if (['pdf', 'doc', 'docx', 'txt'].includes(ext || '')) {
+            return <FileText className="w-4 h-4" />;
+        }
+        return <File className="w-4 h-4" />;
+    };
+
+    const getFileName = (filePath: string) => {
+        return filePath.split('\\').pop() || filePath.split('/').pop() || filePath;
+    };
+
+    const handleFileDownload = (filePath: string) => {
+        const fileUrl = `${ImageUrl}/${getFileName(filePath)}`;
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = getFileName(filePath);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleFileView = (filePath: string) => {
+        const fileUrl = `${ImageUrl}/${getFileName(filePath)}`;
+        window.open(fileUrl, '_blank');
     };
 
     return (
@@ -125,6 +158,44 @@ const TicketDetails: React.FC<{ isEditMode: boolean }> = ({ isEditMode }) => {
                             className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:border-gray-700 dark:bg-gray-900 dark:text-white opacity-50"
                         />
                     </div>
+                    {ticket.attachments && ticket.attachments.length > 0 && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                Attachments ({ticket.attachments.length})
+                            </label>
+                            <div className="space-y-2">
+                                {ticket.attachments.map((attachment, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center gap-3 p-3 border border-gray-200 rounded-md bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+                                    >
+                                        {getFileIcon(attachment)}
+                                        <span className="flex-1 text-sm text-gray-700 dark:text-gray-300 truncate">
+                                            {getFileName(attachment)}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleFileView(attachment)}
+                                            className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800
+                                            dark:text-indigo-400 dark:hover:text-indigo-300 text-sm"
+                                        >
+                                            {getFileIcon(attachment)}
+                                            View
+                                        </button>
+                                            
+                                        <button
+                                            type="button"
+                                            onClick={() => handleFileDownload(attachment)}
+                                            className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm"
+                                        >
+                                            <Download className="w-4 h-4" />
+                                            Download
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Status
