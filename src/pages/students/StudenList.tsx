@@ -437,19 +437,20 @@ console.log('Total items:', pagination.total);
                       {(pagination.page - 1) * pagination.limit + idx + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <img
-                        src={
-                          student?.profilePicture || student?.image
-                            ? `${import.meta.env.VITE_IMAGE_URL}/${
-                                student.profilePicture || student.image
-                              }`
-                            : `https://placehold.co/40x40?text=${
-                                (student?.fullName || student?.name)?.charAt(0) || "S"
-                              }`
-                        }
-                        alt={student?.fullName || student?.name || "Student"}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
+                     <img
+  src={
+    student?.profilePicture || student?.image
+      ? `${import.meta.env.VITE_IMAGE_URL}/${student.profilePicture || student.image}`
+      : `https://placehold.co/40x40?text=${(student.fullName || student.name)?.charAt(0) || "S"}`
+  }
+  onError={(e) => {
+    (e.currentTarget as HTMLImageElement).src =
+      "https://static.vecteezy.com/system/resources/previews/026/619/142/original/default-avatar-profile-icon-of-social-media-user-photo-image-vector.jpg";
+  }}
+  alt={student?.fullName || student?.name || "Student"}
+  className="w-10 h-10 rounded-full object-cover"
+/>
+
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {student.fullName || student.name}
