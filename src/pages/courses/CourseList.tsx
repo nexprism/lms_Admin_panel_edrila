@@ -47,10 +47,11 @@ interface Course {
   isDeleted: boolean;
 }
 
+const VITE_IMAGE_URL = import.meta.env.VITE_BASE_URL;
 const CourseList: React.FC = () => {
   const dispatch = useAppDispatch();
   const { loading, error, data } = useAppSelector((state) => state.course);
-  
+
   // State for search, filter, pagination
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -73,7 +74,7 @@ const CourseList: React.FC = () => {
   // Extract courses from the correct data structure
   const courses: Course[] = Array.isArray(data?.courses) ? data.courses : [];
   console.log("Fetched courses:", courses);
-  
+
   const pagination = {
     total: data?.total || 0,
     page: data?.page || 1,
@@ -125,12 +126,19 @@ const CourseList: React.FC = () => {
 
   return (
     <div>
-      <PageMeta title="Course List | LMS Admin" description="List of all courses" />
+      <PageMeta
+        title="Course List | LMS Admin"
+        description="List of all courses"
+      />
       <PageBreadcrumb pageTitle="Course List" />
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">Courses</h1>
-          <span className="text-gray-500 text-sm dark:text-gray-400">Total: {pagination.total}</span>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
+            Courses
+          </h1>
+          <span className="text-gray-500 text-sm dark:text-gray-400">
+            Total: {pagination.total}
+          </span>
         </div>
 
         {/* Search & Filter */}
@@ -199,23 +207,55 @@ const CourseList: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">#</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Instructor</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Created</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  #
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Image
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Title
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Category
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Instructor
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Price
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Created
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
               {filteredCourses.map((course, idx) => (
-                <tr key={course._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <tr
+                  key={course._id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
                   <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                     {(pagination.page - 1) * pagination.limit + idx + 1}
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{course.title}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                    <img
+                      src={VITE_IMAGE_URL + "/" + course.thumbnail}
+                      alt={course.title}
+                      className="w-14 h-10 rounded-sm object-cover"
+                    />
+                  </td>
+
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                    {course.title}
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                     {course.categoryId?.name}
                   </td>
@@ -249,7 +289,10 @@ const CourseList: React.FC = () => {
               ))}
               {filteredCourses.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="text-center py-8 text-gray-400 dark:text-gray-500">
+                  <td
+                    colSpan={8}
+                    className="text-center py-8 text-gray-400 dark:text-gray-500"
+                  >
                     No courses found.
                   </td>
                 </tr>

@@ -292,8 +292,6 @@
 
 // export default CreateCertificateTemplate;
 
-
-
 import React, { useRef, useState, useEffect } from "react";
 import { BookOpen, Upload, Eye, Settings, Move, X } from "lucide-react";
 import axiosInstance from "../../services/axiosConfig";
@@ -314,7 +312,7 @@ const CreateCertificateTemplate = () => {
     title: "Course Completion Certificate",
     type: "course",
     status: "publish",
-    backgroundImage: null
+    backgroundImage: null,
   });
 
   // Template Elements with positions
@@ -328,7 +326,7 @@ const CreateCertificateTemplate = () => {
       text_center: true,
       enable: true,
       position: { x: 400, y: 80 }, // Fixed position for title
-      draggable: false
+      draggable: false,
     },
     subtitle: {
       content: "Awarded for Excellence",
@@ -337,7 +335,7 @@ const CreateCertificateTemplate = () => {
       text_center: true,
       enable: true,
       position: { x: 400, y: 130 },
-      draggable: true
+      draggable: true,
     },
     body: {
       content: "This certificate is awarded to",
@@ -346,7 +344,7 @@ const CreateCertificateTemplate = () => {
       text_center: true,
       enable: true,
       position: { x: 400, y: 200 },
-      draggable: true
+      draggable: true,
     },
     student_name: {
       content: "[student_name]",
@@ -356,7 +354,7 @@ const CreateCertificateTemplate = () => {
       text_center: true,
       enable: true,
       position: { x: 400, y: 250 },
-      draggable: true
+      draggable: true,
     },
     completion_text: {
       content: "for successfully completing the course.",
@@ -365,7 +363,7 @@ const CreateCertificateTemplate = () => {
       text_center: true,
       enable: true,
       position: { x: 400, y: 300 },
-      draggable: true
+      draggable: true,
     },
     date: {
       content: "[date]",
@@ -375,7 +373,7 @@ const CreateCertificateTemplate = () => {
       text_center: true,
       enable: true,
       position: { x: 400, y: 400 },
-      draggable: true
+      draggable: true,
     },
     instructor_name: {
       content: "[instructor_name]",
@@ -384,7 +382,7 @@ const CreateCertificateTemplate = () => {
       text_center: false,
       enable: true,
       position: { x: 100, y: 500 },
-      draggable: true
+      draggable: true,
     },
     platform_name: {
       content: "[platform_name]",
@@ -393,14 +391,14 @@ const CreateCertificateTemplate = () => {
       text_center: false,
       enable: true,
       position: { x: 100, y: 520 },
-      draggable: true
+      draggable: true,
     },
     qr_code: {
       content: "[qr_code]",
       image_size: "80",
       enable: true,
       position: { x: 400, y: 450 },
-      draggable: true
+      draggable: true,
     },
     hint: {
       content: "Verify at lms.rocket-soft.org",
@@ -409,7 +407,7 @@ const CreateCertificateTemplate = () => {
       text_center: true,
       enable: true,
       position: { x: 400, y: 550 },
-      draggable: true
+      draggable: true,
     },
     platform_signature: {
       content: "[platform_signature]",
@@ -417,7 +415,7 @@ const CreateCertificateTemplate = () => {
       image_size: "80",
       enable: true,
       position: { x: 400, y: 480 },
-      draggable: true
+      draggable: true,
     },
     stamp: {
       content: "[stamp]",
@@ -425,14 +423,14 @@ const CreateCertificateTemplate = () => {
       image_size: "80",
       enable: true,
       position: { x: 500, y: 450 },
-      draggable: true
+      draggable: true,
     },
     user_certificate_additional: {
       content: "[user_certificate_additional]",
       enable: false,
       position: { x: 400, y: 400 },
-      draggable: true
-    }
+      draggable: true,
+    },
   });
 
   const [popup, setPopup] = useState({
@@ -442,35 +440,35 @@ const CreateCertificateTemplate = () => {
   });
 
   const handleTemplateInfoChange = (field, value) => {
-    setTemplateInfo(prev => ({
+    setTemplateInfo((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleElementChange = (elementKey, field, value) => {
-    setElements(prev => ({
+    setElements((prev) => ({
       ...prev,
       [elementKey]: {
         ...prev[elementKey],
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
   const handlePositionChange = (elementKey, newPosition) => {
-    setElements(prev => ({
+    setElements((prev) => ({
       ...prev,
       [elementKey]: {
         ...prev[elementKey],
-        position: newPosition
-      }
+        position: newPosition,
+      },
     }));
   };
 
   const handleFileChange = (e, elementKey, field) => {
     const file = e.target.files[0];
-    if (elementKey === 'template') {
+    if (elementKey === "template") {
       handleTemplateInfoChange(field, file);
     } else {
       handleElementChange(elementKey, field, file);
@@ -484,35 +482,35 @@ const CreateCertificateTemplate = () => {
 
   const handleMouseDown = (e, elementKey) => {
     if (!elements[elementKey].draggable) return;
-    
+
     const rect = containerRef.current.getBoundingClientRect();
     const elementRect = e.currentTarget.getBoundingClientRect();
-    
+
     setDraggedElement(elementKey);
     setDragOffset({
       x: e.clientX - elementRect.left,
-      y: e.clientY - elementRect.top
+      y: e.clientY - elementRect.top,
     });
-    
+
     e.preventDefault();
   };
 
- const handleMouseMove = (e) => {
-  if (!draggedElement || !containerRef.current) return;
-  
-  const rect = containerRef.current.getBoundingClientRect();
-  const newX = e.clientX - rect.left - dragOffset.x;
-  const newY = e.clientY - rect.top - dragOffset.y;
-  
-  // Constrain within container bounds
-  const constrainedX = Math.max(0, Math.min(newX, rect.width - 100));
-  const constrainedY = Math.max(0, Math.min(newY, rect.height - 30));
-  
-  handlePositionChange(draggedElement, {
-    x: constrainedX,
-    y: constrainedY
-  });
-};
+  const handleMouseMove = (e) => {
+    if (!draggedElement || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const newX = e.clientX - rect.left - dragOffset.x;
+    const newY = e.clientY - rect.top - dragOffset.y;
+
+    // Constrain within container bounds
+    const constrainedX = Math.max(0, Math.min(newX, rect.width - 100));
+    const constrainedY = Math.max(0, Math.min(newY, rect.height - 30));
+
+    handlePositionChange(draggedElement, {
+      x: constrainedX,
+      y: constrainedY,
+    });
+  };
 
   const handleMouseUp = () => {
     setDraggedElement(null);
@@ -521,30 +519,30 @@ const CreateCertificateTemplate = () => {
 
   useEffect(() => {
     if (draggedElement) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
       };
     }
   }, [draggedElement, dragOffset]);
 
   // const handleSubmit = async () => {
   //   const formData = new FormData();
-    
+
   //   // Add basic template info
   //   formData.append('locale', templateInfo.locale);
   //   formData.append('title', templateInfo.title);
   //   formData.append('type', templateInfo.type);
   //   formData.append('status', templateInfo.status);
   //   formData.append('template_contents', '<div class="certificate-template-container"></div>');
-    
+
   //   if (templateInfo.backgroundImage) {
   //     formData.append('image', templateInfo.backgroundImage);
   //   }
-    
+
   //   // Add elements with positions
   //   Object.entries(elements).forEach(([key, element]) => {
   //     Object.entries(element).forEach(([field, value]) => {
@@ -558,7 +556,7 @@ const CreateCertificateTemplate = () => {
   //       }
   //     });
   //   });
-    
+
   //   console.log('Form data ready for submission:', formData);
   //   setPopup({
   //     isVisible: true,
@@ -568,109 +566,126 @@ const CreateCertificateTemplate = () => {
   // };
 
   const handleSubmit = async () => {
-  const formData = new FormData();
-  
-  // Add basic template info
-  formData.append('locale', templateInfo.locale);
-  formData.append('title', templateInfo.title);
-  formData.append('type', templateInfo.type);
-  formData.append('status', templateInfo.status);
-  formData.append('template_contents', '<div class="certificate-template-container"></div>');
-  
-  if (templateInfo.backgroundImage) {
-    formData.append('image', templateInfo.backgroundImage);
-  }
-  
-  // Add elements with positions
-  Object.entries(elements).forEach(([key, element]) => {
-    Object.entries(element).forEach(([field, value]) => {
-      if (field === 'image' && value instanceof File) {
-        formData.append(`elements[${key}][${field}]`, value);
-      } else if (field === 'position') {
-        formData.append(`elements[${key}][position_x]`, value.x.toString());
-        formData.append(`elements[${key}][position_y]`, value.y.toString());
-      } else {
-        formData.append(`elements[${key}][${field}]`, value.toString());
-      }
-    });
-  });
-  
-  try {
-    setPopup({
-      isVisible: true,
-      message: "Saving certificate template...",
-      type: "info"
-    });
+    const formData = new FormData();
 
-    const response = await axiosInstance('/certificate-templates', {
-      method: 'POST',
-      headers: {
-        contentType: 'multipart/form-data',
-      },
-      body: formData
-    });
+    // Add basic template info
+    formData.append("locale", templateInfo.locale);
+    formData.append("title", templateInfo.title);
+    formData.append("type", templateInfo.type);
+    formData.append("status", templateInfo.status);
+    formData.append(
+      "template_contents",
+      '<div class="certificate-template-container"></div>'
+    );
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (templateInfo.backgroundImage) {
+      formData.append("image", templateInfo.backgroundImage);
     }
 
-    const result = await response.json();
-    
-    setPopup({
-      isVisible: true,
-      message: "Certificate template saved successfully!",
-      type: "success"
+    // Add elements with positions
+    Object.entries(elements).forEach(([key, element]) => {
+      Object.entries(element).forEach(([field, value]) => {
+        if (field === "image" && value instanceof File) {
+          formData.append(`elements[${key}][${field}]`, value);
+        } else if (field === "position") {
+          formData.append(`elements[${key}][position_x]`, value.x?.toString());
+          formData.append(`elements[${key}][position_y]`, value.y?.toString());
+        } else {
+          formData.append(`elements[${key}][${field}]`, value?.toString());
+        }
+      });
     });
 
-    console.log('Template saved:', result);
-    
-  } catch (error) {
-    console.error('Error saving template:', error);
-    setPopup({
-      isVisible: true,
-      message: `Error saving template: ${error.message}`,
-      type: "error"
-    });
-  }
-};
+    try {
+      setPopup({
+        isVisible: true,
+        message: "Saving certificate template...",
+        type: "info",
+      });
+
+      const response = await axiosInstance.post(
+        "/certificate-templates",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      setPopup({
+        isVisible: true,
+        message: "Certificate template saved successfully!",
+        type: "success",
+      });
+
+      console.log("Template saved:", result);
+    } catch (error) {
+      console.error("Error saving template:", error);
+      setPopup({
+        isVisible: true,
+        message: `Error saving template: ${error.message}`,
+        type: "error",
+      });
+    }
+  };
 
   const renderTextElement = (elementKey, element) => {
     if (!element.enable) return null;
-    
-    const content = element.content.replace('[student_name]', 'John Doe')
-                                  .replace('[instructor_name]', 'Jane Smith')
-                                  .replace('[platform_name]', 'LMS Platform')
-                                  .replace('[date]', new Date().toLocaleDateString());
-    
+
+    const content = element.content
+      .replace("[student_name]", "John Doe")
+      .replace("[instructor_name]", "Jane Smith")
+      .replace("[platform_name]", "LMS Platform")
+      .replace("[date]", new Date().toLocaleDateString());
+
     const isDragging = draggedElement === elementKey;
-    const isTitle = elementKey === 'title';
-    
+    const isTitle = elementKey === "title";
+
     return (
       <div
         key={elementKey}
         onMouseDown={(e) => handleMouseDown(e, elementKey)}
         style={{
-          position: 'absolute',
+          position: "absolute",
           left: `${element.position.x}px`,
           top: `${element.position.y}px`,
-          transform: element.text_center ? 'translateX(-50%)' : 'none',
+          transform: element.text_center ? "translateX(-50%)" : "none",
           fontSize: `${element.font_size}px`,
           color: element.font_color,
-          fontWeight: element.font_weight_bold ? 'bold' : 'normal',
-          textAlign: element.text_center ? 'center' : 'left',
-          maxWidth: element.text_center ? '500px' : '400px',
-          wordWrap: 'break-word',
-          cursor: element.draggable ? 'move' : 'default',
-          userSelect: 'none',
+          fontWeight: element.font_weight_bold ? "bold" : "normal",
+          textAlign: element.text_center ? "center" : "left",
+          maxWidth: element.text_center ? "500px" : "400px",
+          wordWrap: "break-word",
+          cursor: element.draggable ? "move" : "default",
+          userSelect: "none",
           zIndex: isDragging ? 10 : 1,
           opacity: isDragging ? 0.8 : 1,
-          border: isDragging ? '2px dashed #3b82f6' : 'none',
-          padding: '2px',
-          backgroundColor: isDragging ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-          borderRadius: '4px'
+          border: isDragging ? "2px dashed #3b82f6" : "none",
+          padding: "2px",
+          backgroundColor: isDragging
+            ? "rgba(59, 130, 246, 0.1)"
+            : "transparent",
+          borderRadius: "4px",
         }}
-        className={`${element.draggable ? 'hover:bg-blue-50 hover:border hover:border-blue-300' : ''} ${isTitle ? 'ring-2 ring-red-200' : ''}`}
-        title={isTitle ? 'Title is fixed and cannot be moved' : element.draggable ? 'Drag to move' : ''}
+        className={`${
+          element.draggable
+            ? "hover:bg-blue-50 hover:border hover:border-blue-300"
+            : ""
+        } ${isTitle ? "ring-2 ring-red-200" : ""}`}
+        title={
+          isTitle
+            ? "Title is fixed and cannot be moved"
+            : element.draggable
+            ? "Drag to move"
+            : ""
+        }
       >
         {element.draggable && !isDragging && (
           <Move className="w-4 h-4 text-blue-400 absolute -top-1 -right-1 opacity-0 group-hover:opacity-100" />
@@ -682,34 +697,34 @@ const CreateCertificateTemplate = () => {
 
   const renderImageElement = (elementKey, element) => {
     if (!element.enable) return null;
-    
+
     const isDragging = draggedElement === elementKey;
-    
-    if (elementKey === 'qr_code') {
+
+    if (elementKey === "qr_code") {
       return (
         <div
           key={elementKey}
           onMouseDown={(e) => handleMouseDown(e, elementKey)}
           style={{
-            position: 'absolute',
+            position: "absolute",
             left: `${element.position.x}px`,
             top: `${element.position.y}px`,
             width: `${element.image_size}px`,
             height: `${element.image_size}px`,
-            backgroundColor: '#f0f0f0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '12px',
-            color: '#666',
-            border: '1px solid #ccc',
-            cursor: 'move',
-            userSelect: 'none',
+            backgroundColor: "#f0f0f0",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "12px",
+            color: "#666",
+            border: "1px solid #ccc",
+            cursor: "move",
+            userSelect: "none",
             zIndex: isDragging ? 10 : 1,
             opacity: isDragging ? 0.8 : 1,
-            borderColor: isDragging ? '#3b82f6' : '#ccc',
-            borderWidth: isDragging ? '2px' : '1px',
-            borderStyle: isDragging ? 'dashed' : 'solid'
+            borderColor: isDragging ? "#3b82f6" : "#ccc",
+            borderWidth: isDragging ? "2px" : "1px",
+            borderStyle: isDragging ? "dashed" : "solid",
           }}
           className="hover:bg-blue-50 hover:border-blue-300 group"
           title="Drag to move"
@@ -719,25 +734,27 @@ const CreateCertificateTemplate = () => {
         </div>
       );
     }
-    
+
     if (!element.image) return null;
-    
+
     return (
       <div
         key={elementKey}
         onMouseDown={(e) => handleMouseDown(e, elementKey)}
         style={{
-          position: 'absolute',
+          position: "absolute",
           left: `${element.position.x}px`,
           top: `${element.position.y}px`,
-          cursor: 'move',
-          userSelect: 'none',
+          cursor: "move",
+          userSelect: "none",
           zIndex: isDragging ? 10 : 1,
           opacity: isDragging ? 0.8 : 1,
-          border: isDragging ? '2px dashed #3b82f6' : 'none',
-          padding: '2px',
-          backgroundColor: isDragging ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-          borderRadius: '4px'
+          border: isDragging ? "2px dashed #3b82f6" : "none",
+          padding: "2px",
+          backgroundColor: isDragging
+            ? "rgba(59, 130, 246, 0.1)"
+            : "transparent",
+          borderRadius: "4px",
         }}
         className="hover:bg-blue-50 hover:border hover:border-blue-300 group"
         title="Drag to move"
@@ -749,7 +766,7 @@ const CreateCertificateTemplate = () => {
           style={{
             width: `${element.image_size}px`,
             height: `${element.image_size}px`,
-            objectFit: 'contain'
+            objectFit: "contain",
           }}
         />
       </div>
@@ -781,7 +798,6 @@ const CreateCertificateTemplate = () => {
           {/* Form Section */}
           <div className="w-1/4 space-y-6">
             <div className="space-y-6">
-              
               {/* Template Information */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
@@ -790,11 +806,15 @@ const CreateCertificateTemplate = () => {
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block font-medium mb-2">Template Title</label>
+                    <label className="block font-medium mb-2">
+                      Template Title
+                    </label>
                     <input
                       type="text"
                       value={templateInfo.title}
-                      onChange={(e) => handleTemplateInfoChange('title', e.target.value)}
+                      onChange={(e) =>
+                        handleTemplateInfoChange("title", e.target.value)
+                      }
                       className="w-full border rounded-lg px-4 py-3"
                     />
                   </div>
@@ -802,7 +822,9 @@ const CreateCertificateTemplate = () => {
                     <label className="block font-medium mb-2">Locale</label>
                     <select
                       value={templateInfo.locale}
-                      onChange={(e) => handleTemplateInfoChange('locale', e.target.value)}
+                      onChange={(e) =>
+                        handleTemplateInfoChange("locale", e.target.value)
+                      }
                       className="w-full border rounded-lg px-4 py-3"
                     >
                       <option value="EN">English</option>
@@ -814,7 +836,9 @@ const CreateCertificateTemplate = () => {
                     <label className="block font-medium mb-2">Type</label>
                     <select
                       value={templateInfo.type}
-                      onChange={(e) => handleTemplateInfoChange('type', e.target.value)}
+                      onChange={(e) =>
+                        handleTemplateInfoChange("type", e.target.value)
+                      }
                       className="w-full border rounded-lg px-4 py-3"
                     >
                       <option value="course">Course</option>
@@ -826,7 +850,9 @@ const CreateCertificateTemplate = () => {
                     <label className="block font-medium mb-2">Status</label>
                     <select
                       value={templateInfo.status}
-                      onChange={(e) => handleTemplateInfoChange('status', e.target.value)}
+                      onChange={(e) =>
+                        handleTemplateInfoChange("status", e.target.value)
+                      }
                       className="w-full border rounded-lg px-4 py-3"
                     >
                       <option value="publish">Publish</option>
@@ -834,11 +860,15 @@ const CreateCertificateTemplate = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-medium mb-2">Background Image</label>
+                    <label className="block font-medium mb-2">
+                      Background Image
+                    </label>
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleFileChange(e, 'template', 'backgroundImage')}
+                      onChange={(e) =>
+                        handleFileChange(e, "template", "backgroundImage")
+                      }
                       className="w-full border rounded-lg px-4 py-3"
                     />
                   </div>
@@ -847,25 +877,40 @@ const CreateCertificateTemplate = () => {
 
               {/* Certificate Elements */}
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-4">Certificate Elements</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                  Certificate Elements
+                </h2>
                 <div className="space-y-6">
-                  
                   {/* Title Element */}
                   <div className="border rounded-lg p-4 border-red-200 bg-red-50">
                     <div className="flex items-center gap-2 mb-3">
                       <input
                         type="checkbox"
                         checked={elements.title.enable}
-                        onChange={(e) => handleElementChange('title', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "title",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
-                      <label className="font-medium text-red-700">Title (Fixed Position)</label>
+                      <label className="font-medium text-red-700">
+                        Title (Fixed Position)
+                      </label>
                     </div>
                     {elements.title.enable && (
                       <div className="space-y-3">
                         <input
                           type="text"
                           value={elements.title.content}
-                          onChange={(e) => handleElementChange('title', 'content', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "title",
+                              "content",
+                              e.target.value
+                            )
+                          }
                           className="w-full border rounded px-3 py-2"
                           placeholder="Title text"
                         />
@@ -873,21 +918,39 @@ const CreateCertificateTemplate = () => {
                           <input
                             type="number"
                             value={elements.title.font_size}
-                            onChange={(e) => handleElementChange('title', 'font_size', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "title",
+                                "font_size",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2 w-20"
                             placeholder="Size"
                           />
                           <input
                             type="color"
                             value={elements.title.font_color}
-                            onChange={(e) => handleElementChange('title', 'font_color', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "title",
+                                "font_color",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2"
                           />
                           <label className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={elements.title.font_weight_bold}
-                              onChange={(e) => handleElementChange('title', 'font_weight_bold', e.target.checked)}
+                              onChange={(e) =>
+                                handleElementChange(
+                                  "title",
+                                  "font_weight_bold",
+                                  e.target.checked
+                                )
+                              }
                             />
                             Bold
                           </label>
@@ -895,7 +958,13 @@ const CreateCertificateTemplate = () => {
                             <input
                               type="checkbox"
                               checked={elements.title.text_center}
-                              onChange={(e) => handleElementChange('title', 'text_center', e.target.checked)}
+                              onChange={(e) =>
+                                handleElementChange(
+                                  "title",
+                                  "text_center",
+                                  e.target.checked
+                                )
+                              }
                             />
                             Center
                           </label>
@@ -910,11 +979,17 @@ const CreateCertificateTemplate = () => {
                       <input
                         type="checkbox"
                         checked={elements.subtitle.enable}
-                        onChange={(e) => handleElementChange('subtitle', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "subtitle",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
                       <label className="font-medium flex items-center gap-2">
                         <Move className="w-4 h-4 text-blue-500" />
-                        Subtitle 
+                        Subtitle
                       </label>
                     </div>
                     {elements.subtitle.enable && (
@@ -922,27 +997,51 @@ const CreateCertificateTemplate = () => {
                         <input
                           type="text"
                           value={elements.subtitle.content}
-                          onChange={(e) => handleElementChange('subtitle', 'content', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "subtitle",
+                              "content",
+                              e.target.value
+                            )
+                          }
                           className="w-full border rounded px-3 py-2"
                         />
                         <div className="flex gap-3">
                           <input
                             type="number"
                             value={elements.subtitle.font_size}
-                            onChange={(e) => handleElementChange('subtitle', 'font_size', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "subtitle",
+                                "font_size",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2 w-20"
                           />
                           <input
                             type="color"
                             value={elements.subtitle.font_color}
-                            onChange={(e) => handleElementChange('subtitle', 'font_color', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "subtitle",
+                                "font_color",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2"
                           />
                           <label className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={elements.subtitle.text_center}
-                              onChange={(e) => handleElementChange('subtitle', 'text_center', e.target.checked)}
+                              onChange={(e) =>
+                                handleElementChange(
+                                  "subtitle",
+                                  "text_center",
+                                  e.target.checked
+                                )
+                              }
                             />
                             Center
                           </label>
@@ -957,18 +1056,30 @@ const CreateCertificateTemplate = () => {
                       <input
                         type="checkbox"
                         checked={elements.body.enable}
-                        onChange={(e) => handleElementChange('body', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "body",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
                       <label className="font-medium flex items-center gap-2">
                         <Move className="w-4 h-4 text-blue-500" />
-                        Body Text 
+                        Body Text
                       </label>
                     </div>
                     {elements.body.enable && (
                       <div className="space-y-3">
                         <textarea
                           value={elements.body.content}
-                          onChange={(e) => handleElementChange('body', 'content', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "body",
+                              "content",
+                              e.target.value
+                            )
+                          }
                           className="w-full border rounded px-3 py-2"
                           rows="3"
                         />
@@ -976,20 +1087,38 @@ const CreateCertificateTemplate = () => {
                           <input
                             type="number"
                             value={elements.body.font_size}
-                            onChange={(e) => handleElementChange('body', 'font_size', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "body",
+                                "font_size",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2 w-20"
                           />
                           <input
                             type="color"
                             value={elements.body.font_color}
-                            onChange={(e) => handleElementChange('body', 'font_color', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "body",
+                                "font_color",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2"
                           />
                           <label className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={elements.body.text_center}
-                              onChange={(e) => handleElementChange('body', 'text_center', e.target.checked)}
+                              onChange={(e) =>
+                                handleElementChange(
+                                  "body",
+                                  "text_center",
+                                  e.target.checked
+                                )
+                              }
                             />
                             Center
                           </label>
@@ -1004,11 +1133,17 @@ const CreateCertificateTemplate = () => {
                       <input
                         type="checkbox"
                         checked={elements.student_name.enable}
-                        onChange={(e) => handleElementChange('student_name', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "student_name",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
                       <label className="font-medium flex items-center gap-2">
                         <Move className="w-4 h-4 text-blue-500" />
-                        Student Name 
+                        Student Name
                       </label>
                     </div>
                     {elements.student_name.enable && (
@@ -1016,27 +1151,51 @@ const CreateCertificateTemplate = () => {
                         <input
                           type="text"
                           value={elements.student_name.content}
-                          onChange={(e) => handleElementChange('student_name', 'content', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "student_name",
+                              "content",
+                              e.target.value
+                            )
+                          }
                           className="w-full border rounded px-3 py-2"
                         />
                         <div className="flex gap-3 flex-wrap">
                           <input
                             type="number"
                             value={elements.student_name.font_size}
-                            onChange={(e) => handleElementChange('student_name', 'font_size', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "student_name",
+                                "font_size",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2 w-20"
                           />
                           <input
                             type="color"
                             value={elements.student_name.font_color}
-                            onChange={(e) => handleElementChange('student_name', 'font_color', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "student_name",
+                                "font_color",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2"
                           />
                           <label className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={elements.student_name.font_weight_bold}
-                              onChange={(e) => handleElementChange('student_name', 'font_weight_bold', e.target.checked)}
+                              onChange={(e) =>
+                                handleElementChange(
+                                  "student_name",
+                                  "font_weight_bold",
+                                  e.target.checked
+                                )
+                              }
                             />
                             Bold
                           </label>
@@ -1044,7 +1203,13 @@ const CreateCertificateTemplate = () => {
                             <input
                               type="checkbox"
                               checked={elements.student_name.text_center}
-                              onChange={(e) => handleElementChange('student_name', 'text_center', e.target.checked)}
+                              onChange={(e) =>
+                                handleElementChange(
+                                  "student_name",
+                                  "text_center",
+                                  e.target.checked
+                                )
+                              }
                             />
                             Center
                           </label>
@@ -1059,11 +1224,17 @@ const CreateCertificateTemplate = () => {
                       <input
                         type="checkbox"
                         checked={elements.platform_signature.enable}
-                        onChange={(e) => handleElementChange('platform_signature', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "platform_signature",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
                       <label className="font-medium flex items-center gap-2">
                         <Move className="w-4 h-4 text-blue-500" />
-                        Platform Signature 
+                        Platform Signature
                       </label>
                     </div>
                     {elements.platform_signature.enable && (
@@ -1071,13 +1242,21 @@ const CreateCertificateTemplate = () => {
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => handleFileChange(e, 'platform_signature', 'image')}
+                          onChange={(e) =>
+                            handleFileChange(e, "platform_signature", "image")
+                          }
                           className="w-full border rounded px-3 py-2"
                         />
                         <input
                           type="number"
                           value={elements.platform_signature.image_size}
-                          onChange={(e) => handleElementChange('platform_signature', 'image_size', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "platform_signature",
+                              "image_size",
+                              e.target.value
+                            )
+                          }
                           className="border rounded px-3 py-2 w-20"
                           placeholder="Size"
                         />
@@ -1091,11 +1270,17 @@ const CreateCertificateTemplate = () => {
                       <input
                         type="checkbox"
                         checked={elements.qr_code.enable}
-                        onChange={(e) => handleElementChange('qr_code', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "qr_code",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
                       <label className="font-medium flex items-center gap-2">
                         <Move className="w-4 h-4 text-blue-500" />
-                        QR Code 
+                        QR Code
                       </label>
                     </div>
                     {elements.qr_code.enable && (
@@ -1103,7 +1288,13 @@ const CreateCertificateTemplate = () => {
                         <input
                           type="number"
                           value={elements.qr_code.image_size}
-                          onChange={(e) => handleElementChange('qr_code', 'image_size', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "qr_code",
+                              "image_size",
+                              e.target.value
+                            )
+                          }
                           className="border rounded px-3 py-2 w-20"
                           placeholder="Size"
                         />
@@ -1117,11 +1308,17 @@ const CreateCertificateTemplate = () => {
                       <input
                         type="checkbox"
                         checked={elements.stamp.enable}
-                        onChange={(e) => handleElementChange('stamp', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "stamp",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
                       <label className="font-medium flex items-center gap-2">
                         <Move className="w-4 h-4 text-blue-500" />
-                        Stamp 
+                        Stamp
                       </label>
                     </div>
                     {elements.stamp.enable && (
@@ -1129,13 +1326,21 @@ const CreateCertificateTemplate = () => {
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => handleFileChange(e, 'stamp', 'image')}
+                          onChange={(e) =>
+                            handleFileChange(e, "stamp", "image")
+                          }
                           className="w-full border rounded px-3 py-2"
                         />
                         <input
                           type="number"
                           value={elements.stamp.image_size}
-                          onChange={(e) => handleElementChange('stamp', 'image_size', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "stamp",
+                              "image_size",
+                              e.target.value
+                            )
+                          }
                           className="border rounded px-3 py-2 w-20"
                           placeholder="Size"
                         />
@@ -1149,11 +1354,17 @@ const CreateCertificateTemplate = () => {
                       <input
                         type="checkbox"
                         checked={elements.date.enable}
-                        onChange={(e) => handleElementChange('date', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "date",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
                       <label className="font-medium flex items-center gap-2">
                         <Move className="w-4 h-4 text-blue-500" />
-                        Date 
+                        Date
                       </label>
                     </div>
                     {elements.date.enable && (
@@ -1161,27 +1372,51 @@ const CreateCertificateTemplate = () => {
                         <input
                           type="text"
                           value={elements.date.content}
-                          onChange={(e) => handleElementChange('date', 'content', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "date",
+                              "content",
+                              e.target.value
+                            )
+                          }
                           className="w-full border rounded px-3 py-2"
                         />
                         <div className="flex gap-3">
                           <input
                             type="number"
                             value={elements.date.font_size}
-                            onChange={(e) => handleElementChange('date', 'font_size', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "date",
+                                "font_size",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2 w-20"
                           />
                           <input
                             type="color"
                             value={elements.date.font_color}
-                            onChange={(e) => handleElementChange('date', 'font_color', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "date",
+                                "font_color",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2"
                           />
                           <label className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={elements.date.text_center}
-                              onChange={(e) => handleElementChange('date', 'text_center', e.target.checked)}
+                              onChange={(e) =>
+                                handleElementChange(
+                                  "date",
+                                  "text_center",
+                                  e.target.checked
+                                )
+                              }
                             />
                             Center
                           </label>
@@ -1196,18 +1431,30 @@ const CreateCertificateTemplate = () => {
                       <input
                         type="checkbox"
                         checked={elements.completion_text.enable}
-                        onChange={(e) => handleElementChange('completion_text', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "completion_text",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
                       <label className="font-medium flex items-center gap-2">
                         <Move className="w-4 h-4 text-blue-500" />
-                        Completion Text 
+                        Completion Text
                       </label>
                     </div>
                     {elements.completion_text.enable && (
                       <div className="space-y-3">
                         <textarea
                           value={elements.completion_text.content}
-                          onChange={(e) => handleElementChange('completion_text', 'content', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "completion_text",
+                              "content",
+                              e.target.value
+                            )
+                          }
                           className="w-full border rounded px-3 py-2"
                           rows="2"
                         />
@@ -1215,20 +1462,38 @@ const CreateCertificateTemplate = () => {
                           <input
                             type="number"
                             value={elements.completion_text.font_size}
-                            onChange={(e) => handleElementChange('completion_text', 'font_size', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "completion_text",
+                                "font_size",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2 w-20"
                           />
                           <input
                             type="color"
                             value={elements.completion_text.font_color}
-                            onChange={(e) => handleElementChange('completion_text', 'font_color', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "completion_text",
+                                "font_color",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2"
                           />
                           <label className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={elements.completion_text.text_center}
-                              onChange={(e) => handleElementChange('completion_text', 'text_center', e.target.checked)}
+                              onChange={(e) =>
+                                handleElementChange(
+                                  "completion_text",
+                                  "text_center",
+                                  e.target.checked
+                                )
+                              }
                             />
                             Center
                           </label>
@@ -1243,11 +1508,17 @@ const CreateCertificateTemplate = () => {
                       <input
                         type="checkbox"
                         checked={elements.instructor_name.enable}
-                        onChange={(e) => handleElementChange('instructor_name', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "instructor_name",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
                       <label className="font-medium flex items-center gap-2">
                         <Move className="w-4 h-4 text-blue-500" />
-                        Instructor Name 
+                        Instructor Name
                       </label>
                     </div>
                     {elements.instructor_name.enable && (
@@ -1255,27 +1526,51 @@ const CreateCertificateTemplate = () => {
                         <input
                           type="text"
                           value={elements.instructor_name.content}
-                          onChange={(e) => handleElementChange('instructor_name', 'content', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "instructor_name",
+                              "content",
+                              e.target.value
+                            )
+                          }
                           className="w-full border rounded px-3 py-2"
                         />
                         <div className="flex gap-3">
                           <input
                             type="number"
                             value={elements.instructor_name.font_size}
-                            onChange={(e) => handleElementChange('instructor_name', 'font_size', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "instructor_name",
+                                "font_size",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2 w-20"
                           />
                           <input
                             type="color"
                             value={elements.instructor_name.font_color}
-                            onChange={(e) => handleElementChange('instructor_name', 'font_color', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "instructor_name",
+                                "font_color",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2"
                           />
                           <label className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={elements.instructor_name.text_center}
-                              onChange={(e) => handleElementChange('instructor_name', 'text_center', e.target.checked)}
+                              onChange={(e) =>
+                                handleElementChange(
+                                  "instructor_name",
+                                  "text_center",
+                                  e.target.checked
+                                )
+                              }
                             />
                             Center
                           </label>
@@ -1290,11 +1585,17 @@ const CreateCertificateTemplate = () => {
                       <input
                         type="checkbox"
                         checked={elements.platform_name.enable}
-                        onChange={(e) => handleElementChange('platform_name', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "platform_name",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
                       <label className="font-medium flex items-center gap-2">
                         <Move className="w-4 h-4 text-blue-500" />
-                        Platform Name 
+                        Platform Name
                       </label>
                     </div>
                     {elements.platform_name.enable && (
@@ -1302,27 +1603,51 @@ const CreateCertificateTemplate = () => {
                         <input
                           type="text"
                           value={elements.platform_name.content}
-                          onChange={(e) => handleElementChange('platform_name', 'content', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "platform_name",
+                              "content",
+                              e.target.value
+                            )
+                          }
                           className="w-full border rounded px-3 py-2"
                         />
                         <div className="flex gap-3">
                           <input
                             type="number"
                             value={elements.platform_name.font_size}
-                            onChange={(e) => handleElementChange('platform_name', 'font_size', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "platform_name",
+                                "font_size",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2 w-20"
                           />
                           <input
                             type="color"
                             value={elements.platform_name.font_color}
-                            onChange={(e) => handleElementChange('platform_name', 'font_color', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "platform_name",
+                                "font_color",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2"
                           />
                           <label className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={elements.platform_name.text_center}
-                              onChange={(e) => handleElementChange('platform_name', 'text_center', e.target.checked)}
+                              onChange={(e) =>
+                                handleElementChange(
+                                  "platform_name",
+                                  "text_center",
+                                  e.target.checked
+                                )
+                              }
                             />
                             Center
                           </label>
@@ -1337,11 +1662,17 @@ const CreateCertificateTemplate = () => {
                       <input
                         type="checkbox"
                         checked={elements.hint.enable}
-                        onChange={(e) => handleElementChange('hint', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "hint",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
                       <label className="font-medium flex items-center gap-2">
                         <Move className="w-4 h-4 text-blue-500" />
-                        Hint Text 
+                        Hint Text
                       </label>
                     </div>
                     {elements.hint.enable && (
@@ -1349,27 +1680,51 @@ const CreateCertificateTemplate = () => {
                         <input
                           type="text"
                           value={elements.hint.content}
-                          onChange={(e) => handleElementChange('hint', 'content', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "hint",
+                              "content",
+                              e.target.value
+                            )
+                          }
                           className="w-full border rounded px-3 py-2"
                         />
                         <div className="flex gap-3">
                           <input
                             type="number"
                             value={elements.hint.font_size}
-                            onChange={(e) => handleElementChange('hint', 'font_size', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "hint",
+                                "font_size",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2 w-20"
                           />
                           <input
                             type="color"
                             value={elements.hint.font_color}
-                            onChange={(e) => handleElementChange('hint', 'font_color', e.target.value)}
+                            onChange={(e) =>
+                              handleElementChange(
+                                "hint",
+                                "font_color",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2"
                           />
                           <label className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={elements.hint.text_center}
-                              onChange={(e) => handleElementChange('hint', 'text_center', e.target.checked)}
+                              onChange={(e) =>
+                                handleElementChange(
+                                  "hint",
+                                  "text_center",
+                                  e.target.checked
+                                )
+                              }
                             />
                             Center
                           </label>
@@ -1384,39 +1739,75 @@ const CreateCertificateTemplate = () => {
                       <input
                         type="checkbox"
                         checked={elements.user_certificate_additional.enable}
-                        onChange={(e) => handleElementChange('user_certificate_additional', 'enable', e.target.checked)}
+                        onChange={(e) =>
+                          handleElementChange(
+                            "user_certificate_additional",
+                            "enable",
+                            e.target.checked
+                          )
+                        }
                       />
                       <label className="font-medium flex items-center gap-2">
                         <Move className="w-4 h-4 text-blue-500" />
-                        Additional Info 
+                        Additional Info
                       </label>
                     </div>
                     {elements.user_certificate_additional.enable && (
                       <div className="space-y-3">
                         <textarea
                           value={elements.user_certificate_additional.content}
-                          onChange={(e) => handleElementChange('user_certificate_additional', 'content', e.target.value)}
+                          onChange={(e) =>
+                            handleElementChange(
+                              "user_certificate_additional",
+                              "content",
+                              e.target.value
+                            )
+                          }
                           className="w-full border rounded px-3 py-2"
                           rows="2"
                         />
                         <div className="flex gap-3">
                           <input
                             type="number"
-                            value={elements.user_certificate_additional.font_size}
-                            onChange={(e) => handleElementChange('user_certificate_additional', 'font_size', e.target.value)}
+                            value={
+                              elements.user_certificate_additional.font_size
+                            }
+                            onChange={(e) =>
+                              handleElementChange(
+                                "user_certificate_additional",
+                                "font_size",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2 w-20"
                           />
                           <input
                             type="color"
-                            value={elements.user_certificate_additional.font_color}
-                            onChange={(e) => handleElementChange('user_certificate_additional', 'font_color', e.target.value)}
+                            value={
+                              elements.user_certificate_additional.font_color
+                            }
+                            onChange={(e) =>
+                              handleElementChange(
+                                "user_certificate_additional",
+                                "font_color",
+                                e.target.value
+                              )
+                            }
                             className="border rounded px-3 py-2"
                           />
                           <label className="flex items-center gap-2">
                             <input
                               type="checkbox"
-                              checked={elements.user_certificate_additional.text_center}
-                              onChange={(e) => handleElementChange('user_certificate_additional', 'text_center', e.target.checked)}
+                              checked={
+                                elements.user_certificate_additional.text_center
+                              }
+                              onChange={(e) =>
+                                handleElementChange(
+                                  "user_certificate_additional",
+                                  "text_center",
+                                  e.target.checked
+                                )
+                              }
                             />
                             Center
                           </label>
@@ -1424,7 +1815,6 @@ const CreateCertificateTemplate = () => {
                       </div>
                     )}
                   </div>
-
                 </div>
               </div>
 
@@ -1449,34 +1839,40 @@ const CreateCertificateTemplate = () => {
                 Certificate Preview
               </h2>
               <div className="rounded-lg ">
-                <div 
+                <div
                   ref={containerRef}
                   className="relative bg-white border-2 border-gray-300 rounded-lg mx-auto overflow-hidden"
                   style={{
-                    width: '800px',
-                    height: '600px',
-                    backgroundImage: templateInfo.backgroundImage ? `url(${getUrlFromFile(templateInfo.backgroundImage)})` : 'none',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat'
+                    width: "800px",
+                    height: "600px",
+                    backgroundImage: templateInfo.backgroundImage
+                      ? `url(${getUrlFromFile(templateInfo.backgroundImage)})`
+                      : "none",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
                   }}
                 >
                   {/* Certificate Border */}
                   <div className="absolute  border-4 border-gray-300 rounded-lg"></div>
-                  
+
                   {/* Render all elements */}
                   {Object.entries(elements).map(([key, element]) => {
-                    if (key === 'qr_code' || key === 'platform_signature' || key === 'stamp') {
+                    if (
+                      key === "qr_code" ||
+                      key === "platform_signature" ||
+                      key === "stamp"
+                    ) {
                       return renderImageElement(key, element);
                     }
                     return renderTextElement(key, element);
                   })}
-                  
+
                   {/* Drag helper overlay */}
                   {draggedElement && (
                     <div className="absolute inset-0 bg-blue-50 bg-opacity-30 pointer-events-none">
                       <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-md text-sm">
-                        Dragging: {draggedElement.replace('_', ' ')}
+                        Dragging: {draggedElement.replace("_", " ")}
                       </div>
                     </div>
                   )}
@@ -1491,11 +1887,17 @@ const CreateCertificateTemplate = () => {
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-[1000]">
             <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className={`text-lg font-semibold ${popup.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                  {popup.type === 'success' ? 'Success!' : 'Error'}
+                <h3
+                  className={`text-lg font-semibold ${
+                    popup.type === "success" ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {popup.type === "success" ? "Success!" : "Error"}
                 </h3>
                 <button
-                  onClick={() => setPopup({ isVisible: false, message: '', type: '' })}
+                  onClick={() =>
+                    setPopup({ isVisible: false, message: "", type: "" })
+                  }
                   className="text-gray-500 hover:text-gray-700"
                 >
                   <X className="w-5 h-5" />
@@ -1503,11 +1905,13 @@ const CreateCertificateTemplate = () => {
               </div>
               <p className="text-gray-700 mb-4">{popup.message}</p>
               <button
-                onClick={() => setPopup({ isVisible: false, message: '', type: '' })}
+                onClick={() =>
+                  setPopup({ isVisible: false, message: "", type: "" })
+                }
                 className={`w-full py-2 px-4 rounded-lg font-medium ${
-                  popup.type === 'success' 
-                    ? 'bg-green-600 text-white hover:bg-green-700' 
-                    : 'bg-red-600 text-white hover:bg-red-700'
+                  popup.type === "success"
+                    ? "bg-green-600 text-white hover:bg-green-700"
+                    : "bg-red-600 text-white hover:bg-red-700"
                 }`}
               >
                 Close

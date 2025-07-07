@@ -199,7 +199,7 @@ const AssignmentSubmissionReview = () => {
                         Subject
                       </label>
                       <p className="text-gray-900">
-                        {submission?.assignmentId.subject}
+                        {submission?.assignmentId?.subject}
                       </p>
                     </div>
                   </div>
@@ -208,7 +208,7 @@ const AssignmentSubmissionReview = () => {
                       Lesson
                     </label>
                     <p className="text-gray-900">
-                      {submission?.lessonId.title}
+                      {submission?.lessonId?.title}
                     </p>
                   </div>
                   <div>
@@ -217,7 +217,7 @@ const AssignmentSubmissionReview = () => {
                     </label>
                     <p className="text-gray-900 font-semibold flex items-center gap-1">
                       <Award className="w-4 h-4 text-yellow-500" />
-                      {submission?.assignmentId.maxScore} points
+                      {submission?.assignmentId?.maxScore} points
                     </p>
                   </div>
                 </div>
@@ -251,7 +251,7 @@ const AssignmentSubmissionReview = () => {
                       Student ID
                     </label>
                     <p className="text-gray-900">
-                      {submission?.submittedBy.studentId}
+                      {submission?.submittedBy._id}
                     </p>
                   </div>
                   <div>

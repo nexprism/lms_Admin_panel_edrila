@@ -174,7 +174,8 @@ const AssignmentList = () => {
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [assignmentToDelete, setAssignmentToDelete] = useState<Assignment | null>(null);
+  const [assignmentToDelete, setAssignmentToDelete] =
+    useState<Assignment | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const navigate = useNavigate();
@@ -185,7 +186,7 @@ const AssignmentList = () => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    
+
     searchTimeoutRef.current = setTimeout(() => {
       setDebouncedSearch(searchInput);
     }, 500);
@@ -200,32 +201,41 @@ const AssignmentList = () => {
   // Fetch data when page or search changes
   useEffect(() => {
     fetchData();
-  }, [pagination.page, debouncedSearch]);
+  }, [pagination.page, debouncedSearch, searchInput]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
-      
-      console.log("📥 Fetching assignments - Page:", pagination.page, "Search:", debouncedSearch);
-      
-      const response = await dispatch(fetchAssignmentSubmissions({
-        page: pagination.page,
-        limit: pagination.limit,
-        search: debouncedSearch.trim()
-      })).unwrap();
-      
+
+      console.log(
+        "📥 Fetching assignments - Page:",
+        pagination.page,
+        "Search:",
+        debouncedSearch
+      );
+
+      const response = await dispatch(
+        fetchAssignmentSubmissions({
+          page: pagination.page,
+          limit: pagination.limit,
+          search: debouncedSearch.trim(),
+        })
+      ).unwrap();
+
       console.log("📥 Fetched assignments:", response);
-      
+
       // Assuming the API returns data in this format
       if (response && response.data) {
         setAssignments(response.data.submissions || []);
-        setPagination(response.data.pagination || {
-          total: 0,
-          page: 1,
-          limit: 10,
-          totalPages: 0,
-        });
+        setPagination(
+          response.data.pagination || {
+            total: 0,
+            page: 1,
+            limit: 10,
+            totalPages: 0,
+          }
+        );
       } else {
         // Fallback if response structure is different
         setAssignments(Array.isArray(response) ? response : []);
@@ -241,9 +251,14 @@ const AssignmentList = () => {
   };
 
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages && newPage !== pagination.page && !loading) {
+    if (
+      newPage >= 1 &&
+      newPage <= pagination.totalPages &&
+      newPage !== pagination.page &&
+      !loading
+    ) {
       console.log("📄 Page change:", newPage);
-      setPagination(prev => ({ ...prev, page: newPage }));
+      setPagination((prev) => ({ ...prev, page: newPage }));
     }
   };
 
@@ -407,59 +422,70 @@ const AssignmentList = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                   Status
                 </th>
-                
+
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
-              {!loading && assignments.map((assignment, idx) => (
-                <tr
-                  key={assignment._id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                    {(pagination.page - 1) * pagination.limit + idx + 1}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                    <div className="max-w-xs truncate" title={assignment.assignmentId?.title || assignment.title}>
-                      {assignment.assignmentId?.title || assignment.title || "N/A"}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                    <div className="max-w-xs truncate" title={assignment.courseId?.title}>
-                      {assignment.courseId?.title || "No Course"}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                        assignment.status || "pending"
-                      )}`}
-                    >
-                      {assignment.status || "pending"}
-                    </span>
-                  </td>
-                
-                  <td className="px-6 py-4 text-right space-x-2">
-                    <button
-                      onClick={() => handleEditClick(assignment._id)}
-                      className="text-blue-500 hover:text-blue-700 transition-colors"
-                      title="View Submission"
-                    >
-                      <Pencil className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => openDeleteModal(assignment)}
-                      className="text-red-500 hover:text-red-700 transition-colors"
-                      title="Delete Submission"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {!loading &&
+                assignments.map((assignment, idx) => (
+                  <tr
+                    key={assignment._id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      {(pagination.page - 1) * pagination.limit + idx + 1}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                      <div
+                        className="max-w-xs truncate"
+                        title={
+                          assignment.assignmentId?.title || assignment.title
+                        }
+                      >
+                        {assignment.assignmentId?.title ||
+                          assignment.title ||
+                          "N/A"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      <div
+                        className="max-w-xs truncate"
+                        title={assignment.courseId?.title}
+                      >
+                        {assignment.courseId?.title || "No Course"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                          assignment.status || "pending"
+                        )}`}
+                      >
+                        {assignment.status || "pending"}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-4 text-right space-x-2">
+                      <button
+                        onClick={() => handleEditClick(assignment._id)}
+                        className="text-blue-500 hover:text-blue-700 transition-colors"
+                        title="View Submission"
+                      >
+                        <Pencil className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => openDeleteModal(assignment)}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                        title="Delete Submission"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
 
@@ -480,11 +506,15 @@ const AssignmentList = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
             <div className="text-sm text-gray-700 dark:text-gray-300">
               Showing{" "}
-              {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)} to{" "}
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-              {pagination.total} results
+              {Math.min(
+                (pagination.page - 1) * pagination.limit + 1,
+                pagination.total
+              )}{" "}
+              to{" "}
+              {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+              of {pagination.total} results
             </div>
-            
+
             <div className="flex gap-2">
               <button
                 onClick={() => handlePageChange(pagination.page - 1)}

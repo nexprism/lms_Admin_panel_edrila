@@ -15,9 +15,7 @@ import {
   DollarSign,
   Pencil,
   Trash,
-  Trash2
-
-
+  Trash2,
 } from "lucide-react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
@@ -40,9 +38,13 @@ interface Bundle {
   __v: number;
 }
 
+const VITE_IMAGE_URL = import.meta.env.VITE_BASE_URL;
+
 const BundleList: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { loading, error, data } = useAppSelector((state) => state.courseBundle);
+  const { loading, error, data } = useAppSelector(
+    (state) => state.courseBundle
+  );
 
   // State for search, filter, pagination
   const [searchInput, setSearchInput] = useState("");
@@ -66,7 +68,7 @@ const BundleList: React.FC = () => {
   // Extract bundles from the correct data structure
   const bundles: Bundle[] = Array.isArray(data?.bundles) ? data.bundles : [];
   console.log("Fetched bundles:", bundles);
-  
+
   const pagination = {
     total: data?.total || 0,
     page: data?.page || 1,
@@ -97,8 +99,7 @@ const BundleList: React.FC = () => {
       !searchInput ||
       bundle.title.toLowerCase().includes(searchInput.toLowerCase()) ||
       bundle.description.toLowerCase().includes(searchInput.toLowerCase());
-    const matchesStatus =
-      !statusFilter || bundle.status === statusFilter;
+    const matchesStatus = !statusFilter || bundle.status === statusFilter;
     return matchesSearch && matchesStatus && !bundle.isDeleted;
   });
 
@@ -116,22 +117,22 @@ const BundleList: React.FC = () => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(price);
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'text-green-500';
-      case 'inactive':
-        return 'text-red-500';
-      case 'draft':
-        return 'text-yellow-500';
+      case "active":
+        return "text-green-500";
+      case "inactive":
+        return "text-red-500";
+      case "draft":
+        return "text-yellow-500";
       default:
-        return 'text-gray-500';
+        return "text-gray-500";
     }
   };
 
@@ -144,8 +145,12 @@ const BundleList: React.FC = () => {
       <PageBreadcrumb pageTitle="Bundle List" />
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">Course Bundles</h1>
-          <span className="text-gray-500 text-sm dark:text-gray-400">Total: {pagination.total}</span>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
+            Course Bundles
+          </h1>
+          <span className="text-gray-500 text-sm dark:text-gray-400">
+            Total: {pagination.total}
+          </span>
         </div>
 
         {/* Search & Filter */}
@@ -161,7 +166,6 @@ const BundleList: React.FC = () => {
                 className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               />
             </div>
-
 
             <div className="flex items-center gap-2">
               <span className="text-sm dark:text-gray-300">Show:</span>
@@ -204,7 +208,9 @@ const BundleList: React.FC = () => {
         {!loading && !error && filteredBundles.length === 0 && (
           <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-8 text-center">
             <p className="text-gray-600 dark:text-gray-400">
-              {searchInput || statusFilter ? "No bundles match your search criteria" : "No bundles available"}
+              {searchInput || statusFilter
+                ? "No bundles match your search criteria"
+                : "No bundles available"}
             </p>
           </div>
         )}
@@ -215,23 +221,50 @@ const BundleList: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">#</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Title</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Courses</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Price</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Created</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                    #
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                    image
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                    Title
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                    Courses
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                    Price
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                    Created
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
                 {filteredBundles.map((bundle: Bundle, idx: number) => (
-                  <tr key={bundle._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <tr
+                    key={bundle._id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
                     <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                       {(pagination.page - 1) * pagination.limit + idx + 1}
                     </td>
-                 
+                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      <img
+                        src={VITE_IMAGE_URL + "/" + bundle.thumbnail}
+                        alt={bundle.title}
+                        className="w-14 h-10 rounded-sm object-cover"
+                      />
+                    </td>
+
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">{bundle.title}</div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {bundle.title}
+                      </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
                         {bundle.description}
                       </div>
@@ -244,33 +277,38 @@ const BundleList: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                       <div className="flex flex-col">
-                        <span className="font-medium">{formatPrice(bundle.price)}</span>
+                        <span className="font-medium">
+                          {formatPrice(bundle.price)}
+                        </span>
                         {bundle.discountPrice && (
                           <span className="text-xs text-green-600 dark:text-green-400">
-                            Save {formatPrice(bundle.price - bundle.discountPrice)}
+                            Save{" "}
+                            {formatPrice(bundle.price - bundle.discountPrice)}
                           </span>
                         )}
                       </div>
                     </td>
-                  
+
                     <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {new Date(bundle.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
-                        <button 
+                      <button
                         className="text-blue-500 hover:text-blue-700 transition-colors"
                         title="View Details"
-                        onClick={() => window.location.href = `/bundles/${bundle._id}`}
-                        >
+                        onClick={() =>
+                          (window.location.href = `/bundles/${bundle._id}`)
+                        }
+                      >
                         <Pencil className="h-5 w-5" />
-                        </button>
-                       
-                    <button 
-                      // onClick={() => openDeleteModal(cat)}
-                      className="text-red-500 hover:text-red-700 transition-colors"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
+                      </button>
+
+                      <button
+                        // onClick={() => openDeleteModal(cat)}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -283,11 +321,13 @@ const BundleList: React.FC = () => {
         {!loading && pagination.totalPages > 1 && (
           <div className="flex justify-between items-center mt-6">
             <div className="text-sm text-gray-700 dark:text-gray-300">
-              Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} results
+              Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+              {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+              of {pagination.total} results
             </div>
             <div className="flex gap-2">
-              <button 
-                onClick={() => handlePageChange(pagination.page - 1)} 
+              <button
+                onClick={() => handlePageChange(pagination.page - 1)}
                 disabled={pagination.page === 1}
                 className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800"
               >
@@ -299,21 +339,24 @@ const BundleList: React.FC = () => {
                     key={idx}
                     onClick={() => handlePageChange(pageNum)}
                     className={`px-3 py-1 rounded ${
-                      pagination.page === pageNum 
-                        ? "bg-indigo-500 text-white" 
+                      pagination.page === pageNum
+                        ? "bg-indigo-500 text-white"
                         : "bg-gray-100 dark:bg-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
                     }`}
                   >
                     {pageNum}
                   </button>
                 ) : (
-                  <span key={idx} className="px-2 text-gray-400 dark:text-gray-500">
+                  <span
+                    key={idx}
+                    className="px-2 text-gray-400 dark:text-gray-500"
+                  >
                     {pageNum}
                   </span>
                 )
               )}
-              <button 
-                onClick={() => handlePageChange(pagination.page + 1)} 
+              <button
+                onClick={() => handlePageChange(pagination.page + 1)}
                 disabled={pagination.page === pagination.totalPages}
                 className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800"
               >
