@@ -266,7 +266,6 @@ const getDropdownOptions = () => {
   }
 
   if (form.referenceType === "lesson") {
-    // Filter lessons based on dripType
     let filteredLessons = course.lessons || [];
 
     if (form.dripType === "after_quiz_passed") {
@@ -276,6 +275,10 @@ const getDropdownOptions = () => {
     } else if (form.dripType === "after_assignment_submitted") {
       filteredLessons = filteredLessons.filter(
         (lesson) => lesson.type === "assignment"
+      );
+    } else if (form.dripType === "after_lesson_completed" || form.dripType === "days_after_lesson_completed") {
+      filteredLessons = filteredLessons.filter(
+        (lesson) => lesson.type === "video-lesson"
       );
     }
 
@@ -293,6 +296,7 @@ const getDropdownOptions = () => {
 
   return [];
 };
+
 
   const getSelectedOptionLabel = () => {
     const options = getDropdownOptions();
