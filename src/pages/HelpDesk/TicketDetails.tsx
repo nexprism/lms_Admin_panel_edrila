@@ -67,8 +67,14 @@ const TicketDetails: React.FC<{ isEditMode: boolean }> = ({ isEditMode }) => {
         return filePath.split('\\').pop() || filePath.split('/').pop() || filePath;
     };
 
+    // Remove duplicate "uploads" in the URL if present
+    const normalizeUrl = (url: string) => {
+        return url.replace(/\/uploads\/uploads\//g, '/uploads/');
+    };
+
     const handleFileDownload = (filePath: string) => {
-        const fileUrl = `${ImageUrl}/${getFileName(filePath)}`;
+        let fileUrl = `${ImageUrl}/${getFileName(filePath)}`;
+        fileUrl = normalizeUrl(fileUrl);
         const link = document.createElement('a');
         link.href = fileUrl;
         link.download = getFileName(filePath);
@@ -78,7 +84,8 @@ const TicketDetails: React.FC<{ isEditMode: boolean }> = ({ isEditMode }) => {
     };
 
     const handleFileView = (filePath: string) => {
-        const fileUrl = `${ImageUrl}/${getFileName(filePath)}`;
+        let fileUrl = `${ImageUrl}/${getFileName(filePath)}`;
+        fileUrl = normalizeUrl(fileUrl);
         window.open(fileUrl, '_blank');
     };
 
@@ -182,7 +189,7 @@ const TicketDetails: React.FC<{ isEditMode: boolean }> = ({ isEditMode }) => {
                                             {getFileIcon(attachment)}
                                             View
                                         </button>
-                                            
+
                                         <button
                                             type="button"
                                             onClick={() => handleFileDownload(attachment)}
