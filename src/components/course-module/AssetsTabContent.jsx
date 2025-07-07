@@ -132,8 +132,8 @@ const AssetsTabContent = ({ courseID }) => {
     <>
       {/* Modals */}
       {openQuiz && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
-          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95 animate-fade-in-up">
+        <div className="fixed inset-0 bg-black/40  backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="relative  bg-white dark:bg-white/[0.03] rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95 animate-fade-in-up">
             <button
               onClick={() => setOpenQuiz(null)}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition-colors"
@@ -242,13 +242,13 @@ const AssetsTabContent = ({ courseID }) => {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto p-8 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto p-8 bg-gray-50 dark:bg-white/[0.03] min-h-screen">
         {/* Header */}
         <div className="mb-10 text-center">
-          <h2 className="text-4xl font-extrabold text-gray-900 mb-3 leading-tight">
+          <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white/90 mb-3 leading-tight">
             Explore Course Assets
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 dark:text-white/70 max-w-2xl mx-auto">
             Dive into all your course materials, neatly organized for seamless
             learning.
           </p>
@@ -256,21 +256,21 @@ const AssetsTabContent = ({ courseID }) => {
 
         {/* Search Bar */}
         <div className="mb-8 flex justify-center">
-          <div className="relative w-full max-w-xl">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <div className="relative w-full dark:bg-white/[0.03] max-w-xl">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400  w-5 h-5" />
             <input
               type="text"
               placeholder="Search quizzes, files, videos, and more..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-6 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300 bg-white shadow-sm text-gray-700 text-base"
+              className="w-full dark:bg-white/[0.03]  dark:text-white/90 pl-12 pr-6 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300 bg-white shadow-sm text-gray-700 text-base"
             />
           </div>
         </div>
 
         {/* Filter Tabs */}
         <div className="mb-12 flex justify-center">
-          <div className="flex flex-wrap justify-center gap-3 bg-white p-2 rounded-2xl shadow-md border border-gray-200">
+          <div className="flex flex-wrap justify-center gap-3 bg-white dark:bg-white/[0.03] p-2 rounded-2xl shadow-md border border-gray-200">
             {filterOptions.map((option) => {
               const IconComponent = option.icon;
               const isActive = activeFilter === option.id;
@@ -283,8 +283,8 @@ const AssetsTabContent = ({ courseID }) => {
                     flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-base transition-all duration-300 ease-in-out
                     ${
                       isActive
-                        ? "bg-blue-600 text-white shadow-lg shadow-blue-200 transform scale-105"
-                        : "bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-700 shadow-sm border border-transparent hover:border-blue-200"
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-white/[0.03]  transform scale-105"
+                        : "bg-white dark:bg-white/[0.06] dark:text-white/90  text-gray-700 hover:bg-blue-50 hover:text-blue-700 shadow-sm border border-transparent hover:border-blue-200"
                     }
                   `}
                 >
@@ -343,7 +343,7 @@ const AssetsTabContent = ({ courseID }) => {
                 </div>
 
                 <h3 className="font-bold text-xl text-gray-900 mb-3 leading-snug group-hover:text-blue-700 transition-colors duration-200">
-                  {item?.name }
+                  {item?.name}
                 </h3>
 
                 <div className="text-sm text-gray-600 space-y-2 mb-4">

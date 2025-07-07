@@ -115,33 +115,30 @@ const navItems: NavItem[] = [
     ],
   },
 
-
-      {
+  {
     icon: <TableIcon />,
     name: "Helpdesk",
-    subItems: [
-      { name: "Help Requests", path: "/requests" },
-    ],
+    subItems: [{ name: "Help Requests", path: "/requests" }],
   },
 
   {
     icon: <PieChartIcon />,
     name: "Certifications",
     subItems: [
-      { name: "All Certifications", path: "/certifications/all" },
-      { name: "Issue Certificate", path: "/certifications/issue" },
-      {
-        name: "Certificates",
-        path: "/certificates",
-        subItems: [
-          { name: "Quiz Certificates", path: "/certificates/quiz" },
-          { name: "Completion Certificates", path: "/certificates/completion" },
-          { name: "Certificate Templates", path: "/certificates/templates" },
-          { name: "Create New Template", path: "/certificates/templates/new" },
-        ],
-      },
-      { name: "Gradebook", path: "/grades/gradebook" },
-      { name: "Reports", path: "/grades/reports" },
+      { name: "All Certifications", path: "/certificates-template/all" },
+      { name: "Issue Certificate", path: "/certificates-template/add" },
+      // {
+      //   name: "Certificates",
+      //   path: "/certificates",
+      //   subItems: [
+      //     { name: "Quiz Certificates", path: "/certificates/quiz" },
+      //     { name: "Completion Certificates", path: "/certificates/completion" },
+      //     { name: "Certificate Templates", path: "/certificates/templates" },
+      //     { name: "Create New Template", path: "/certificates/templates/new" },
+      //   ],
+      // },
+      // { name: "Gradebook", path: "/grades/gradebook" },
+      // { name: "Reports", path: "/grades/reports" },
     ],
   },
   // {

@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { fetchSupportTickets } from "../../store/slices/support";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-import { Search, ChevronLeft, ChevronRight, RotateCcw, Eye, Edit } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, RotateCcw, Eye, Edit, Paperclip } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface User {
@@ -20,6 +20,7 @@ interface SupportTicket {
     description: string;
     priority: string;
     status: string;
+    attachments: string[];
     createdAt: string;
     updatedAt: string;
 }
@@ -196,6 +197,9 @@ const RequestList: React.FC = () => {
                                         Status
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                                        Attachments
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                                         Created At
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
@@ -239,6 +243,18 @@ const RequestList: React.FC = () => {
                                             >
                                                 {ticket.status}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                            {ticket.attachments && ticket.attachments.length > 0 ? (
+                                                <div className="flex items-center gap-1">
+                                                    <Paperclip className="w-4 h-4 text-gray-400" />
+                                                    <span className="text-xs text-gray-500">
+                                                        {ticket.attachments.length}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-gray-400">-</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                                             {new Date(ticket.createdAt).toLocaleString()}

@@ -132,9 +132,9 @@ function Faqs({ courseId }) {
       />
       {showPopup && (
         <div className="fixed top-0 left-0 h-screen right-0 bottom-0 bg-black/50 z-9999 flex items-center justify-center">
-          <div className="bg-white rounded-2xl  w-1/3 shadow-xl p-8">
+          <div className="bg-white dark:bg-[#182131] rounded-2xl  w-1/3 shadow-xl p-8">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold dark:text-white/90 text-gray-900">
                 {selectedFaq ? "Edit Plan" : "Create New Plan"}
               </h2>
 
@@ -155,7 +155,7 @@ function Faqs({ courseId }) {
 
             <div className="grid md:grid-cols-1 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium dark:text-white/90 text-gray-700 mb-2">
                   Question *
                 </label>
                 <input
@@ -175,12 +175,12 @@ function Faqs({ courseId }) {
                           question: e.target.value,
                         })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border dark:text-white/70 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="e.g., Basic, Pro, Enterprise"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium dark:text-white/90 text-gray-700 mb-2">
                   Answer *
                 </label>
                 <textarea
@@ -199,7 +199,7 @@ function Faqs({ courseId }) {
                           answer: e.target.value,
                         })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border dark:text-white/70 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="e.g., Basic, Pro, Enterprise"
                 />
               </div>
@@ -227,10 +227,10 @@ function Faqs({ courseId }) {
           </div>{" "}
         </div>
       )}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white dark:bg-white/[0.03] rounded-lg shadow-sm p-6">
         {" "}
         <div className="flex  items-start justify-between mb-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-semibold mb-4 flex items-center dark:text-white/90 gap-2">
             <CircleHelp className="w-5 h-5 text-blue-600" />
             FAQ'S
           </h2>
@@ -249,10 +249,10 @@ function Faqs({ courseId }) {
               <div className="px-4 py-3 flex border-2 gap-4 border-black/10 rounded-lg">
                 <h2 className="text-lg font-semibold mb-2">{index + 1}.</h2>
                 <div className="flex-1">
-                  <h2 className="text-lg font-semibold mb-2">
+                  <h2 className="text-lg font-semibold mb-2 dark:text-white/90">
                     {faq.question || "Question not available"}
                   </h2>
-                  <p>{faq.answer || "Answer not available"}</p>
+                  <p className="dark:text-white/70">{faq.answer || "Answer not available"}</p>
                 </div>
 
                 <div
@@ -270,7 +270,7 @@ function Faqs({ courseId }) {
               </div>
             ))
           ) : (
-            <div className="text-center py-6">
+            <div className="text-center dark:text-white/70 py-6">
               <p>No FAQs available</p>
             </div>
           )}

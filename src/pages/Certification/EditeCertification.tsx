@@ -1,307 +1,21 @@
-// import React, { useRef, useState, useEffect } from "react";
-// import { useDispatch } from "react-redux";
-// import PopupAlert from "../../components/popUpAlert";
-// import { BookOpen } from "lucide-react";
-// import { motion } from "framer-motion";
-
-// const CreateCertificateTemplate = () => {
-//   const dispatch = useDispatch();
-//   const containerRef = useRef(null);
-//   const [isContainerReady, setIsContainerReady] = useState(false);
-
-//   useEffect(() => {
-//     if (containerRef.current) setIsContainerReady(true);
-//   }, []);
-
-//   const [title, setTitle] = useState({
-//     title: "This certificate awarded to [student]",
-//     fontSize: 24,
-//     fontColor: "#000",
-//     position: { x: 180, y: 250 },
-//   });
-
-//   const [body, setBody] = useState({
-//     content: "regarding completing [course]",
-//     fontSize: 16,
-//     fontColor: "#000",
-//     position: { x: 250, y: 300 },
-//   });
-
-//   const [signature, setSignature] = useState(null);
-//   const [stamp, setStamp] = useState(null);
-//   const [signaturePosition, setSignaturePosition] = useState({ x: 0, y: 0 });
-//   const [stampPosition, setStampPosition] = useState({ x: 0, y: 0 });
-
-//   const [backgroundImage, setBackgroundImage] = useState(null);
-//   const [studentName, setStudentName] = useState("[student_name]");
-//   const [popup, setPopup] = useState({
-//     isVisible: false,
-//     message: "",
-//     type: "",
-//   });
-
-//   const handleFileChange = (e, setter) => {
-//     const file = e.target.files[0];
-//     setter(file);
-//   };
-
-//   const getUrlFromFile = (file) => {
-//     if (!file) return "";
-//     return URL.createObjectURL(file);
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     // Your existing submit logic
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gray-50">
-//       <div className="mx-auto py-8 px-4">
-//         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-//           <h1 className="text-3xl font-bold flex items-center gap-3 text-gray-900">
-//             <div className="p-2 bg-blue-100 rounded-lg">
-//               <BookOpen className="w-8 h-8 text-blue-600" />
-//             </div>
-//             Create New Certificate Template
-//           </h1>
-//         </div>
-
-//         <div className="flex gap-6">
-//           <form onSubmit={handleSubmit} className="space-y-6">
-//             {/* Student Name */}
-//             <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
-//               <label className="block font-medium">Student Name</label>
-//               <input
-//                 value={studentName}
-//                 onChange={(e) => setStudentName(e.target.value)}
-//                 className="w-full border rounded-lg px-4 py-3"
-//               />
-//               <label className="block font-medium">Background</label>
-//               <input
-//                 type="file"
-//                 onChange={(e) => handleFileChange(e, setBackgroundImage)}
-//                 className="w-full border rounded-lg px-4 py-3"
-//               />
-//             </div>
-
-//             {/* Title Customization */}
-//             <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
-//               <label className="block font-medium">Title Text</label>
-//               <input
-//                 value={title.title}
-//                 onChange={(e) => setTitle({ ...title, title: e.target.value })}
-//                 className="w-full border rounded-lg px-4 py-3"
-//               />
-//               <label className="block font-medium">Font Size</label>
-//               <input
-//                 type="number"
-//                 value={title.fontSize}
-//                 onChange={(e) =>
-//                   setTitle({ ...title, fontSize: parseInt(e.target.value) })
-//                 }
-//                 className="w-full border rounded-lg px-4 py-3"
-//               />
-//               <label className="block font-medium">Font Color</label>
-//               <input
-//                 type="color"
-//                 value={title.fontColor}
-//                 onChange={(e) =>
-//                   setTitle({ ...title, fontColor: e.target.value })
-//                 }
-//               />
-//             </div>
-
-//             {/* Body Customization */}
-//             <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
-//               <label className="block font-medium">Body Text</label>
-//               <textarea
-//                 value={body.content}
-//                 onChange={(e) => setBody({ ...body, content: e.target.value })}
-//                 className="w-full border rounded-lg px-4 py-3"
-//               />
-//               <label className="block font-medium">Font Size</label>
-//               <input
-//                 type="number"
-//                 value={body.fontSize}
-//                 onChange={(e) =>
-//                   setBody({ ...body, fontSize: parseInt(e.target.value) })
-//                 }
-//                 className="w-full border rounded-lg px-4 py-3"
-//               />
-//               <label className="block font-medium">Font Color</label>
-//               <input
-//                 type="color"
-//                 value={body.fontColor}
-//                 onChange={(e) =>
-//                   setBody({ ...body, fontColor: e.target.value })
-//                 }
-//               />
-//             </div>
-
-//             {/* Signature and Stamp Upload */}
-//             <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
-//               <label className="block font-medium">Signature</label>
-//               <input
-//                 type="file"
-//                 onChange={(e) => handleFileChange(e, setSignature)}
-//                 className="w-full border rounded-lg px-4 py-3"
-//               />
-//               <label className="block font-medium">Stamp</label>
-//               <input
-//                 type="file"
-//                 onChange={(e) => handleFileChange(e, setStamp)}
-//                 className="w-full border rounded-lg px-4 py-3"
-//               />
-//             </div>
-
-//             <div className="flex justify-end">
-//               <button
-//                 type="submit"
-//                 className="bg-blue-600 text-white px-6 py-3 rounded-lg"
-//               >
-//                 Create Certificate Template
-//               </button>
-//             </div>
-//           </form>
-
-//           {/* Preview Canvas */}
-//           <div
-//             className="relative bg-red-400 w-[800px] h-[600px] overflow-hidden rounded-lg shadow"
-//             ref={containerRef}
-//           >
-//             {backgroundImage ? (
-//               <img
-//                 src={getUrlFromFile(backgroundImage)}
-//                 className="w-full h-full object-cover absolute top-0 left-0"
-//                 alt="Background"
-//               />
-//             ) : (
-//               <div className="w-full h-full flex items-center justify-center text-white">
-//                 Upload Background Image
-//               </div>
-//             )}
-
-//             {isContainerReady && (
-//               <>
-//                 {/* Title */}
-//                 <motion.div
-//                   drag
-//                   dragConstraints={containerRef}
-//                   dragMomentum={false}
-//                   style={{
-//                     position: "absolute",
-//                     fontSize: title.fontSize,
-//                     color: title.fontColor,
-//                     cursor: "grab",
-//                   }}
-//                   onDragEnd={(e, info) => {
-//                     const rect = containerRef.current.getBoundingClientRect();
-//                     const x = info.point.x - rect.left;
-//                     const y = info.point.y - rect.top;
-//                     setTitle({ ...title, position: { x, y } });
-//                   }}
-//                 >
-//                   {title.title}
-//                 </motion.div>
-
-//                 {/* Body */}
-//                 <motion.div
-//                   drag
-//                   dragConstraints={containerRef}
-//                   dragMomentum={false}
-//                   style={{
-//                     position: "absolute",
-//                     fontSize: body.fontSize,
-//                     color: body.fontColor,
-//                     cursor: "grab",
-//                   }}
-//                   onDragEnd={(e, info) => {
-//                     const rect = containerRef.current.getBoundingClientRect();
-//                     const x = info.point.x - rect.left;
-//                     const y = info.point.y - rect.top;
-//                     setBody({ ...body, position: { x, y } });
-//                   }}
-//                 >
-//                   {body.content}
-//                 </motion.div>
-
-//                 {/* Signature */}
-//                 {signature && (
-//                   <motion.div
-//                     drag
-//                     dragConstraints={containerRef}
-//                     dragMomentum={false}
-//                     style={{
-//                       position: "absolute",
-//                       cursor: "grab",
-//                     }}
-//                     onDragEnd={(e, info) => {
-//                       const rect = containerRef.current.getBoundingClientRect();
-//                       const x = info.point.x - rect.left;
-//                       const y = info.point.y - rect.top;
-//                       setSignaturePosition({ x, y });
-//                     }}
-//                   >
-//                     <div
-//                       style={{
-//                         backgroundImage: `url(${getUrlFromFile(signature)})`,
-//                       }}
-//                     ></div>
-//                   </motion.div>
-//                 )}
-
-//                 {/* Stamp */}
-//                 {stamp && (
-//                   <motion.div
-//                     drag
-//                     dragConstraints={containerRef}
-//                     dragMomentum={false}
-//                     style={{ position: "absolute", cursor: "grab" }}
-//                     onDragEnd={(e, info) => {
-//                       const rect = containerRef.current.getBoundingClientRect();
-//                       const x = info.point.x - rect.left;
-//                       const y = info.point.y - rect.top;
-//                       setStampPosition({ x, y });
-//                     }}
-//                   >
-//                     <div>
-//                       <img
-//                         src={getUrlFromFile(stamp)}
-//                         alt="Stamp"
-//                         className="w-24"
-//                       />
-//                     </div>
-//                   </motion.div>
-//                 )}
-//               </>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-
-//       <PopupAlert
-//         message={popup.message}
-//         type={popup.type}
-//         isVisible={popup.isVisible}
-//         onClose={() => setPopup({ ...popup, isVisible: false })}
-//       />
-//     </div>
-//   );
-// };
-
-// export default CreateCertificateTemplate;
-
 import React, { useRef, useState, useEffect } from "react";
 import { BookOpen, Upload, Eye, Settings, Move, X } from "lucide-react";
 import axiosInstance from "../../services/axiosConfig";
+import { useParams } from "react-router";
+import { useDispatch } from "react-redux";
+import { fetchCertificateById } from "../../store/slices/certificate";
 
-const CreateCertificateTemplate = () => {
+const imageUrl = import.meta.env.VITE_BASE_URL;
+
+const EditCreateCertificateTemplate = () => {
   const containerRef = useRef(null);
   const [isContainerReady, setIsContainerReady] = useState(false);
   const [draggedElement, setDraggedElement] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [loading, setLoading] = useState(false);
+  const params = useParams();
+  const certificateId = params.certificateId;
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (containerRef.current) setIsContainerReady(true);
@@ -479,7 +193,7 @@ const CreateCertificateTemplate = () => {
 
   const getUrlFromFile = (file) => {
     if (!file) return "";
-    return URL.createObjectURL(file);
+    return URL.createObjectURL(file) || file;
   };
 
   const handleMouseDown = (e, elementKey) => {
@@ -531,42 +245,6 @@ const CreateCertificateTemplate = () => {
     }
   }, [draggedElement, dragOffset]);
 
-  // const handleSubmit = async () => {
-  //   const formData = new FormData();
-
-  //   // Add basic template info
-  //   formData.append('locale', templateInfo.locale);
-  //   formData.append('title', templateInfo.title);
-  //   formData.append('type', templateInfo.type);
-  //   formData.append('status', templateInfo.status);
-  //   formData.append('template_contents', '<div class="certificate-template-container"></div>');
-
-  //   if (templateInfo.backgroundImage) {
-  //     formData.append('image', templateInfo.backgroundImage);
-  //   }
-
-  //   // Add elements with positions
-  //   Object.entries(elements).forEach(([key, element]) => {
-  //     Object.entries(element).forEach(([field, value]) => {
-  //       if (field === 'image' && value instanceof File) {
-  //         formData.append(`elements[${key}][${field}]`, value);
-  //       } else if (field === 'position') {
-  //         formData.append(`elements[${key}][position_x]`, value.x.toString());
-  //         formData.append(`elements[${key}][position_y]`, value.y.toString());
-  //       } else {
-  //         formData.append(`elements[${key}][${field}]`, value.toString());
-  //       }
-  //     });
-  //   });
-
-  //   console.log('Form data ready for submission:', formData);
-  //   setPopup({
-  //     isVisible: true,
-  //     message: "Certificate template data prepared! Check console for FormData.",
-  //     type: "success"
-  //   });
-  // };
-
   const handleSubmit = async () => {
     const formData = new FormData();
 
@@ -599,12 +277,6 @@ const CreateCertificateTemplate = () => {
     });
 
     try {
-      // setPopup({
-      //   isVisible: true,
-      //   message: "Saving certificate template...",
-      //   type: "info",
-      // });
-
       setLoading(true);
 
       const response = await axiosInstance.post(
@@ -617,11 +289,6 @@ const CreateCertificateTemplate = () => {
         }
       );
       console.log("Response:", response);
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-
-      // const result = await response.json();
 
       setPopup({
         isVisible: true,
@@ -734,7 +401,7 @@ const CreateCertificateTemplate = () => {
         platform_signature: {
           content: "[platform_signature]",
           image: null,
-          image_size: "80",
+          image_size: "120",
           enable: true,
           position: { x: 400, y: 480 },
           draggable: true,
@@ -742,7 +409,7 @@ const CreateCertificateTemplate = () => {
         stamp: {
           content: "[stamp]",
           image: null,
-          image_size: "80",
+          image_size: "120",
           enable: true,
           position: { x: 500, y: 450 },
           draggable: true,
@@ -764,6 +431,192 @@ const CreateCertificateTemplate = () => {
       });
     }
   };
+  const getData = async () => {
+    try {
+      const response = await dispatch(fetchCertificateById(certificateId));
+      const data = response.payload.data;
+      const elements = data.elements || {};
+      console.log("Fetched certificate data:", data);
+
+      setTemplateInfo({
+        locale: data.locale || "EN",
+        title: data.title || "Course Completion Certificate",
+        type: data.type || "course",
+        status: data.status || "publish",
+        backgroundImage: `${imageUrl}/${data.image}` || null,
+      });
+
+      setElements({
+        title: {
+          content: elements.title.content || "Certificate of Completion",
+          font_size: elements.title.font_size || "32",
+          font_color: elements.title.font_color || "#8B0000",
+          styles: elements.title.styles || "font-family: Arial;",
+          font_weight_bold: elements.title.font_weight_bold || true,
+          text_center: elements.title.text_center || true,
+          enable: elements.title.enable || true,
+          position: {
+            x: elements.title.position_x || 400,
+            y: elements.title.position_y || 80,
+          }, // Fixed position for title
+          draggable: elements.title.draggable || false,
+        },
+        subtitle: {
+          content: "Awarded for Excellence",
+          font_size: elements.subtitle.font_size || "20",
+          font_color: elements.subtitle.font_color || "#8B0000",
+          text_center: elements.subtitle.text_center || true,
+          enable: elements.subtitle.enable || true,
+          position: {
+            x: elements.subtitle.position_x || 400,
+            y: elements.subtitle.position_y || 130,
+          },
+          draggable: elements.subtitle.draggable || true,
+        },
+        body: {
+          content: elements.body.content || "This certificate is awarded to",
+          font_size: elements.body.font_size || "16",
+          font_color: elements.body.font_color || "#000",
+          text_center: elements.body.text_center || true,
+          enable: elements.body.enable || true,
+          position: {
+            x: elements.body.position_x || 400,
+            y: elements.body.position_y || 200,
+          },
+          draggable: elements.body.draggable || true,
+        },
+        student_name: {
+          content: elements.student_name.content || "[student_name]",
+          font_size: elements.student_name.font_size || "28",
+          font_color: elements.student_name.font_color || "#000",
+          font_weight_bold: elements.student_name.font_weight_bold || true,
+          text_center: elements.student_name.text_center || true,
+          enable: elements.student_name.enable || true,
+          position: {
+            x: elements.student_name.position_x || 400,
+            y: elements.student_name.position_y || 250,
+          },
+          draggable: elements.student_name.draggable || true,
+        },
+        completion_text: {
+          content:
+            elements?.completion_text?.content ||
+            "for successfully completing the course.",
+          font_size: elements?.completion_text?.font_size || "16",
+          font_color: elements?.completion_text?.font_color || "#000",
+          text_center: elements?.completion_text?.text_center || true,
+          enable: elements?.completion_text?.enable || true,
+          position: {
+            x: elements?.completion_text?.position_x || 400,
+            y: elements?.completion_text?.position_y || 300,
+          },
+          draggable: elements?.completion_text?.draggable || true,
+        },
+        date: {
+          content: elements.date.content || "[date]",
+          font_size: elements.date.font_size || "14",
+          font_color: elements.date.font_color || "#000",
+          display_date: elements.date.display_date || "textual",
+          text_center: elements.date.text_center || true,
+          enable: elements.date.enable || true,
+          position: {
+            x: elements.date.position_x || 400,
+            y: elements.date.position_y || 400,
+          },
+          draggable: elements.date.draggable || true,
+        },
+        instructor_name: {
+          content: elements.instructor_name.content || "[instructor_name]",
+          font_size: elements.instructor_name.font_size || "14",
+          font_color: elements.instructor_name.font_color || "#000",
+          text_center: elements.instructor_name.text_center || false,
+          enable: elements.instructor_name.enable || true,
+          position: {
+            x: elements.instructor_name.position_x || 100,
+            y: elements.instructor_name.position_y || 500,
+          },
+          draggable: elements.instructor_name.draggable || true,
+        },
+        platform_name: {
+          content: elements.platform_name.content || "[platform_name]",
+          font_size: elements.platform_name.font_size || "14",
+          font_color: elements.platform_name.font_color || "#000",
+          text_center: elements.platform_name.text_center || false,
+          enable: elements.platform_name.enable || true,
+          position: {
+            x: elements.platform_name.position_x || 100,
+            y: elements.platform_name.position_y || 520,
+          },
+          draggable: elements.platform_name.draggable || true,
+        },
+        // qr_code: {
+        //   content: "[qr_code]",
+        //   image_size: "80",
+        //   image: null,
+        //   enable: true,
+        //   position: { x: 400, y: 450 },
+        //   draggable: true,
+        // },
+        hint: {
+          content: elements.hint.content || "Verify at lms.rocket-soft.org",
+          font_size: elements.hint.font_size || "12",
+          font_color: elements.hint.font_color || "#666",
+          text_center: elements.hint.text_center || true,
+          enable: elements.hint.enable || true,
+          position: {
+            x: elements.hint.position_x || 400,
+            y: elements.hint.position_y || 550,
+          },
+          draggable: elements.hint.draggable || true,
+        },
+        platform_signature: {
+          content:
+            elements.platform_signature.content || "[platform_signature]",
+          image: `${imageUrl}/${elements.platform_signature.image}` || null,
+          image_size: elements.platform_signature.image_size || "120",
+          enable: elements.platform_signature.enable || true,
+          position: {
+            x: elements.platform_signature.position_x || 400,
+            y: elements.platform_signature.position_y || 480,
+          },
+          draggable: elements.platform_signature.draggable || true,
+        },
+        stamp: {
+          content: elements.stamp.content || "[stamp]",
+          image: `${imageUrl}/${elements.stamp.image}` || null,
+          image_size: elements.stamp.image_size || "120",
+          enable: elements.stamp.enable || true,
+          position: {
+            x: elements.stamp.position_x || 500,
+            y: elements.stamp.position_y || 450,
+          },
+          draggable: elements.stamp.draggable || true,
+        },
+        user_certificate_additional: {
+          content:
+            elements.user_certificate_additional.content ||
+            "[user_certificate_additional]",
+          enable: elements.user_certificate_additional.enable || false,
+          position: {
+            x: elements.user_certificate_additional.position_x || 400,
+            y: elements.user_certificate_additional.position_y || 400,
+          },
+          draggable: elements.user_certificate_additional.draggable || true,
+        },
+      });
+    } catch (error) {
+      console.log("Error fetching certificate data:", error);
+      setPopup({
+        isVisible: true,
+        message: `Error fetching certificate data: ${error.message}`,
+        type: "error",
+      });
+    }
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
 
   const renderTextElement = (elementKey, element) => {
     if (!element.enable) return null;
@@ -890,7 +743,7 @@ const CreateCertificateTemplate = () => {
       >
         <Move className="w-4 h-4 text-blue-400 absolute -top-1 -right-1 opacity-0 group-hover:opacity-100" />
         <img
-          src={getUrlFromFile(element.image)}
+          src={element.image || getUrlFromFile(element.image)}
           alt={elementKey}
           style={{
             width: `${element.image_size}px`,
@@ -2045,16 +1898,32 @@ const CreateCertificateTemplate = () => {
                   style={{
                     width: "800px",
                     height: "600px",
-                    backgroundImage: templateInfo.backgroundImage
-                      ? `url(${getUrlFromFile(templateInfo.backgroundImage)})`
-                      : "none",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
+                    // backgroundImage: templateInfo.backgroundImage
+                    //   ? `url('${
+                    //       typeof templateInfo.backgroundImage === "string"
+                    //         ? templateInfo.backgroundImage
+                    //         : getUrlFromFile(templateInfo.backgroundImage)
+                    //     }')`
+                    //   : "none",
+                    // backgroundSize: "cover",
+                    // backgroundPosition: "center",
+                    // backgroundRepeat: "no-repeat",
                   }}
                 >
+                  <img
+                    src={
+                      templateInfo.backgroundImage
+                        ? `${
+                            typeof templateInfo.backgroundImage === "string"
+                              ? templateInfo.backgroundImage
+                              : getUrlFromFile(templateInfo.backgroundImage)
+                          }`
+                        : "none"
+                    }
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
                   {/* Certificate Border */}
-                  <div className="absolute  border-4 border-gray-300 rounded-lg"></div>
+                  {/* <div className="absolute  border-4 border-gray-300 rounded-lg"></div> */}
 
                   {/* Render all elements */}
                   {Object.entries(elements).map(([key, element]) => {
@@ -2124,4 +1993,4 @@ const CreateCertificateTemplate = () => {
   );
 };
 
-export default CreateCertificateTemplate;
+export default EditCreateCertificateTemplate;

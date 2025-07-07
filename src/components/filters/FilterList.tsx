@@ -44,7 +44,6 @@ interface SubCategory {
   isDeleted?: boolean;
 }
 
-
 // Edit Modal Component
 const EditFilterModal: React.FC<{
   isOpen: boolean;
@@ -64,38 +63,58 @@ const EditFilterModal: React.FC<{
   const [newOption, setNewOption] = useState("");
 
   // Get categories and subcategories from store
-  const { categories, loading: categoriesLoading, error: categoriesError } = useAppSelector((state) => state.courseCategory);
-  const { data: filterData, loading: subcategoriesLoading, error: subcategoriesError } = useAppSelector((state) => state.filter);
+  const {
+    categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+  } = useAppSelector((state) => state.courseCategory);
+  const {
+    data: filterData,
+    loading: subcategoriesLoading,
+    error: subcategoriesError,
+  } = useAppSelector((state) => state.filter);
   const subcategories: SubCategory[] = filterData?.subcategories || [];
 
   // Fetch categories on modal open
   useEffect(() => {
     if (isOpen) {
-      dispatch(fetchCourseCategories({
-        page: 0,
-        limit: 1000,
-        filters: {
-          status: 'active',
-          isDeleted: false
-        }
-      }));
+      dispatch(
+        fetchCourseCategories({
+          page: 0,
+          limit: 1000,
+          filters: {
+            status: "active",
+            isDeleted: false,
+          },
+        })
+      );
     }
   }, [dispatch, isOpen]);
 
   // Set form data when filter changes
   useEffect(() => {
     if (filter) {
-      const categoryId = typeof filter.category === 'string' ? filter.category : filter.category?._id || "";
-      const subCategoryId = typeof filter.subCategory === 'string' ? filter.subCategory : filter.subCategory?._id || "";
-      
+      const categoryId =
+        typeof filter.category === "string"
+          ? filter.category
+          : filter.category?._id || "";
+      const subCategoryId =
+        typeof filter.subCategory === "string"
+          ? filter.subCategory
+          : filter.subCategory?._id || "";
+
       setFormData({
         title: filter.title || "",
         language: filter.language || "",
         category: categoryId,
         subCategory: subCategoryId,
-        filterOptions: Array.isArray(filter.filterOptions) ? filter.filterOptions.map(opt => 
-          typeof opt === 'string' ? opt : opt.name || opt.title || String(opt)
-        ) : [],
+        filterOptions: Array.isArray(filter.filterOptions)
+          ? filter.filterOptions.map((opt) =>
+              typeof opt === "string"
+                ? opt
+                : opt.name || opt.title || String(opt)
+            )
+          : [],
       });
 
       // Fetch subcategories if category is selected
@@ -117,22 +136,25 @@ const EditFilterModal: React.FC<{
     setFormData({
       ...formData,
       category: categoryId,
-      subCategory: "" // Reset subcategory when category changes
+      subCategory: "", // Reset subcategory when category changes
     });
   };
 
   const handleSubcategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFormData({
       ...formData,
-      subCategory: e.target.value
+      subCategory: e.target.value,
     });
   };
 
   const handleAddOption = () => {
-    if (newOption.trim() && !formData.filterOptions.includes(newOption.trim())) {
+    if (
+      newOption.trim() &&
+      !formData.filterOptions.includes(newOption.trim())
+    ) {
       setFormData({
         ...formData,
-        filterOptions: [...formData.filterOptions, newOption.trim()]
+        filterOptions: [...formData.filterOptions, newOption.trim()],
       });
       setNewOption("");
     } else if (formData.filterOptions.includes(newOption.trim())) {
@@ -144,17 +166,18 @@ const EditFilterModal: React.FC<{
     const updatedOptions = formData.filterOptions.filter((_, i) => i !== index);
     setFormData({
       ...formData,
-      filterOptions: updatedOptions
+      filterOptions: updatedOptions,
     });
   };
 
   const handleEditOption = (index: number, newValue: string) => {
     if (newValue.trim()) {
       // Check if the new value already exists (excluding current index)
-      const exists = formData.filterOptions.some((option, i) => 
-        i !== index && option.toLowerCase() === newValue.trim().toLowerCase()
+      const exists = formData.filterOptions.some(
+        (option, i) =>
+          i !== index && option.toLowerCase() === newValue.trim().toLowerCase()
       );
-      
+
       if (exists) {
         toast.error("Option already exists");
         return;
@@ -164,7 +187,7 @@ const EditFilterModal: React.FC<{
       updatedOptions[index] = newValue.trim();
       setFormData({
         ...formData,
-        filterOptions: updatedOptions
+        filterOptions: updatedOptions,
       });
     }
   };
@@ -190,24 +213,26 @@ const EditFilterModal: React.FC<{
 
     setIsUpdating(true);
     try {
-      await dispatch(updateFilter({
-        id: filter._id,
-        data: {
-          title: formData.title,
-          language: formData.language,
-          category: formData.category, // Send ID, not name
-          subCategory: formData.subCategory, // Send ID, not name
-          filterOptions: formData.filterOptions
-        }
-      })).unwrap();
+      await dispatch(
+        updateFilter({
+          id: filter._id,
+          data: {
+            title: formData.title,
+            language: formData.language,
+            category: formData.category, // Send ID, not name
+            subCategory: formData.subCategory, // Send ID, not name
+            filterOptions: formData.filterOptions,
+          },
+        })
+      ).unwrap();
 
       toast.success("Filter updated successfully", {
         position: "top-right",
         duration: 3000,
         style: {
           background: "#10B981",
-          color: "#fff"
-        }
+          color: "#fff",
+        },
       });
 
       onSuccess();
@@ -220,19 +245,21 @@ const EditFilterModal: React.FC<{
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleAddOption();
     }
   };
 
   const getCategoryName = (categoryId: string) => {
-    const category = categories.find(cat => cat._id === categoryId);
+    const category = categories.find((cat) => cat._id === categoryId);
     return category?.name || "";
   };
 
   const getSubcategoryName = (subcategoryId: string) => {
-    const subcategory = subcategories.find(subcat => subcat._id === subcategoryId);
+    const subcategory = subcategories.find(
+      (subcat) => subcat._id === subcategoryId
+    );
     return subcategory?.name || "";
   };
 
@@ -240,17 +267,24 @@ const EditFilterModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+      <div
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      ></div>
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">Edit Filter</h3>
-              <p className="text-sm text-gray-600 mt-1">Update filter information and options</p>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Edit Filter
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Update filter information and options
+              </p>
             </div>
-            <button 
-              onClick={onClose} 
+            <button
+              onClick={onClose}
               className="text-gray-400 hover:text-gray-600 p-2 hover:bg-white rounded-lg transition-colors"
             >
               <X className="w-6 h-6" />
@@ -267,7 +301,9 @@ const EditFilterModal: React.FC<{
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                   placeholder="Enter filter title"
                   required
@@ -276,10 +312,14 @@ const EditFilterModal: React.FC<{
 
               {/* Language */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Language
+                </label>
                 <select
                   value={formData.language}
-                  onChange={(e) => setFormData({...formData, language: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, language: e.target.value })
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 >
                   <option value="">Select Language</option>
@@ -304,7 +344,9 @@ const EditFilterModal: React.FC<{
                   required
                 >
                   <option value="">
-                    {categoriesLoading ? 'Loading categories...' : 'Select a category'}
+                    {categoriesLoading
+                      ? "Loading categories..."
+                      : "Select a category"}
                   </option>
                   {categories?.map((category) => (
                     <option key={category._id} value={category._id}>
@@ -332,22 +374,25 @@ const EditFilterModal: React.FC<{
                   required
                 >
                   <option value="">
-                    {!formData.category 
-                      ? 'Please select a category first' 
-                      : subcategoriesLoading 
-                      ? 'Loading subcategories...' 
-                      : subcategories.length === 0 
-                      ? 'No subcategories available'
-                      : 'Select a subcategory'
-                    }
+                    {!formData.category
+                      ? "Please select a category first"
+                      : subcategoriesLoading
+                      ? "Loading subcategories..."
+                      : subcategories.length === 0
+                      ? "No subcategories available"
+                      : "Select a subcategory"}
                   </option>
-                  {Array.isArray(subcategories) && subcategories?.length > 0 && subcategories.map((subcategory) => (
-                    subcategory && subcategory._id && (
-                      <option key={subcategory._id} value={subcategory._id}>
-                        {subcategory.name ?? 'Unnamed Subcategory'}
-                      </option>
-                    )
-                  ))}
+                  {Array.isArray(subcategories) &&
+                    subcategories?.length > 0 &&
+                    subcategories.map(
+                      (subcategory) =>
+                        subcategory &&
+                        subcategory._id && (
+                          <option key={subcategory._id} value={subcategory._id}>
+                            {subcategory.name ?? "Unnamed Subcategory"}
+                          </option>
+                        )
+                    )}
                 </select>
                 {subcategoriesError && (
                   <p className="mt-1 text-sm text-red-600">
@@ -359,7 +404,9 @@ const EditFilterModal: React.FC<{
               {/* Current Selection Display */}
               {(formData.category || formData.subCategory) && (
                 <div className="md:col-span-2 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h4 className="text-sm font-medium text-blue-900 mb-2">Current Selection:</h4>
+                  <h4 className="text-sm font-medium text-blue-900 mb-2">
+                    Current Selection:
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {formData.category && (
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
@@ -380,7 +427,7 @@ const EditFilterModal: React.FC<{
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Filter Options <span className="text-red-500">*</span>
                 </label>
-                
+
                 {/* Add New Option */}
                 <div className="flex gap-3 mb-4">
                   <input
@@ -405,30 +452,45 @@ const EditFilterModal: React.FC<{
                 {/* Existing Options */}
                 <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-medium text-gray-700">Options ({formData.filterOptions.length})</h4>
+                    <h4 className="text-sm font-medium text-gray-700">
+                      Options ({formData.filterOptions.length})
+                    </h4>
                     {formData.filterOptions.length > 0 && (
-                      <span className="text-xs text-gray-500">Click on any option to edit</span>
+                      <span className="text-xs text-gray-500">
+                        Click on any option to edit
+                      </span>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {formData.filterOptions.length === 0 ? (
                       <div className="text-center py-8">
                         <div className="text-gray-400 mb-2">
                           <Filter className="w-8 h-8 mx-auto" />
                         </div>
-                        <p className="text-gray-500 text-sm">No options added yet</p>
-                        <p className="text-gray-400 text-xs">Add your first option above</p>
+                        <p className="text-gray-500 text-sm">
+                          No options added yet
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                          Add your first option above
+                        </p>
                       </div>
                     ) : (
                       formData.filterOptions.map((option, index) => (
-                        <div key={index} className="flex items-center gap-3 group bg-white rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors">
+                        <div
+                          key={index}
+                          className="flex items-center gap-3 group bg-white rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors"
+                        >
                           <div className="flex-shrink-0 w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center">
-                            <span className="text-xs font-medium text-indigo-600">{index + 1}</span>
+                            <span className="text-xs font-medium text-indigo-600">
+                              {index + 1}
+                            </span>
                           </div>
                           <EditableOption
                             value={option}
-                            onSave={(newValue) => handleEditOption(index, newValue)}
+                            onSave={(newValue) =>
+                              handleEditOption(index, newValue)
+                            }
                             onCancel={() => {}}
                           />
                           <button
@@ -506,9 +568,9 @@ const EditableOption: React.FC<{
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSave();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       handleCancel();
     }
   };
@@ -530,7 +592,7 @@ const EditableOption: React.FC<{
   }
 
   return (
-    <div 
+    <div
       className="flex-1 px-3 py-2 text-sm bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
       onClick={() => setIsEditing(true)}
       title="Click to edit"
@@ -549,10 +611,13 @@ const DeleteModal: React.FC<{
   isDeleting: boolean;
 }> = ({ isOpen, onClose, onConfirm, filter, isDeleting }) => {
   if (!isOpen || !filter) return null;
-  
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-transparent backdrop-blur-xs transition-opacity" onClick={onClose}></div>
+      <div
+        className="fixed inset-0 bg-transparent backdrop-blur-xs transition-opacity"
+        onClick={onClose}
+      ></div>
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -560,20 +625,28 @@ const DeleteModal: React.FC<{
               <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Delete Filter</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Delete Filter
+              </h3>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
               <X className="w-6 h-6" />
             </button>
           </div>
-          
+
           <div className="p-6">
             <p className="text-gray-600 mb-4">
-              Are you sure you want to delete filter <strong className="text-gray-900">"{filter.title}"</strong>?
+              Are you sure you want to delete filter{" "}
+              <strong className="text-gray-900">"{filter.title}"</strong>?
             </p>
-            <p className="text-sm text-gray-500">This action cannot be undone.</p>
+            <p className="text-sm text-gray-500">
+              This action cannot be undone.
+            </p>
           </div>
-          
+
           <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
             <button
               onClick={onClose}
@@ -643,7 +716,7 @@ const FilterList: React.FC = () => {
     const fetchParams = {
       page: pagination.page,
       limit: pagination.limit,
-      sort: { createdAt: 'desc' },
+      sort: { createdAt: "desc" },
       searchFields: searchQuery ? { title: searchQuery } : {},
       ...localFilters,
     };
@@ -656,7 +729,7 @@ const FilterList: React.FC = () => {
       const fetchParams = {
         page: newPage,
         limit: pagination.limit,
-        sort: { createdAt: 'desc' },
+        sort: { createdAt: "desc" },
         searchFields: searchQuery ? { title: searchQuery } : {},
         ...localFilters,
       };
@@ -668,7 +741,7 @@ const FilterList: React.FC = () => {
     const fetchParams = {
       page: 1,
       limit: newLimit,
-      sort: { createdAt: 'desc' },
+      sort: { createdAt: "desc" },
       searchFields: searchQuery ? { title: searchQuery } : {},
       ...localFilters,
     };
@@ -710,7 +783,7 @@ const FilterList: React.FC = () => {
     const fetchParams = {
       page: pagination.page,
       limit: pagination.limit,
-      sort: { createdAt: 'desc' },
+      sort: { createdAt: "desc" },
       searchFields: searchQuery ? { title: searchQuery } : {},
       ...localFilters,
     };
@@ -732,38 +805,39 @@ const FilterList: React.FC = () => {
     if (filterToDelete) {
       setIsDeleting(true);
       try {
-        await dispatch(deleteFilter({
-          id: filterToDelete._id,
-          data: {
-            title: filterToDelete.title,
-            language: filterToDelete.language,
-            category: filterToDelete.category,
-            subCategory: filterToDelete.subCategory,
-            filterOptions: filterToDelete.filterOptions,
-          }
-        })).unwrap();
+        await dispatch(
+          deleteFilter({
+            id: filterToDelete._id,
+            data: {
+              title: filterToDelete.title,
+              language: filterToDelete.language,
+              category: filterToDelete.category,
+              subCategory: filterToDelete.subCategory,
+              filterOptions: filterToDelete.filterOptions,
+            },
+          })
+        ).unwrap();
 
         toast.success(`Filter "${filterToDelete.title}" deleted successfully`, {
           position: "top-right",
           duration: 3000,
           style: {
             background: "#10B981",
-            color: "#fff"
-          }
+            color: "#fff",
+          },
         });
-        
+
         closeDeleteModal();
-        
+
         // Refresh the filters list
         const fetchParams = {
           page: pagination.page,
           limit: pagination.limit,
-          sort: { createdAt: 'desc' },
+          sort: { createdAt: "desc" },
           searchFields: searchQuery ? { title: searchQuery } : {},
           ...localFilters,
         };
         dispatch(fetchFilter(fetchParams));
-        
       } catch (error: any) {
         console.error("Failed to delete filter:", error);
         toast.error(error?.message || "Failed to delete filter");
@@ -775,15 +849,17 @@ const FilterList: React.FC = () => {
   // Helper functions
   const renderFilterOptions = (filterOptions: any[]) => {
     if (!Array.isArray(filterOptions)) return "";
-    
-    return filterOptions.map((option: any, i: number) => {
-      if (typeof option === "string") {
-        return option;
-      } else if (option && typeof option === "object") {
-        return option.name || option.title || `Option ${i + 1}`;
-      }
-      return String(option);
-    }).join(", ");
+
+    return filterOptions
+      .map((option: any, i: number) => {
+        if (typeof option === "string") {
+          return option;
+        } else if (option && typeof option === "object") {
+          return option.name || option.title || `Option ${i + 1}`;
+        }
+        return String(option);
+      })
+      .join(", ");
   };
 
   const renderCategoryName = (category: any) => {
@@ -809,32 +885,36 @@ const FilterList: React.FC = () => {
     const start = Math.max(1, current - Math.floor(maxPages / 2));
     const end = Math.min(totalPages, start + maxPages - 1);
 
-    if (start > 1) pages.push(1, '...');
+    if (start > 1) pages.push(1, "...");
     for (let i = start; i <= end; i++) pages.push(i);
-    if (end < totalPages) pages.push('...', totalPages);
+    if (end < totalPages) pages.push("...", totalPages);
 
     return pages;
   };
 
   return (
     <div>
-      <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 xl:px-10 xl:py-12">
+      <div className="min-h-screen rounded-2xl border border-gray-200 bg-white dark:bg-white/[0.03] px-5 py-7 xl:px-10 xl:py-12">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Filters</h1>
-          <span className="text-gray-500 text-sm">Total: {pagination.total}</span>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
+            Filters
+          </h1>
+          <span className="text-gray-500 text-sm dark:text-white/70">
+            Total: {pagination.total}
+          </span>
         </div>
 
         {/* Search & Filter */}
-        <div className="bg-white shadow p-4 rounded-md mb-6">
+        <div className="bg-white dark:bg-white/[0.03] shadow p-4 rounded-md mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/90 dark:placeholder:text-white/80  placeholder:text-black/80  w-5 h-5" />
               <input
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search by title..."
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                className="pl-10 pr-4 py-2 w-full border border-gray-300 text-black-400 dark:text-white/90 dark:placeholder:text-white/80  placeholder:text-black/80  rounded-md focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
 
@@ -844,32 +924,46 @@ const FilterList: React.FC = () => {
               <select
                 value={localFilters.language || ""}
                 onChange={(e) => handleFilterChange("language", e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-2 focus:ring-indigo-500"
+                className="border border-gray-300 text-black-400 dark:text-white/90 dark:placeholder:text-white/80  placeholder:text-black/80 rounded-md px-3 py-2 focus:ring-indigo-500"
               >
-                <option value="">All Languages</option>
-                <option value="English">English</option>
-                <option value="Hindi">Hindi</option>
-                <option value="Spanish">Spanish</option>
+                <option className="dark:text-black" value="">
+                  All Languages
+                </option>
+                <option className="dark:text-black" value="English">
+                  English
+                </option>
+                <option className="dark:text-black" value="Hindi">
+                  Hindi
+                </option>
+                <option className="dark:text-black" value="Spanish">
+                  Spanish
+                </option>
               </select>
             </div>
 
             {/* Limit */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm">Show:</span>
+            <div className="flex items-center gap-2  ">
+              <span className="text-sm dark:text-white/90">Show:</span>
               <select
                 value={pagination.limit}
                 onChange={(e) => handleLimitChange(Number(e.target.value))}
-                className="border border-gray-300 rounded-md px-3 py-2"
+                className="border border-gray-300 text-black-400 dark:text-white/90 dark:placeholder:text-white/80  placeholder:text-black/80 rounded-md px-3 py-2 focus:ring-indigo-500"
               >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
+                <option className="dark:text-black" value={5}>
+                  5
+                </option>
+                <option className="dark:text-black" value={10}>
+                  10
+                </option>
+                <option className="dark:text-black" value={20}>
+                  20
+                </option>
               </select>
             </div>
 
             <button
               onClick={handleResetFilters}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 dark:text-white/90 text-black dark:hover:bg-white/10 transition-colors"
             >
               <RotateCcw className="h-4 w-4" />
               Reset
@@ -892,35 +986,64 @@ const FilterList: React.FC = () => {
         )}
 
         {/* Table */}
-        <div className="bg-white shadow rounded-lg overflow-x-auto">
+        <div className="bg-white dark:bg-white/[0.03] shadow rounded-lg overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-white/[0.04]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SubCategory</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Language</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Options</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white/90 uppercase">
+                  #
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white/90 uppercase">
+                  Title
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white/90 uppercase">
+                  Category
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white/90 uppercase">
+                  SubCategory
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white/90 uppercase">
+                  Language
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white/90 uppercase">
+                  Options
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white/90 uppercase">
+                  Created
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-white/90 uppercase">
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
+            <tbody className="bg-white divide-y divide-gray-100 dark:bg-white/[0.03]">
               {filters.map((filter: FilterItem, idx: number) => (
-                <tr key={filter._id || idx} className="hover:bg-gray-50">
+                <tr key={filter._id || idx} className="hover:bg-gray-50 dark:hover:bg-white/[0.06]">
                   <td className="px-6 py-4 text-sm text-gray-700">
                     {(pagination.page - 1) * pagination.limit + idx + 1}
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{filter.title}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{renderCategoryName(filter.category)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{renderSubCategoryName(filter.subCategory)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{filter.language}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700 max-w-xs truncate" title={renderFilterOptions(filter.filterOptions || [])}>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white/90">
+                    {filter.title}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-white/70">
+                    {renderCategoryName(filter.category)}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-white/70">
+                    {renderSubCategoryName(filter.subCategory)}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-white/70">
+                    {filter.language}
+                  </td>
+                  <td
+                    className="px-6 py-4 text-sm text-gray-700 dark:text-white/70 max-w-xs truncate"
+                    title={renderFilterOptions(filter.filterOptions || [])}
+                  >
                     {renderFilterOptions(filter.filterOptions || [])}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {filter.createdAt ? new Date(filter.createdAt).toLocaleDateString() : '-'}
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-white/70">
+                    {filter.createdAt
+                      ? new Date(filter.createdAt).toLocaleDateString()
+                      : "-"}
                   </td>
                   <td className="px-6 py-4 text-right space-x-2">
                     <button
@@ -949,12 +1072,11 @@ const FilterList: React.FC = () => {
           </table>
         </div>
 
-
         {/* Pagination */}
         {pagination.totalPages > 1 && (
           <div className="flex justify-end gap-2 mt-4">
-            <button 
-              onClick={() => handlePageChange(pagination.page - 1)} 
+            <button
+              onClick={() => handlePageChange(pagination.page - 1)}
               disabled={pagination.page === 1}
               className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
             >
@@ -966,8 +1088,8 @@ const FilterList: React.FC = () => {
                   key={idx}
                   onClick={() => handlePageChange(page)}
                   className={`px-3 py-1 rounded ${
-                    pagination.page === page 
-                      ? "bg-indigo-500 text-white" 
+                    pagination.page === page
+                      ? "bg-indigo-500 text-white"
                       : "bg-gray-100 hover:bg-gray-200"
                   }`}
                 >
@@ -979,8 +1101,8 @@ const FilterList: React.FC = () => {
                 </span>
               )
             )}
-            <button 
-              onClick={() => handlePageChange(pagination.page + 1)} 
+            <button
+              onClick={() => handlePageChange(pagination.page + 1)}
               disabled={pagination.page === pagination.totalPages}
               className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
             >

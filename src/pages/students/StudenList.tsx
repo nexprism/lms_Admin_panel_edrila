@@ -220,7 +220,9 @@ console.log('Total items:', pagination.total);
           isDeleted: false,
           ...(localFilters.status ? { status: localFilters.status } : {}),
         },
-        searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
+        searchFields: searchQuery
+          ? { name: searchQuery, email: searchQuery }
+          : {},
         sort: { createdAt: "desc" },
       })
     );
@@ -276,7 +278,9 @@ console.log('Total items:', pagination.total);
             page: pagination.page,
             limit: pagination.limit,
             filters: activeFilters,
-            searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
+            searchFields: searchQuery
+              ? { name: searchQuery, email: searchQuery }
+              : {},
             sort: { createdAt: "desc" },
           })
         );
@@ -340,7 +344,7 @@ console.log('Total items:', pagination.total);
             </div>
 
             {/* Status Filter */}
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-gray-400" />
               <select
                 value={localFilters.status || ""}
@@ -351,7 +355,7 @@ console.log('Total items:', pagination.total);
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
-            </div>
+            </div> */}
 
             {/* Limit */}
             <div className="flex items-center gap-2">
@@ -441,7 +445,9 @@ console.log('Total items:', pagination.total);
   src={
     student?.profilePicture || student?.image
       ? `${import.meta.env.VITE_IMAGE_URL}/${student.profilePicture || student.image}`
-      : `https://placehold.co/40x40?text=${(student.fullName || student.name)?.charAt(0) || "S"}`
+      : `https://placehold.co/40x40?text=${(student.fullName || student.name)?.charAt(
+                                  0
+                                ) || "S"}`
   }
   onError={(e) => {
     (e.currentTarget as HTMLImageElement).src =
@@ -462,7 +468,9 @@ console.log('Total items:', pagination.total);
                       {student.isActive ? (
                         <span className="inline-flex items-center">
                           <CheckCircle className="text-green-500 h-5 w-5" />
-                          <span className="ml-2 text-green-700 dark:text-green-400">Active</span>
+                          <span className="ml-2 text-green-700 dark:text-green-400">
+                            Active
+                          </span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center">
@@ -501,8 +509,8 @@ console.log('Total items:', pagination.total);
           <div className="flex items-center justify-between mt-6">
             <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
               Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-              {pagination.total} results
+              {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+              of {pagination.total} results
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -526,7 +534,10 @@ console.log('Total items:', pagination.total);
                     {page}
                   </button>
                 ) : (
-                  <span key={idx} className="px-2 text-gray-400 dark:text-gray-500">
+                  <span
+                    key={idx}
+                    className="px-2 text-gray-400 dark:text-gray-500"
+                  >
                     {page}
                   </span>
                 )
@@ -549,7 +560,7 @@ console.log('Total items:', pagination.total);
         isVisible={popup.isVisible}
         onClose={() => setPopup({ ...popup, isVisible: false })}
       />
-      
+
       {/* Delete Modal */}
       <DeleteModal
         isOpen={deleteModalOpen}
