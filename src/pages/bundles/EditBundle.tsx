@@ -538,8 +538,23 @@ const EditBundleForm = () => {
                             type="number"
                             name="price"
                             value={formData.price}
-                            onChange={handleInputChange}
+                            onChange={e => {
+                                let value = e.target.value;
+                                // Allow only up to 2 decimal places
+                                if (value.includes('.')) {
+                                    const [intPart, decPart] = value.split('.');
+                                    if (decPart.length > 2) {
+                                        value = `${intPart}.${decPart.slice(0, 2)}`;
+                                    }
+                                }
+                                setFormData(prev => ({
+                                    ...prev,
+                                    price: value
+                                }));
+                            }}
                             required
+                            step="0.01"
+                            min={0}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="699"
                         />

@@ -662,7 +662,15 @@ const AddCourse = () => {
                     type="number"
                     name="duration"
                     value={formData.duration}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      // Only allow integers (no decimals)
+                      const value = e.target.value;
+                      if (value === "" || /^\d+$/.test(value)) {
+                        handleInputChange(e);
+                      }
+                    }}
+                    step="1"
+                    min="1"
                     className={`w-full border rounded-xl px-4 py-3 dark:text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
                       formErrors.duration ? "border-red-400" : "border-gray-200"
                     }`}
@@ -746,49 +754,59 @@ const AddCourse = () => {
           </div>
 
           {/* Pricing */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="bg-white rounded-2xl shadow-xl p-8">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
               <DollarSign className="w-6 h-6 text-blue-600" />
               Pricing
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold dark:text-white/90 mb-2">
-                  Price *
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                  className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
-                    formErrors.price ? "border-red-400" : "border-gray-200"
-                  }`}
-                  placeholder="Course price"
-                  required
-                />
-                {formErrors.price && (
-                  <p className="mt-1 text-xs text-red-600">{formErrors.price}</p>
-                )}
+              <label className="block text-sm font-semibold dark:text-white/90 mb-2">
+                Price *
+              </label>
+              <input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={(e) => {
+                // Allow only numbers with up to 2 decimal places
+                const value = e.target.value;
+                if (
+                  value === "" ||
+                  /^\d+(\.\d{0,2})?$/.test(value)
+                ) {
+                  handleInputChange(e);
+                }
+                }}
+                step="0.01"
+                min="0"
+                className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                formErrors.price ? "border-red-400" : "border-gray-200"
+                }`}
+                placeholder="Course price"
+                required
+              />
+              {formErrors.price && (
+                <p className="mt-1 text-xs text-red-600">{formErrors.price}</p>
+              )}
               </div>
               <div>
-                <label className="block text-sm font-semibold dark:text-white/90 mb-2">
-                  Currency
-                </label>
-                <select
-                  name="currency"
-                  value={formData.currency}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                >
-                  <option value="INR">INR (₹)</option>
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                  </select>
+              <label className="block text-sm font-semibold dark:text-white/90 mb-2">
+                Currency
+              </label>
+              <select
+                name="currency"
+                value={formData.currency}
+                onChange={handleInputChange}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+              >
+                <option value="INR">INR (₹)</option>
+                <option value="USD">USD ($)</option>
+         
+              </select>
               </div>
             </div>
-          </div>
+            </div>
 
           {/* Tags */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
