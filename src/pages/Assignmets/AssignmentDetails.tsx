@@ -132,7 +132,7 @@ const AssignmentSubmissionReview = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-white/[0.03] p-4">
       <div className="max-w-5xl mx-auto">
         {showSuccess && (
           <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
@@ -163,61 +163,61 @@ const AssignmentSubmissionReview = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-b-lg shadow-lg">
+        <div className="bg-white dark:bg-white/[0.03] rounded-b-lg shadow-lg">
           {/* Submission Info */}
           <div className="p-6 border-b border-gray-200">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Assignment Details */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90 flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-purple-600" />
                   Assignment Details
                 </h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-gray-600">
+                    <label className="text-sm font-medium text-gray-600 dark:text-white/90">
                       Assignment Title
                     </label>
-                    <p className="text-gray-900 font-medium">
+                    <p className="text-gray-900 dark:text-white/70 font-medium">
                       {submission?.assignmentId.title}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-600">
+                      <label className="text-sm font-medium text-gray-600 dark:text-white/90">
                         Course
                       </label>
-                      <p className="text-gray-900">
+                      <p className="text-gray-900 dark:text-white/70">
                         {submission?.courseId.title}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-white/90">
                         {submission?.courseId.code}
                       </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-600">
+                      <label className="text-sm font-medium text-gray-600 dark:text-white/90">
                         Subject
                       </label>
-                      <p className="text-gray-900">
-                        {submission?.assignmentId.subject}
+                      <p className="text-gray-900 dark:text-white/70">
+                        {submission?.assignmentId?.subject}
                       </p>
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">
+                    <label className="text-sm font-medium text-gray-600 dark:text-white/90">
                       Lesson
                     </label>
-                    <p className="text-gray-900">
-                      {submission?.lessonId.title}
+                    <p className="text-gray-900 dark:text-white/70">
+                      {submission?.lessonId?.title}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">
+                    <label className="text-sm font-medium text-gray-600 dark:text-white/90">
                       Max Score
                     </label>
-                    <p className="text-gray-900 font-semibold flex items-center gap-1">
+                    <p className="text-gray-900 dark:text-white/70   font-semibold flex items-center gap-1">
                       <Award className="w-4 h-4 text-yellow-500" />
-                      {submission?.assignmentId.maxScore} points
+                      {submission?.assignmentId?.maxScore} points
                     </p>
                   </div>
                 </div>
@@ -225,46 +225,46 @@ const AssignmentSubmissionReview = () => {
 
               {/* Student Details */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90 flex items-center gap-2">
                   <User className="w-5 h-5 text-blue-600" />
                   Student Information
                 </h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-gray-600">
+                    <label className="text-sm font-medium text-gray-600 dark:text-white/90">
                       Student Name
                     </label>
-                    <p className="text-gray-900 font-medium">
+                    <p className="text-gray-900 font-medium dark:text-white/70">
                       {submission?.submittedBy.fullName}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">
+                    <label className="text-sm font-medium text-gray-600 dark:text-white/90">
                       Email
                     </label>
-                    <p className="text-gray-900">
+                    <p className="text-gray-900 dark:text-white/70">
                       {submission?.submittedBy.email}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">
+                    <label className="text-sm font-medium text-gray-600 dark:text-white/90">
                       Student ID
                     </label>
-                    <p className="text-gray-900">
-                      {submission?.submittedBy.studentId}
+                    <p className="text-gray-900 dark:text-white/70">
+                      {submission?.submittedBy._id}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">
+                    <label className="text-sm font-medium text-gray-600 dark:text-white/90">
                       Submitted At
                     </label>
-                    <p className="text-gray-900 flex items-center gap-1">
+                    <p className="text-gray-900 flex items-center gap-1 dark:text-white/70">
                       <Calendar className="w-4 h-4 text-gray-500" />
                       {formatDate(submission?.submittedAt)}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">
+                    <label className="text-sm font-medium text-gray-600 dark:text-white/90">
                       Status
                     </label>
                     <span
@@ -284,7 +284,7 @@ const AssignmentSubmissionReview = () => {
 
           {/* Submission Content */}
           <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90 mb-4 flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-green-600" />
               Student Submission
             </h3>
@@ -292,11 +292,11 @@ const AssignmentSubmissionReview = () => {
             {/* Submission Text */}
             {submission?.submissionText && (
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-600 mb-2">
+                <label className="block text-sm font-medium text-gray-600 dark:text-white/90 mb-2">
                   Submission Text
                 </label>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="text-gray-900 whitespace-pre-wrap">
+                <div className="bg-gray-50 dark:bg-white/[0.03] border border-gray-200   rounded-lg p-4">
+                  <p className="text-gray-900 dark:text-white/70 whitespace-pre-wrap">
                     {submission?.submissionText}
                   </p>
                 </div>
@@ -306,10 +306,10 @@ const AssignmentSubmissionReview = () => {
             {/* Submission File */}
             {submission?.submissionFile && (
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">
+                <label className="block text-sm font-medium text-gray-600 dark:text-white/90 mb-2">
                   Submitted File
                 </label>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+                <div className="bg-blue-50 dark:bg-white/[0.03] border border-blue-200 rounded-lg p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <FileText className="w-6 h-6 text-blue-600" />
                     <div>
@@ -334,7 +334,7 @@ const AssignmentSubmissionReview = () => {
 
           {/* Grading Section */}
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90 mb-4 flex items-center gap-2">
               <Star className="w-5 h-5 text-yellow-600" />
               Grade Assignment
             </h3>
@@ -342,7 +342,7 @@ const AssignmentSubmissionReview = () => {
             <div className="space-y-6">
               {/* Score Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                   Score (out of {submission?.assignmentId.maxScore})*
                 </label>
                 <div className="relative">
@@ -354,7 +354,7 @@ const AssignmentSubmissionReview = () => {
                     min="0"
                     max={submission?.assignmentId.maxScore}
                     step="0.5"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 dark:text-white/70 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     placeholder={`Enter score (0-${submission?.assignmentId.maxScore})`}
                     disabled={loading}
                   />
@@ -366,7 +366,7 @@ const AssignmentSubmissionReview = () => {
 
               {/* Feedback */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                   Feedback*
                 </label>
                 <textarea
@@ -375,12 +375,12 @@ const AssignmentSubmissionReview = () => {
                   onChange={handleInputChange}
                   rows={6}
                   maxLength={1000}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+                  className="w-full px-4 py-3 border dark:text-white/70 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
                   placeholder="Provide detailed feedback about the student's work, highlighting strengths and areas for improvement..."
                   disabled={loading}
                 />
                 <div className="flex justify-between items-center mt-2">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-white/70">
                     Provide constructive feedback to help the student learn
                   </p>
                   <span className="text-sm text-gray-400">
@@ -391,18 +391,18 @@ const AssignmentSubmissionReview = () => {
 
               {/* Status */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                   Status
                 </label>
                 <select
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border dark:text-white/70 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   disabled={loading}
                 >
-                  <option value="graded">Graded</option>
-                  <option value="resubmitted">Needs Resubmission</option>
+                  <option  className="dark:text-black" value="graded">Graded</option>
+                  <option  className="dark:text-black" value="resubmitted">Needs Resubmission</option>
                 </select>
               </div>
 

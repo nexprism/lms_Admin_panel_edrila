@@ -28,7 +28,7 @@ import {
   BookOpenCheck,
   PlayCircle,
   FileEdit,
-  Layers
+  Layers,
 } from "lucide-react";
 import { createCourse } from "../../store/slices/course";
 import CategorySubcategoryDropdowns from "../../components/CategorySubcategoryDropdowns";
@@ -99,7 +99,8 @@ const validateForm = (
   }
 
   if (formData.seoMetaDescription.length > 160) {
-    errors.seoMetaDescription = "Meta description must be less than 160 characters";
+    errors.seoMetaDescription =
+      "Meta description must be less than 160 characters";
   }
 
   if (seoContent.length > 10000) {
@@ -116,7 +117,10 @@ const validateForm = (
     errors.thumbnailFile = "Thumbnail image is required";
   }
 
-  if (demoVideoUrl && !/^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]{11}$/.test(demoVideoUrl)) {
+  if (
+    demoVideoUrl &&
+    !/^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]{11}$/.test(demoVideoUrl)
+  ) {
     errors.demoVideoUrl = "Please enter a valid YouTube URL";
   }
 
@@ -147,8 +151,12 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
             <div className="inline-flex items-center justify-center w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4">
               <CheckCircle className="w-12 h-12 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Course Created Successfully! 🎉</h2>
-            <p className="text-emerald-100 text-lg">Your course has been created and is ready for content</p>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              Course Created Successfully! 🎉
+            </h2>
+            <p className="text-emerald-100 text-lg">
+              Your course has been created and is ready for content
+            </p>
           </div>
           <Sparkles className="absolute top-4 right-4 w-6 h-6 text-white opacity-30" />
           <Sparkles className="absolute bottom-4 left-4 w-4 h-4 text-white opacity-30" />
@@ -157,8 +165,12 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
         {/* Content */}
         <div className="p-8">
           <div className="text-center mb-8">
-            <h3 className="text-xl font-semibold dark:text-white/90 mb-2">What's Next?</h3>
-            <p className="text-gray-600">Add modules and lessons to make your course complete</p>
+            <h3 className="text-xl font-semibold dark:text-white/90 mb-2">
+              What's Next?
+            </h3>
+            <p className="text-gray-600">
+              Add modules and lessons to make your course complete
+            </p>
           </div>
 
           {/* Next Steps */}
@@ -168,8 +180,12 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
                 <Layers className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h4 className="font-semibold dark:text-white/90">Create Modules</h4>
-                <p className="text-sm text-gray-600">Organize your course into logical sections</p>
+                <h4 className="font-semibold dark:text-white/90">
+                  Create Modules
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Organize your course into logical sections
+                </p>
               </div>
             </div>
 
@@ -178,8 +194,12 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
                 <FileEdit className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <h4 className="font-semibold dark:text-white/90">Add Lessons</h4>
-                <p className="text-sm text-gray-600">Create engaging lessons with videos and content</p>
+                <h4 className="font-semibold dark:text-white/90">
+                  Add Lessons
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Create engaging lessons with videos and content
+                </p>
               </div>
             </div>
 
@@ -188,8 +208,12 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
                 <PlayCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <h4 className="font-semibold dark:text-white/90">Upload Videos</h4>
-                <p className="text-sm text-gray-600">Add video content to your lessons</p>
+                <h4 className="font-semibold dark:text-white/90">
+                  Upload Videos
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Add video content to your lessons
+                </p>
               </div>
             </div>
           </div>
@@ -217,7 +241,13 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
 };
 
 // File Upload Component
-const FileUpload = ({ label, accept, onFileChange, currentFile, icon: Icon }) => {
+const FileUpload = ({
+  label,
+  accept,
+  onFileChange,
+  currentFile,
+  icon: Icon,
+}) => {
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState("");
 
@@ -266,7 +296,9 @@ const FileUpload = ({ label, accept, onFileChange, currentFile, icon: Icon }) =>
       </label>
       <div
         className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors duration-200 ${
-          dragOver ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-white"
+          dragOver
+            ? "border-blue-400 bg-blue-50 "
+            : "border-gray-200 bg-white dark:bg-white/[0.03]"
         } ${error ? "border-red-400" : ""}`}
         onDrop={handleDrop}
         onDragOver={(e) => {
@@ -291,12 +323,11 @@ const FileUpload = ({ label, accept, onFileChange, currentFile, icon: Icon }) =>
         </label>
         {currentFile && (
           <div className="mt-3 p-2 bg-gray-100 rounded-lg text-xs text-gray-700">
-            {currentFile.name} ({(currentFile.size / 1024 / 1024).toFixed(2)} MB)
+            {currentFile.name} ({(currentFile.size / 1024 / 1024).toFixed(2)}{" "}
+            MB)
           </div>
         )}
-        {error && (
-          <p className="mt-2 text-xs text-red-600">{error}</p>
-        )}
+        {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
       </div>
     </div>
   );
@@ -306,7 +337,7 @@ const FileUpload = ({ label, accept, onFileChange, currentFile, icon: Icon }) =>
 const YouTubeUrlInput = ({ label, value, onChange, error }) => {
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-semibold dark:text-white/90 flex items-center gap-2">
+      <label className="block text-sm font-semibold dark:text-white/90  flex items-center gap-2">
         <Video className="w-5 h-5 text-blue-600" />
         {label}
       </label>
@@ -314,14 +345,12 @@ const YouTubeUrlInput = ({ label, value, onChange, error }) => {
         type="text"
         value={value}
         onChange={onChange}
-        className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+        className={`w-full border rounded-xl px-4 py-3 dark:text-white/90 dark:placeholder:text-white/60 text-black placeholder:text-black/80  focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
           error ? "border-red-400" : "border-gray-200"
         }`}
         placeholder="Enter demo video YouTube URL"
       />
-      {error && (
-        <p className="mt-1 text-xs text-red-600">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       {value && (
         <div className="mt-3">
           <iframe
@@ -418,7 +447,11 @@ const AddCourse = () => {
   };
 
   const addCustomTag = () => {
-    if (customTag.trim() && !selectedTags.includes(customTag.trim()) && selectedTags.length < 10) {
+    if (
+      customTag.trim() &&
+      !selectedTags.includes(customTag.trim()) &&
+      selectedTags.length < 10
+    ) {
       setSelectedTags([...selectedTags, customTag.trim()]);
       setCustomTag("");
       setFormErrors((prev) => ({ ...prev, tags: "" }));
@@ -446,7 +479,14 @@ const AddCourse = () => {
     e.preventDefault();
 
     const files = { thumbnailFile, coverImageFile };
-    const errors = validateForm(formData, description, seoContent, selectedTags, files, demoVideoUrl);
+    const errors = validateForm(
+      formData,
+      description,
+      seoContent,
+      selectedTags,
+      files,
+      demoVideoUrl
+    );
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -474,7 +514,7 @@ const AddCourse = () => {
 
     try {
       await dispatch(createCourse(submitFormData)).unwrap();
-      
+
       if (!isDraft) {
         setSuccessPopup(true);
       } else {
@@ -484,7 +524,7 @@ const AddCourse = () => {
           type: "success",
         });
       }
-      
+
       // Reset form
       setFormData({
         title: "",
@@ -531,7 +571,7 @@ const AddCourse = () => {
     if (data && data?.data?.course?._id) {
       window.location.href = `/courses/edit/${data?.data?.course?._id}`;
     }
-  }; 
+  };
 
   return (
     <div className="min-h-screen rounded-2xl border-gray-200 dark:border-gray-800 dark:bg-white/[0.03]">
@@ -583,7 +623,9 @@ const AddCourse = () => {
                     required
                   />
                   {formErrors.title && (
-                    <p className="mt-1 text-xs text-red-600">{formErrors.title}</p>
+                    <p className="mt-1 text-xs text-red-600">
+                      {formErrors.title}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -601,7 +643,7 @@ const AddCourse = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold dark:text-white/90 mb-2">
+                <label className="block text-sm font-semibold dark:text-white/90  mb-2">
                   Course Description *
                 </label>
                 <QuillEditor
@@ -612,7 +654,9 @@ const AddCourse = () => {
                   toolbar="full"
                 />
                 {formErrors.description && (
-                  <p className="mt-2 text-xs text-red-600">{formErrors.description}</p>
+                  <p className="mt-2 text-xs text-red-600">
+                    {formErrors.description}
+                  </p>
                 )}
               </div>
             </div>
@@ -632,10 +676,14 @@ const AddCourse = () => {
                 onSubcategoryChange={handleSubcategoryChange}
               />
               {formErrors.categoryId && (
-                <p className="mt-1 text-xs text-red-600">{formErrors.categoryId}</p>
+                <p className="mt-1 text-xs text-red-600">
+                  {formErrors.categoryId}
+                </p>
               )}
               {formErrors.subCategoryId && (
-                <p className="mt-1 text-xs text-red-600">{formErrors.subCategoryId}</p>
+                <p className="mt-1 text-xs text-red-600">
+                  {formErrors.subCategoryId}
+                </p>
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -678,7 +726,9 @@ const AddCourse = () => {
                     required
                   />
                   {formErrors.duration && (
-                    <p className="mt-1 text-xs text-red-600">{formErrors.duration}</p>
+                    <p className="mt-1 text-xs text-red-600">
+                      {formErrors.duration}
+                    </p>
                   )}
                 </div>
               </div>
@@ -686,9 +736,9 @@ const AddCourse = () => {
           </div>
 
           {/* Media Files */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Image className="w-6 h-6 text-blue-600" />
+          <div className="bg-white  dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 dark:text-white/90 flex items-center gap-2">
+              <Image className="w-6 h-6 text-blue-600 " />
               Media Files
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -696,7 +746,7 @@ const AddCourse = () => {
                 label="Course Thumbnail *"
                 accept="image/*"
                 onFileChange={setThumbnailFile}
-                currentFile={thumbnailFile}
+                // currentFile={thumbnailFile}
                 icon={Image}
               />
               <FileUpload
@@ -717,7 +767,9 @@ const AddCourse = () => {
               />
             </div>
             {formErrors.thumbnailFile && (
-              <p className="mt-2 text-xs text-red-600">{formErrors.thumbnailFile}</p>
+              <p className="mt-2 text-xs text-red-600">
+                {formErrors.thumbnailFile}
+              </p>
             )}
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
               {thumbnailFile && (
@@ -754,8 +806,8 @@ const AddCourse = () => {
           </div>
 
           {/* Pricing */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 dark:text-white/90 flex items-center gap-2">
               <DollarSign className="w-6 h-6 text-blue-600" />
               Pricing
             </h2>
@@ -791,26 +843,27 @@ const AddCourse = () => {
               )}
               </div>
               <div>
-              <label className="block text-sm font-semibold dark:text-white/90 mb-2">
-                Currency
-              </label>
-              <select
-                name="currency"
-                value={formData.currency}
-                onChange={handleInputChange}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-              >
-                <option value="INR">INR (₹)</option>
-                <option value="USD">USD ($)</option>
-         
-              </select>
+                <label className="block text-sm font-semibold dark:text-white/90 mb-2">
+                  Currency
+                </label>
+                <select
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-200 dark:text-white/90 dark:placeholder:text-white/80  placeholder:text-black/80  text-black rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                >
+                  <option value="INR">INR (₹)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
               </div>
             </div>
             </div>
 
           {/* Tags */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 flex dark:text-white/90 text-black items-center gap-2">
               <Tag className="w-6 h-6 text-blue-600" />
               Tags
             </h2>
@@ -843,7 +896,7 @@ const AddCourse = () => {
                   onChange={(e) => setCustomTag(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && addCustomTag()}
                   placeholder="Add custom tag"
-                  className="flex-1 border border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                  className="flex-1 border border-gray-200 dark:text-white/90 text-black dark:placeholder:text-white/80 placeholder:text-black/80 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                 />
                 <button
                   type="button"
@@ -879,13 +932,12 @@ const AddCourse = () => {
           </div>
 
           {/* Advanced Settings */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 dark:text-white/90 text-black flex items-center gap-2">
               <Users className="w-6 h-6 text-blue-600" />
               Advanced Settings
             </h2>
             <div className="space-y-6">
-          
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -895,7 +947,7 @@ const AddCourse = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
                     <Award className="w-4 h-4" />
                     Certificate Template
                   </span>
@@ -908,7 +960,7 @@ const AddCourse = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
                     <Download className="w-4 h-4" />
                     Downloadable Content
                   </span>
@@ -921,7 +973,7 @@ const AddCourse = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
                     <MessageCircle className="w-4 h-4" />
                     Course Forum
                   </span>
@@ -934,7 +986,7 @@ const AddCourse = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     Subscription Based
                   </span>
@@ -947,7 +999,7 @@ const AddCourse = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
                     <Lock className="w-4 h-4" />
                     Private Course
                   </span>
@@ -960,7 +1012,7 @@ const AddCourse = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
                     <Clock className="w-4 h-4" />
                     Enable Waitlist
                   </span>
@@ -970,8 +1022,8 @@ const AddCourse = () => {
           </div>
 
           {/* SEO Settings */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 dark:text-white/90 text-black flex items-center gap-2">
               <Target className="w-6 h-6 text-blue-600" />
               SEO Settings
             </h2>
@@ -985,15 +1037,19 @@ const AddCourse = () => {
                   value={formData.seoMetaDescription}
                   onChange={handleInputChange}
                   rows={3}
-                  className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
-                    formErrors.seoMetaDescription ? "border-red-400" : "border-gray-200"
+                  className={`w-full border rounded-xl dark:text-white/90 text-black dark:placeholder:text-white/60 placeholder:text-black/80 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                    formErrors.seoMetaDescription
+                      ? "border-red-400"
+                      : "border-gray-200"
                   }`}
                   placeholder="Brief description for search engines (max 160 characters)"
                   maxLength={160}
                 />
                 <div className="flex justify-between items-center mt-1">
                   {formErrors.seoMetaDescription && (
-                    <p className="text-xs text-red-600">{formErrors.seoMetaDescription}</p>
+                    <p className="text-xs text-red-600">
+                      {formErrors.seoMetaDescription}
+                    </p>
                   )}
                   <span className="text-xs text-gray-500 ml-auto">
                     {formData.seoMetaDescription.length}/160
@@ -1012,7 +1068,9 @@ const AddCourse = () => {
                   toolbar="minimal"
                 />
                 {formErrors.seoContent && (
-                  <p className="mt-2 text-xs text-red-600">{formErrors.seoContent}</p>
+                  <p className="mt-2 text-xs text-red-600">
+                    {formErrors.seoContent}
+                  </p>
                 )}
               </div>
             </div>
@@ -1049,7 +1107,7 @@ const AddCourse = () => {
               </button>
             </div>
           </div> */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="bg-white dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
             <div className="flex flex-col sm:flex-row gap-4 justify-end">
               <button
                 type="button"
@@ -1066,7 +1124,6 @@ const AddCourse = () => {
               </button>
             </div>
           </div>
-
         </div>
       </div>
 

@@ -131,18 +131,19 @@ const StudentList: React.FC = () => {
   const { students, loading, error, pagination, searchQuery, filters } =
     useAppSelector((state) => state.students);
 
-// Add this after the useAppSelector line
-console.log('Pagination state:', pagination);
-console.log('Total pages:', pagination.totalPages);
-console.log('Current page:', pagination.page);
-console.log('Total items:', pagination.total);
+  // Add this after the useAppSelector line
+  console.log("Pagination state:", pagination);
+  console.log("Total pages:", pagination.totalPages);
+  console.log("Current page:", pagination.page);
+  console.log("Total items:", pagination.total);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const [searchInput, setSearchInput] = useState(searchQuery);
-  const [localFilters, setLocalFilters] = useState<Record<string, any>>(filters);
+  const [localFilters, setLocalFilters] =
+    useState<Record<string, any>>(filters);
 
   const [popup, setPopup] = useState<{
     message: string;
@@ -204,7 +205,9 @@ console.log('Total items:', pagination.total);
           filters: {
             ...(localFilters.status ? { status: localFilters.status } : {}),
           },
-          searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
+          searchFields: searchQuery
+            ? { name: searchQuery, email: searchQuery }
+            : {},
           sort: { createdAt: "desc" },
         })
       );
@@ -220,7 +223,9 @@ console.log('Total items:', pagination.total);
           isDeleted: false,
           ...(localFilters.status ? { status: localFilters.status } : {}),
         },
-        searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
+        searchFields: searchQuery
+          ? { name: searchQuery, email: searchQuery }
+          : {},
         sort: { createdAt: "desc" },
       })
     );
@@ -257,7 +262,9 @@ console.log('Total items:', pagination.total);
         await dispatch(deleteStudent(studentToDelete._id)).unwrap();
 
         setPopup({
-          message: `Student "${studentToDelete.fullName || studentToDelete.name}" deleted successfully`,
+          message: `Student "${
+            studentToDelete.fullName || studentToDelete.name
+          }" deleted successfully`,
           type: "success",
           isVisible: true,
         });
@@ -276,7 +283,9 @@ console.log('Total items:', pagination.total);
             page: pagination.page,
             limit: pagination.limit,
             filters: activeFilters,
-            searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
+            searchFields: searchQuery
+              ? { name: searchQuery, email: searchQuery }
+              : {},
             sort: { createdAt: "desc" },
           })
         );
@@ -340,7 +349,7 @@ console.log('Total items:', pagination.total);
             </div>
 
             {/* Status Filter */}
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-gray-400" />
               <select
                 value={localFilters.status || ""}
@@ -351,7 +360,7 @@ console.log('Total items:', pagination.total);
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
-            </div>
+            </div> */}
 
             {/* Limit */}
             <div className="flex items-center gap-2">
@@ -423,7 +432,10 @@ console.log('Total items:', pagination.total);
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
               {students.length === 0 && !loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                  <td
+                    colSpan={7}
+                    className="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                  >
                     No students found.
                   </td>
                 </tr>
@@ -444,7 +456,9 @@ console.log('Total items:', pagination.total);
                                 student.profilePicture || student.image
                               }`
                             : `https://placehold.co/40x40?text=${
-                                (student?.fullName || student?.name)?.charAt(0) || "S"
+                                (student?.fullName || student?.name)?.charAt(
+                                  0
+                                ) || "S"
                               }`
                         }
                         alt={student?.fullName || student?.name || "Student"}
@@ -461,12 +475,16 @@ console.log('Total items:', pagination.total);
                       {student.isActive ? (
                         <span className="inline-flex items-center">
                           <CheckCircle className="text-green-500 h-5 w-5" />
-                          <span className="ml-2 text-green-700 dark:text-green-400">Active</span>
+                          <span className="ml-2 text-green-700 dark:text-green-400">
+                            Active
+                          </span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center">
                           <XCircle className="text-red-500 h-5 w-5" />
-                          <span className="ml-2 text-red-700 dark:text-red-400">Inactive</span>
+                          <span className="ml-2 text-red-700 dark:text-red-400">
+                            Inactive
+                          </span>
                         </span>
                       )}
                     </td>
@@ -500,8 +518,8 @@ console.log('Total items:', pagination.total);
           <div className="flex items-center justify-between mt-6">
             <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
               Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-              {pagination.total} results
+              {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+              of {pagination.total} results
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -525,7 +543,10 @@ console.log('Total items:', pagination.total);
                     {page}
                   </button>
                 ) : (
-                  <span key={idx} className="px-2 text-gray-400 dark:text-gray-500">
+                  <span
+                    key={idx}
+                    className="px-2 text-gray-400 dark:text-gray-500"
+                  >
                     {page}
                   </span>
                 )
@@ -548,7 +569,7 @@ console.log('Total items:', pagination.total);
         isVisible={popup.isVisible}
         onClose={() => setPopup({ ...popup, isVisible: false })}
       />
-      
+
       {/* Delete Modal */}
       <DeleteModal
         isOpen={deleteModalOpen}

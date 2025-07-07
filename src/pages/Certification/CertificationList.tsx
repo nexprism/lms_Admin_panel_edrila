@@ -15,6 +15,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useNavigate } from "react-router";
+import { fetchCertificates } from "../../store/slices/certificate";
 
 interface Course {
   _id: string;
@@ -159,7 +160,7 @@ const DeleteModal: React.FC<{
   );
 };
 
-const AssignmentList = () => {
+const CertificationList = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -216,7 +217,7 @@ const AssignmentList = () => {
       );
 
       const response = await dispatch(
-        fetchAssignmentSubmissions({
+        fetchCertificates({
           page: pagination.page,
           limit: pagination.limit,
           search: debouncedSearch.trim(),
@@ -226,16 +227,12 @@ const AssignmentList = () => {
       console.log("📥 Fetched assignments:", response);
 
       // Assuming the API returns data in this format
-      if (response && response.data) {
-        setAssignments(response.data.submissions || []);
-        setPagination(
-          response.data.pagination || {
-            total: 0,
-            page: 1,
-            limit: 10,
-            totalPages: 0,
-          }
-        );
+      if (response && response.templates) {
+        setAssignments(response.templates || []);
+        setPagination({
+          page: pagination.page,
+          limit: pagination.limit,
+        });
       } else {
         // Fallback if response structure is different
         setAssignments(Array.isArray(response) ? response : []);
@@ -325,7 +322,7 @@ const AssignmentList = () => {
 
   const handleEditClick = (assignmentId: string) => {
     console.log("✏️ Edit click:", assignmentId);
-    navigate(`/assignments/submissions/${assignmentId}`);
+    navigate(`/certificates-template/edit/${assignmentId}`);
   };
 
   const getStatusColor = (status: string) => {
@@ -344,15 +341,15 @@ const AssignmentList = () => {
   return (
     <div>
       <PageMeta
-        title="Assignment List | LMS Admin"
-        description="List of all assignments"
+        title="Certificate List | LMS Admin"
+        description="List of all certificates"
       />
-      <PageBreadcrumb pageTitle="Assignment List" />
+      <PageBreadcrumb pageTitle="Certificate List" />
 
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
-            Assignment Submissions
+            Certificate List
           </h1>
           <span className="text-gray-500 text-sm dark:text-gray-400">
             Total: {pagination.total}
@@ -414,10 +411,10 @@ const AssignmentList = () => {
                   #
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-                  Assignment Title
+                  Title
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-                  Course
+                  Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                   Status
@@ -429,52 +426,58 @@ const AssignmentList = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
-              {!loading && assignments.map((assignment, idx) => (
-                <tr
-                  key={assignment._id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                    {(pagination.page - 1) * pagination.limit + idx + 1}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                    <div className="max-w-xs truncate" title={assignment.assignmentId?.title || assignment.title}>
-                      {assignment.assignmentId?.title || assignment.title || "N/A"}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                    <div className="max-w-xs truncate" title={assignment.courseId?.title}>
-                      {assignment.courseId?.title || "No Course"}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                        assignment.status || "pending"
-                      )}`}
-                    >
-                      {assignment.status || "pending"}
-                    </span>
-                  </td>
-                
-                  <td className="px-6 py-4 text-right space-x-2">
-                    <button
-                      onClick={() => handleEditClick(assignment._id)}
-                      className="text-blue-500 hover:text-blue-700 transition-colors"
-                      title="View Submission"
-                    >
-                      <Pencil className="h-5 w-5" />
-                    </button>
-                    {/* <button
+              {!loading &&
+                assignments.map((assignment, idx) => (
+                  <tr
+                    key={assignment._id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      {(pagination.page - 1) * pagination.limit + idx + 1}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                      <div
+                        className="max-w-xs truncate"
+                        title={
+                          assignment.assignmentId?.title || assignment.title
+                        }
+                      >
+                        {assignment.assignmentId?.title ||
+                          assignment.title ||
+                          "N/A"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      <div className="max-w-xs truncate">{assignment.type}</div>
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                          assignment.status || "pending"
+                        )}`}
+                      >
+                        {assignment.status || "pending"}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-4 text-right space-x-2">
+                      <button
+                        onClick={() => handleEditClick(assignment._id)}
+                        className="text-blue-500 hover:text-blue-700 transition-colors"
+                        title="View Submission"
+                      >
+                        <Pencil className="h-5 w-5" />
+                      </button>
+                      {/* <button
                       onClick={() => openDeleteModal(assignment)}
                       className="text-red-500 hover:text-red-700 transition-colors"
                       title="Delete Submission"
                     >
                       <Trash2 className="h-5 w-5" />
                     </button> */}
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
 
@@ -560,4 +563,4 @@ const AssignmentList = () => {
   );
 };
 
-export default AssignmentList;
+export default CertificationList;
