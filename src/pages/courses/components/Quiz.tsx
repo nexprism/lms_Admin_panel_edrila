@@ -40,7 +40,13 @@ interface EnhancedPopupProps {
   autoClose?: boolean;
 }
 
-const EnhancedPopup: React.FC<EnhancedPopupProps> = ({ isVisible, message, type, onClose, autoClose = true }) => {
+const EnhancedPopup: React.FC<EnhancedPopupProps> = ({
+  isVisible,
+  message,
+  type,
+  onClose,
+  autoClose = true,
+}) => {
   useEffect(() => {
     if (isVisible && autoClose && type === "success") {
       const timer = setTimeout(() => {
@@ -84,15 +90,13 @@ const EnhancedPopup: React.FC<EnhancedPopupProps> = ({ isVisible, message, type,
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 md:pt-20">
-      <div className={`w-full max-w-sm md:max-w-md rounded-xl border-2 p-4 md:p-6 shadow-xl transform transition-all duration-300 scale-100 ${getTypeStyles()}`}>
+      <div
+        className={`w-full max-w-sm md:max-w-md rounded-xl border-2 p-4 md:p-6 shadow-xl transform transition-all duration-300 scale-100 ${getTypeStyles()}`}
+      >
         <div className="flex items-start gap-3 md:gap-4">
-          <div className="flex-shrink-0">
-            {getIcon()}
-          </div>
+          <div className="flex-shrink-0">{getIcon()}</div>
           <div className="flex-1">
-            <p className="text-sm font-medium leading-relaxed">
-              {message}
-            </p>
+            <p className="text-sm font-medium leading-relaxed">{message}</p>
           </div>
           <button
             onClick={onClose}
@@ -101,7 +105,7 @@ const EnhancedPopup: React.FC<EnhancedPopupProps> = ({ isVisible, message, type,
             <X className="w-4 h-4" />
           </button>
         </div>
-        
+
         {type === "success" && (
           <div className="mt-4 bg-white bg-opacity-60 rounded-lg p-3">
             <div className="flex items-center gap-2 text-xs text-green-700">
@@ -278,7 +282,8 @@ const Quiz = ({
 
   // FIXED: Handle save success and error popups - only when save was attempted
   useEffect(() => {
-    if (!loading && hasSaveAttempted) { // Only show popup if save was attempted
+    if (!loading && hasSaveAttempted) {
+      // Only show popup if save was attempted
       if (saveData && !saveError) {
         const isCreateOrUpdate = saveData?.message || saveData?.success;
         if (isCreateOrUpdate) {
@@ -302,7 +307,14 @@ const Quiz = ({
       }
       setHasSaveAttempted(false); // Reset the flag
     }
-  }, [saveData, loading, saveError, isEditMode, onSaveSuccess, hasSaveAttempted]);
+  }, [
+    saveData,
+    loading,
+    saveError,
+    isEditMode,
+    onSaveSuccess,
+    hasSaveAttempted,
+  ]);
 
   const handleChange = (
     field: keyof typeof quizData,
@@ -444,15 +456,19 @@ const Quiz = ({
   if (loading && isEditMode) {
     return (
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 max-h-[700px]">
-        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-white  dark:bg-white/[0.03] rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 text-white">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex items-center justify-center">
                 <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-spin" />
               </div>
               <div>
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold">Loading Quiz...</h2>
-                <p className="text-indigo-100 text-xs sm:text-sm mt-1">Please wait while we fetch the quiz data</p>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold">
+                  Loading Quiz...
+                </h2>
+                <p className="text-indigo-100 text-xs sm:text-sm mt-1">
+                  Please wait while we fetch the quiz data
+                </p>
               </div>
             </div>
           </div>
@@ -472,7 +488,7 @@ const Quiz = ({
     <>
       <div className="w-full max-w-7xl mx-auto max-h-[700px]">
         {/* Enhanced Header - Responsive */}
-        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-white  dark:bg-[#182131] rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 sm:gap-4">
@@ -484,7 +500,9 @@ const Quiz = ({
                     {isEditMode ? "Edit Quiz" : "Create New Quiz"}
                   </h2>
                   <p className="text-indigo-100 text-xs sm:text-sm mt-1 hidden sm:block">
-                    {isEditMode ? "Update quiz settings and questions" : "Design engaging quizzes for students"}
+                    {isEditMode
+                      ? "Update quiz settings and questions"
+                      : "Design engaging quizzes for students"}
                   </p>
                 </div>
               </div>
@@ -501,32 +519,34 @@ const Quiz = ({
           <div className="p-4 sm:p-6 lg:p-8 space-y-6 !pb-36 sm:space-y-8 max-h-[600px] overflow-y-auto">
             {/* Basic Quiz Information */}
             <div className=" rounded-xl p-4 sm:p-6 border-2 border-indigo-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90 mb-4 flex items-center">
                 <Settings className="w-5 h-5 mr-2 text-indigo-600" />
                 Quiz Configuration
               </h3>
-              
+
               {/* Mobile/Tablet responsive grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                 {/* Left Column */}
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-white/90">
                       <BookOpen className="w-4 h-4" />
                       Quiz Title *
                     </label>
                     <input
                       type="text"
                       value={quizData.quizTitle}
-                      onChange={(e) => handleChange("quizTitle", e.target.value)}
+                      onChange={(e) =>
+                        handleChange("quizTitle", e.target.value)
+                      }
                       placeholder="Enter quiz title"
-                      className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 dark:text-white/70 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-white/90">
                       <Timer className="w-4 h-4" />
                       Duration (minutes)
                     </label>
@@ -536,15 +556,18 @@ const Quiz = ({
                       max="180"
                       value={quizData.quizDuration}
                       onChange={(e) =>
-                        handleChange("quizDuration", parseInt(e.target.value) || "")
+                        handleChange(
+                          "quizDuration",
+                          parseInt(e.target.value) || ""
+                        )
                       }
                       placeholder="30"
-                      className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 dark:text-white/70 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-white/90">
                       <Brain className="w-4 h-4" />
                       Difficulty Level
                     </label>
@@ -553,12 +576,20 @@ const Quiz = ({
                       onChange={(e) =>
                         handleChange("quizDifficulty", e.target.value)
                       }
-                      className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 dark:text-white/70 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
                     >
-                      <option value="">Select difficulty</option>
-                      <option value="easy">🟢 Easy</option>
-                      <option value="medium">🟡 Medium</option>
-                      <option value="hard">🔴 Hard</option>
+                      <option className="dark:text-black" value="">
+                        Select difficulty
+                      </option>
+                      <option className="dark:text-black" value="easy">
+                        🟢 Easy
+                      </option>
+                      <option className="dark:text-black" value="medium">
+                        🟡 Medium
+                      </option>
+                      <option className="dark:text-black" value="hard">
+                        🔴 Hard
+                      </option>
                     </select>
                   </div>
                 </div>
@@ -567,7 +598,7 @@ const Quiz = ({
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                      <label className="flex items-center gap-2 text-sm font-semibold dark:text-white/90 text-gray-700">
                         <Trophy className="w-4 h-4" />
                         Total Marks *
                       </label>
@@ -579,12 +610,12 @@ const Quiz = ({
                         onChange={(e) =>
                           handleChange("totalMarks", parseInt(e.target.value))
                         }
-                        className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
+                        className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 dark:text-white/70 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                      <label className="flex items-center gap-2 text-sm font-semibold dark:text-white/90 text-gray-700">
                         <Target className="w-4 h-4" />
                         Pass Mark (%) *
                       </label>
@@ -596,7 +627,7 @@ const Quiz = ({
                         onChange={(e) =>
                           handleChange("passMark", parseInt(e.target.value))
                         }
-                        className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
+                        className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 dark:text-white/70 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-sm sm:text-base"
                         required
                       />
                     </div>
@@ -612,7 +643,7 @@ const Quiz = ({
                         }
                         className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                       />
-                      <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-700 dark:text-white/70 flex items-center gap-2">
                         <Sparkles className="w-4 h-4" />
                         Test Series Quiz
                       </span>
@@ -620,28 +651,29 @@ const Quiz = ({
                   </div>
 
                   {/* Show course and lesson info in edit mode */}
-                  {isEditMode && (quizData.courseTitle || quizData.lessonTitle) && (
-                    <div className="p-3 bg-white bg-opacity-60 rounded-lg border border-indigo-200">
-                      <h4 className="text-sm font-medium text-indigo-900 mb-2">
-                        Quiz Context
-                      </h4>
-                      {quizData.courseTitle && (
-                        <p className="text-sm text-indigo-800">
-                          <strong>Course:</strong> {quizData.courseTitle}
-                        </p>
-                      )}
-                      {quizData.lessonTitle && (
-                        <p className="text-sm text-indigo-800">
-                          <strong>Lesson:</strong> {quizData.lessonTitle}
-                        </p>
-                      )}
-                    </div>
-                  )}
+                  {isEditMode &&
+                    (quizData.courseTitle || quizData.lessonTitle) && (
+                      <div className="p-3 bg-white bg-opacity-60 rounded-lg border border-indigo-200">
+                        <h4 className="text-sm font-medium text-indigo-900 mb-2">
+                          Quiz Context
+                        </h4>
+                        {quizData.courseTitle && (
+                          <p className="text-sm text-indigo-800">
+                            <strong>Course:</strong> {quizData.courseTitle}
+                          </p>
+                        )}
+                        {quizData.lessonTitle && (
+                          <p className="text-sm text-indigo-800">
+                            <strong>Lesson:</strong> {quizData.lessonTitle}
+                          </p>
+                        )}
+                      </div>
+                    )}
                 </div>
               </div>
 
               <div className="mt-4 space-y-2">
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-white/90">
                   <FileText className="w-4 h-4" />
                   Description
                 </label>
@@ -652,21 +684,22 @@ const Quiz = ({
                   }
                   placeholder="Brief description of the quiz content and objectives"
                   rows={3}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none transition-all duration-200 text-sm sm:text-base"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 dark:text-white/70 border-gray-200 rounded-lg sm:rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none transition-all duration-200 text-sm sm:text-base"
                 />
               </div>
             </div>
 
             {/* Sections Management */}
-            <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden shadow-sm">
-              <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-4 sm:px-6 py-4 border-b border-gray-200">
+            <div className="bg-white  dark:bg-white/[0.03] rounded-xl border-2 border-gray-200 overflow-hidden shadow-sm">
+              <div className="bg-gradient-to-r from-gray-50 to-slate-50  dark:from-white/[0.03] dark:to-white/[0.03] px-4 sm:px-6 py-4 border-b border-gray-200">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90 flex items-center">
                       <Folder className="w-5 h-5 mr-2 text-green-600" />
-                      Quiz Sections ({sections.length}) - Total Questions ({getTotalQuestions()})
+                      Quiz Sections ({sections.length}) - Total Questions (
+                      {getTotalQuestions()})
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-gray-600 dark:text-white/70 mt-1">
                       Organize your quiz into sections with questions
                     </p>
                   </div>
@@ -689,7 +722,7 @@ const Quiz = ({
                 {sections.length === 0 ? (
                   <div className="text-center py-12">
                     <Folder className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-900 mb-2">
+                    <h4 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-2">
                       No sections yet
                     </h4>
                     <p className="text-gray-500 mb-4">
@@ -723,7 +756,9 @@ const Quiz = ({
                           setEditingSection(sectionIndex);
                           setShowSectionBuilder(true);
                         }}
-                        onDeleteSection={() => handleDeleteSection(sectionIndex)}
+                        onDeleteSection={() =>
+                          handleDeleteSection(sectionIndex)
+                        }
                         onEditQuestion={(questionIndex) => {
                           setEditingQuestion({ sectionIndex, questionIndex });
                           setActiveQuestionSectionIndex(sectionIndex);
@@ -783,7 +818,9 @@ const Quiz = ({
                   {loading ? (
                     <>
                       <Loader2 className="animate-spin h-4 w-4" />
-                      <span>{isEditMode ? "Updating..." : "Creating..."} Quiz</span>
+                      <span>
+                        {isEditMode ? "Updating..." : "Creating..."} Quiz
+                      </span>
                     </>
                   ) : (
                     <>
@@ -894,39 +931,39 @@ const SectionBuilder = ({ section, onSave, onClose }: SectionBuilderProps) => {
 
   return (
     <div className="fixed inset-0 z-60 flex items-center justify-center bg-transparent backdrop-blur-sm bg-opacity-50 p-4">
-      <div className="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-lg overflow-auto max-h-[90vh]">
-        <h3 className="text-lg font-semibold text-gray-900">
+      <div className="bg-white dark:bg-[#101828] rounded-xl max-w-md w-full p-6 space-y-4 shadow-lg overflow-auto max-h-[90vh]">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90">
           {section ? "Edit Section" : "Add New Section"}
         </h3>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-1">
             Section Title *
           </label>
           <input
             type="text"
             value={sectionTitle}
             onChange={(e) => setSectionTitle(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border dark:text-white/90 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Enter section title"
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-1">
             Section Description
           </label>
           <textarea
             rows={3}
             value={sectionDescription}
             onChange={(e) => setSectionDescription(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+            className="w-full px-3 py-2 border dark:text-white/70 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
             placeholder="Enter section description (optional)"
           />
         </div>
         <div className="flex justify-end gap-3 mt-4">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors"
+            className="px-5 py-2 rounded-lg border dark:text-white/90 dark:hover:text-black border-gray-300 hover:bg-gray-100 transition-colors"
           >
             Cancel
           </button>
@@ -955,9 +992,11 @@ const QuestionBuilder = ({
   onClose,
 }: QuestionBuilderProps) => {
   const [questionText, setQuestionText] = useState(question?.question || "");
-  
+
   // Convert question options to OptionType format
-  const convertToOptionType = (options: string[] | OptionType[]): OptionType[] => {
+  const convertToOptionType = (
+    options: string[] | OptionType[]
+  ): OptionType[] => {
     if (!options || options.length === 0) {
       return [
         { label: "A", text: "" },
@@ -966,14 +1005,14 @@ const QuestionBuilder = ({
         { label: "D", text: "" },
       ];
     }
-    
-    if (typeof options[0] === 'string') {
+
+    if (typeof options[0] === "string") {
       return (options as string[]).map((text, index) => ({
         label: String.fromCharCode(65 + index),
         text: text,
       }));
     }
-    
+
     return options as OptionType[];
   };
 
@@ -1028,25 +1067,25 @@ const QuestionBuilder = ({
 
   return (
     <div className="fixed inset-0 z-60 flex items-center justify-center bg-transparent backdrop-blur-lg p-4">
-      <div className="bg-white rounded-xl max-w-lg w-full p-6 space-y-4 shadow-lg overflow-auto max-h-[90vh]">
-        <h3 className="text-lg font-semibold text-gray-900">
+      <div className="bg-white dark:bg-[#101828]  rounded-xl max-w-lg w-full p-6 space-y-4 shadow-lg overflow-auto max-h-[90vh]">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90">
           {question ? "Edit Question" : "Add New Question"}
         </h3>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-1">
             Question Text *
           </label>
           <textarea
             rows={3}
             value={questionText}
             onChange={(e) => setQuestionText(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+            className="w-full px-3 py-2 border border-gray-300 dark:text-white/70 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
             placeholder="Enter the question"
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-1">
             Options *
           </label>
           {options.map((option, index) => (
@@ -1056,7 +1095,7 @@ const QuestionBuilder = ({
                 value={option.text}
                 onChange={(e) => handleOptionChange(index, e.target.value)}
                 placeholder={`Option ${option.label}`}
-                className="flex-grow px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-grow px-3 py-2 border dark:text-white/70 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
               {options.length > 2 && (
@@ -1081,19 +1120,25 @@ const QuestionBuilder = ({
           </button>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-1">
             Correct Answer *
           </label>
           <select
             value={correctAnswer}
             onChange={(e) => setCorrectAnswer(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 dark:text-white/70 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           >
-            <option value="">Select correct answer</option>
+            <option className="dark:text-black" value="">
+              Select correct answer
+            </option>
             {options.map((option, index) =>
               option.text.trim() ? (
-                <option key={index} value={option.label}>
+                <option
+                  className="dark:text-black"
+                  key={index}
+                  value={option.label}
+                >
                   {option.label}: {option.text}
                 </option>
               ) : null
@@ -1103,7 +1148,7 @@ const QuestionBuilder = ({
         <div className="flex justify-end gap-3 mt-4">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors"
+            className="px-5 py-2 rounded-lg border dark:hover:text-black dark:text-white/90 border-gray-300 hover:bg-gray-100 transition-colors"
           >
             Cancel
           </button>
@@ -1142,9 +1187,9 @@ const SectionCard = ({
   onAddQuestion: () => void;
 }) => {
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+    <div className="bg-gray-5  dark:bg-white/[0.06] border border-gray-200 rounded-lg overflow-hidden">
       {/* Section Header */}
-      <div className="bg-white border-b border-gray-200 p-4">
+      <div className="bg-white dark:bg-white/[0.03] border-b border-gray-200 p-4">
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
@@ -1155,7 +1200,7 @@ const SectionCard = ({
                   e.stopPropagation();
                   onToggleExpanded();
                 }}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 focus:outline-none"
+                className="flex items-center gap-2 text-gray-600 dark:text-white/90 hover:text-gray-800 focus:outline-none"
               >
                 {isExpanded ? (
                   <ChevronUp className="w-5 h-5" />
@@ -1166,15 +1211,15 @@ const SectionCard = ({
                   Section {sectionIndex + 1}
                 </span>
               </button>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-500 dark:text-white/90 ">
                 {section.questions?.length || 0} questions
               </span>
             </div>
-            <h4 className="font-semibold text-gray-900 mb-1">
+            <h4 className="font-semibold text-gray-900 dark:text-white/90 mb-1">
               {section.sectionTitle}
             </h4>
             {section.sectionDescription && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-white/70">
                 {section.sectionDescription}
               </p>
             )}
@@ -1187,7 +1232,7 @@ const SectionCard = ({
                 e.stopPropagation();
                 onAddQuestion();
               }}
-              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+              className="p-2 text-gray-500 dark:text-white/90 dark:hover:text-green-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
               title="Add Question"
             >
               <Plus className="w-4 h-4" />
@@ -1199,7 +1244,7 @@ const SectionCard = ({
                 e.stopPropagation();
                 onEditSection();
               }}
-              className="p-2 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+              className="p-2 text-gray-500 dark:text-white/90 dark:hover:text-yellow-600 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
               title="Edit Section"
             >
               <Edit2 className="w-4 h-4" />
@@ -1211,7 +1256,7 @@ const SectionCard = ({
                 e.stopPropagation();
                 onDeleteSection();
               }}
-              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="p-2 text-gray-500 dark:text-white/90 dark:hover:text-red-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               title="Delete Section"
             >
               <Trash2 className="w-4 h-4" />
@@ -1286,11 +1331,11 @@ const QuestionCard = ({
   const [showPreview, setShowPreview] = useState(false);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-white/[0.08]  border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+            <span className="bg-blue-100  text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
               Question {index + 1}
             </span>
             <button
@@ -1300,30 +1345,34 @@ const QuestionCard = ({
                 e.stopPropagation();
                 setShowPreview(!showPreview);
               }}
-              className="text-gray-500 hover:text-blue-600 focus:outline-none"
+              className="text-gray-500 dark:text-white/90 dark:hover:text-blue-600  hover:text-blue-600 focus:outline-none"
               title="Preview Question"
               aria-label="Preview Question"
             >
               <Eye className="w-4 h-4" />
             </button>
           </div>
-          <h4 className="font-semibold text-gray-900 mb-1">
+          <h4 className="font-semibold text-gray-900 dark:text-white/90 mb-1">
             {question.question}
           </h4>
           {showPreview && (
             <div className="mt-2">
-              <h5 className="font-medium text-gray-800">Options:</h5>
+              <h5 className="font-medium text-gray-800 dark:text-white/90">
+                Options:
+              </h5>
               <ul className="list-disc list-inside">
                 {question.options.map((option, optionIndex) => (
-                  <li key={optionIndex} className="text-gray-700">
-                    {typeof option === 'string' 
+                  <li
+                    key={optionIndex}
+                    className="text-gray-700 dark:text-white/70"
+                  >
+                    {typeof option === "string"
                       ? `${String.fromCharCode(65 + optionIndex)}: ${option}`
-                      : `${option.label}: ${option.text}`
-                    }
+                      : `${option.label}: ${option.text}`}
                   </li>
                 ))}
               </ul>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-white/70 mt-1">
                 <strong>Correct Answer:</strong> {question.correctAnswer}
               </p>
             </div>
@@ -1337,7 +1386,7 @@ const QuestionCard = ({
               e.stopPropagation();
               onEdit();
             }}
-            className="p-2 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+            className="p-2 text-gray-500 dark:text-white/90 dark:hover:text-yellow-600 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
             title="Edit Question"
           >
             <Edit2 className="w-4 h-4" />
@@ -1349,7 +1398,7 @@ const QuestionCard = ({
               e.stopPropagation();
               onDelete();
             }}
-            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="p-2 text-gray-500 dark:text-white/90 dark:hover:text-red-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             title="Delete Question"
           >
             <Trash2 className="w-4 h-4" />

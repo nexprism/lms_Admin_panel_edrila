@@ -165,8 +165,12 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
         {/* Content */}
         <div className="p-8">
           <div className="text-center mb-8">
-            <h3 className="text-xl font-semibold dark:text-white/90 mb-2">What's Next?</h3>
-            <p className="text-gray-600">Add modules and lessons to make your course complete</p>
+            <h3 className="text-xl font-semibold dark:text-white/90 mb-2">
+              What's Next?
+            </h3>
+            <p className="text-gray-600">
+              Add modules and lessons to make your course complete
+            </p>
           </div>
 
           {/* Next Steps */}
@@ -176,8 +180,12 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
                 <Layers className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h4 className="font-semibold dark:text-white/90">Create Modules</h4>
-                <p className="text-sm text-gray-600">Organize your course into logical sections</p>
+                <h4 className="font-semibold dark:text-white/90">
+                  Create Modules
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Organize your course into logical sections
+                </p>
               </div>
             </div>
 
@@ -186,8 +194,12 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
                 <FileEdit className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <h4 className="font-semibold dark:text-white/90">Add Lessons</h4>
-                <p className="text-sm text-gray-600">Create engaging lessons with videos and content</p>
+                <h4 className="font-semibold dark:text-white/90">
+                  Add Lessons
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Create engaging lessons with videos and content
+                </p>
               </div>
             </div>
 
@@ -196,8 +208,12 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
                 <PlayCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <h4 className="font-semibold dark:text-white/90">Upload Videos</h4>
-                <p className="text-sm text-gray-600">Add video content to your lessons</p>
+                <h4 className="font-semibold dark:text-white/90">
+                  Upload Videos
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Add video content to your lessons
+                </p>
               </div>
             </div>
           </div>
@@ -280,7 +296,9 @@ const FileUpload = ({
       </label>
       <div
         className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors duration-200 ${
-          dragOver ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-white"
+          dragOver
+            ? "border-blue-400 bg-blue-50 "
+            : "border-gray-200 bg-white dark:bg-white/[0.03]"
         } ${error ? "border-red-400" : ""}`}
         onDrop={handleDrop}
         onDragOver={(e) => {
@@ -319,7 +337,7 @@ const FileUpload = ({
 const YouTubeUrlInput = ({ label, value, onChange, error }) => {
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-semibold dark:text-white/90 flex items-center gap-2">
+      <label className="block text-sm font-semibold dark:text-white/90  flex items-center gap-2">
         <Video className="w-5 h-5 text-blue-600" />
         {label}
       </label>
@@ -327,7 +345,7 @@ const YouTubeUrlInput = ({ label, value, onChange, error }) => {
         type="text"
         value={value}
         onChange={onChange}
-        className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+        className={`w-full border rounded-xl px-4 py-3 dark:text-white/90 dark:placeholder:text-white/60 text-black placeholder:text-black/80  focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
           error ? "border-red-400" : "border-gray-200"
         }`}
         placeholder="Enter demo video YouTube URL"
@@ -625,7 +643,7 @@ const AddCourse = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold dark:text-white/90 mb-2">
+                <label className="block text-sm font-semibold dark:text-white/90  mb-2">
                   Course Description *
                 </label>
                 <QuillEditor
@@ -710,9 +728,9 @@ const AddCourse = () => {
           </div>
 
           {/* Media Files */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Image className="w-6 h-6 text-blue-600" />
+          <div className="bg-white  dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 dark:text-white/90 flex items-center gap-2">
+              <Image className="w-6 h-6 text-blue-600 " />
               Media Files
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -780,8 +798,8 @@ const AddCourse = () => {
           </div>
 
           {/* Pricing */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 dark:text-white/90 flex items-center gap-2">
               <DollarSign className="w-6 h-6 text-blue-600" />
               Pricing
             </h2>
@@ -795,7 +813,7 @@ const AddCourse = () => {
                   name="price"
                   value={formData.price}
                   onChange={handleInputChange}
-                  className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                  className={`w-full border rounded-xl px-4 py-3 focus:ring-2 dark:text-white/90 dark:placeholder:text-white/80  placeholder:text-black/80  text-black focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
                     formErrors.price ? "border-red-400" : "border-gray-200"
                   }`}
                   placeholder="Course price"
@@ -815,7 +833,7 @@ const AddCourse = () => {
                   name="currency"
                   value={formData.currency}
                   onChange={handleInputChange}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full border border-gray-200 dark:text-white/90 dark:placeholder:text-white/80  placeholder:text-black/80  text-black rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                 >
                   <option value="INR">INR (₹)</option>
                   <option value="USD">USD ($)</option>
@@ -827,8 +845,8 @@ const AddCourse = () => {
           </div>
 
           {/* Tags */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 flex dark:text-white/90 text-black items-center gap-2">
               <Tag className="w-6 h-6 text-blue-600" />
               Tags
             </h2>
@@ -861,7 +879,7 @@ const AddCourse = () => {
                   onChange={(e) => setCustomTag(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && addCustomTag()}
                   placeholder="Add custom tag"
-                  className="flex-1 border border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                  className="flex-1 border border-gray-200 dark:text-white/90 text-black dark:placeholder:text-white/80 placeholder:text-black/80 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                 />
                 <button
                   type="button"
@@ -897,8 +915,8 @@ const AddCourse = () => {
           </div>
 
           {/* Advanced Settings */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 dark:text-white/90 text-black flex items-center gap-2">
               <Users className="w-6 h-6 text-blue-600" />
               Advanced Settings
             </h2>
@@ -912,7 +930,7 @@ const AddCourse = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
                     <Award className="w-4 h-4" />
                     Certificate Template
                   </span>
@@ -925,7 +943,7 @@ const AddCourse = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
                     <Download className="w-4 h-4" />
                     Downloadable Content
                   </span>
@@ -938,7 +956,7 @@ const AddCourse = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
                     <MessageCircle className="w-4 h-4" />
                     Course Forum
                   </span>
@@ -951,7 +969,7 @@ const AddCourse = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     Subscription Based
                   </span>
@@ -964,7 +982,7 @@ const AddCourse = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
                     <Lock className="w-4 h-4" />
                     Private Course
                   </span>
@@ -977,7 +995,7 @@ const AddCourse = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
                     <Clock className="w-4 h-4" />
                     Enable Waitlist
                   </span>
@@ -987,8 +1005,8 @@ const AddCourse = () => {
           </div>
 
           {/* SEO Settings */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 dark:text-white/90 text-black flex items-center gap-2">
               <Target className="w-6 h-6 text-blue-600" />
               SEO Settings
             </h2>
@@ -1002,7 +1020,7 @@ const AddCourse = () => {
                   value={formData.seoMetaDescription}
                   onChange={handleInputChange}
                   rows={3}
-                  className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                  className={`w-full border rounded-xl dark:text-white/90 text-black dark:placeholder:text-white/60 placeholder:text-black/80 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
                     formErrors.seoMetaDescription
                       ? "border-red-400"
                       : "border-gray-200"
@@ -1072,7 +1090,7 @@ const AddCourse = () => {
               </button>
             </div>
           </div> */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="bg-white dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">
             <div className="flex flex-col sm:flex-row gap-4 justify-end">
               <button
                 type="button"
@@ -1089,7 +1107,6 @@ const AddCourse = () => {
               </button>
             </div>
           </div>
-
         </div>
       </div>
 

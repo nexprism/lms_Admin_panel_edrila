@@ -214,10 +214,10 @@ const CourseAccordion = ({ courseId }) => {
   if (loading) {
     return (
       <div className="max-w-full mx-auto min-h-fit">
-        <div className="bg-white rounded-lg shadow-lg border border-blue-100 p-8">
+        <div className="bg-white dark:bg-white/[0.03] rounded-lg shadow-lg border border-blue-100 p-8">
           <div className="flex items-center justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 mr-3" />
-            <span className="text-gray-600 text-lg">
+            <span className="text-gray-600 dark:text-white/70 text-lg">
               Loading course content...
             </span>
           </div>
@@ -228,12 +228,12 @@ const CourseAccordion = ({ courseId }) => {
 
   if (error) {
     return (
-      <div className="max-w-full mx-auto min-h-fit">
-        <div className="bg-white rounded-lg shadow-lg border border-red-100 p-8">
+      <div className="max-w-full dark:bg-white/[0.03] mx-auto min-h-fit">
+        <div className="bg-white dark:bg-white/[0.03] rounded-lg shadow-lg border border-red-100 p-8">
           <div className="flex items-center justify-center text-red-600">
             <AlertCircle className="w-8 h-8 mr-3" />
             <div>
-              <h3 className="text-lg font-semibold">Error Loading Course</h3>
+              <h3 className="text-lg font-semibold ">Error Loading Course</h3>
               <p className="text-sm mt-1">{error.message || error}</p>
             </div>
           </div>
@@ -245,10 +245,10 @@ const CourseAccordion = ({ courseId }) => {
   if (!modules || modules.length === 0) {
     return (
       <div className="max-w-full mx-auto min-h-fit">
-        <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-8">
+        <div className="bg-white dark:bg-white/[0.03]  rounded-lg shadow-lg border border-gray-100 p-8">
           <div className="text-center">
             <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white/90 mb-2">
               No Content Available
             </h3>
             <p className="text-gray-600">
@@ -263,15 +263,15 @@ const CourseAccordion = ({ courseId }) => {
   return (
     <div className="max-w-full mx-auto min-h-fit">
       {/* Course Stats Header */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100 p-6 mb-6">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-white/[0.03] dark:to-white/[0.03] rounded-lg border border-blue-100 p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <BookOpen className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Modules</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 dark:text-white/90">Total Modules</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white/90">
                 {modules.length}
               </p>
             </div>
@@ -302,15 +302,15 @@ const CourseAccordion = ({ courseId }) => {
           </div>
         </div>
       </div>
-
+                
       {/* Course Modules */}
-      <div className="bg-white rounded-lg shadow-lg border border-blue-100">
+      <div className="bg-white dark:bg-white/[0.03] rounded-lg shadow-lg border border-blue-100">
         <div className="divide-y divide-blue-100">
           {modules.map((module) => (
-            <div key={module.id || module._id} className="bg-white">
+            <div key={module.id || module._id} className="bg-white dark:bg-white/[0.03] ">
               {/* Module Header */}
               <div
-                className="flex items-center justify-between p-4 hover:bg-blue-50 cursor-pointer transition-all duration-200"
+                className="flex items-center justify-between p-4 hover:bg-blue-50 dark:hover:dark:bg-white/[0.06] cursor-pointer transition-all duration-200"
                 onClick={() => toggleModule(module.id || module._id)}
               >
                 <div className="flex items-center space-x-3">
@@ -322,11 +322,11 @@ const CourseAccordion = ({ courseId }) => {
                     )}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90">
                       {module.title || module.name}
                     </h3>
                     {module.description && (
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-600 dark:text-white/70 mt-1">
                         {module.description}
                       </p>
                     )}
@@ -358,11 +358,11 @@ const CourseAccordion = ({ courseId }) => {
                     : "max-h-0 opacity-0"
                 }`}
               >
-                <div className="bg-blue-50 border-t border-blue-100">
+                <div className="bg-blue-50 dark:bg-white/[0.01] border-t border-blue-100">
                   {module.lessons?.map((lesson, index) => (
                     <div
                       key={lesson.id || lesson._id}
-                      className="flex items-center justify-between p-4 pl-12 hover:bg-white transition-colors duration-200 border-b border-blue-100 last:border-b-0"
+                      className="flex items-center justify-between p-4 pl-12 hover:bg-white dark:hover:bg-white/[0.06] transition-colors duration-200 border-b border-blue-100 last:border-b-0"
                     >
                       <div className="flex items-center space-x-3">
                         <div
@@ -375,10 +375,10 @@ const CourseAccordion = ({ courseId }) => {
                           {lesson.isCompleted ? "✓" : index + 1}
                         </div>
                         <div className="flex items-center space-x-2">
-                          <div className="text-gray-500">
+                          <div className="text-gray-500 dark:text-white/70" >
                             {getLessonTypeIcon(lesson.type)}
                           </div>
-                          <span className="text-gray-900 font-medium">
+                          <span className="text-gray-900 dark:text-white/90 font-medium">
                             {lesson.title || lesson.name}
                           </span>
                           {lesson.duration && (
@@ -460,12 +460,12 @@ const CourseAccordion = ({ courseId }) => {
           onClick={closeModal}
         >
           <div
-            className="bg-white rounded-lg shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100"
+            className="bg-white dark:bg-[#101828] rounded-lg shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white/90">
                   Course Access Settings
                 </h3>
                 <button
@@ -480,10 +480,10 @@ const CourseAccordion = ({ courseId }) => {
               <div className="space-y-4">
                 <div className="pt-4 border-t border-gray-200">
                   <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white/90 mb-3">
                       Where do you want to make this lesson available?
                     </h4>
-                    <p className="text-sm text-gray-600 mb-4">
+                    <p className="text-sm text-gray-600 dark:text-white/70 mb-4">
                       Choose the platform(s) where students can access "
                       {modalData.lesson.title || modalData.lesson.name}".
                     </p>
@@ -507,10 +507,10 @@ const CourseAccordion = ({ courseId }) => {
                           htmlFor="phone-only"
                           className="ml-3 flex-1 cursor-pointer"
                         >
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-gray-900 dark:text-white/90">
                             Phone Only
                           </div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-gray-600 dark:text-white/70">
                             Mobile app access only
                           </div>
                         </label>
@@ -535,10 +535,10 @@ const CourseAccordion = ({ courseId }) => {
                           htmlFor="both-platforms"
                           className="ml-3 flex-1 cursor-pointer"
                         >
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-gray-900 dark:text-white/90">
                             Web & App Both
                           </div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-gray-600 dark:text-white/70">
                             Available on all platforms
                           </div>
                         </label>
@@ -591,12 +591,12 @@ const CourseAccordion = ({ courseId }) => {
           onClick={closeDripModal}
         >
           <div
-            className="bg-white rounded-lg shadow-2xl max-w-5xl h-[94%] overflow-y-auto w-full transform transition-all duration-300 scale-100"
+            className="bg-white dark:bg-[#101828] rounded-lg shadow-2xl max-w-5xl h-[94%] overflow-y-auto w-full transform transition-all duration-300 scale-100"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white/90">
                   Drip Settings -{" "}
                   {dripModalData.lesson?.title || dripModalData.lesson?.name}
                 </h3>

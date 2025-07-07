@@ -56,18 +56,22 @@ const SuccessPopup = ({
     <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
         <div className="text-center">
-          <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-            type === "success" ? "bg-green-100" : "bg-red-100"
-          }`}>
+          <div
+            className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+              type === "success" ? "bg-green-100" : "bg-red-100"
+            }`}
+          >
             {type === "success" ? (
               <CheckCircle className="w-8 h-8 text-green-600" />
             ) : (
               <AlertCircle className="w-8 h-8 text-red-600" />
             )}
           </div>
-          <h3 className={`text-xl font-semibold mb-2 ${
-            type === "success" ? "text-green-800" : "text-red-800"
-          }`}>
+          <h3
+            className={`text-xl font-semibold mb-2 ${
+              type === "success" ? "text-green-800" : "text-red-800"
+            }`}
+          >
             {type === "success" ? "Success!" : "Error!"}
           </h3>
           <p className="text-gray-600 mb-6">{message}</p>
@@ -98,34 +102,46 @@ type AccordionSectionProps = {
   isRequired?: boolean;
 };
 
-const AccordionSection = ({ 
-  title, 
-  icon: Icon, 
-  children, 
-  isOpen, 
-  onToggle, 
+const AccordionSection = ({
+  title,
+  icon: Icon,
+  children,
+  isOpen,
+  onToggle,
   isCompleted = false,
-  isRequired = false 
+  isRequired = false,
 }: AccordionSectionProps) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white dark:bg-white/[0.03] rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div
         className={`px-6 py-4 cursor-pointer transition-all duration-200 ${
-          isOpen ? "bg-blue-50 border-b border-gray-200" : "hover:bg-gray-50"
+          isOpen ? "bg-blue-50 dark:bg-white/[0.1] border-b border-gray-200" : "hover:bg-gray-50 dark:hover:bg-white/[0.1]"
         }`}
         onClick={onToggle}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${
-              isCompleted ? "bg-green-100" : isOpen ? "bg-blue-100" : "bg-gray-100"
-            }`}>
-              <Icon className={`w-5 h-5 ${
-                isCompleted ? "text-green-600" : isOpen ? "text-blue-600" : "text-gray-600"
-              }`} />
+            <div
+              className={`p-2 rounded-lg ${
+                isCompleted
+                  ? "bg-green-100"
+                  : isOpen
+                  ? "bg-blue-100"
+                  : "bg-gray-100"
+              }`}
+            >
+              <Icon
+                className={`w-5 h-5 ${
+                  isCompleted
+                    ? "text-green-600"
+                    : isOpen
+                    ? "text-blue-600"
+                    : "text-gray-600"
+                }`}
+              />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90 flex items-center gap-2">
                 {title}
                 {isRequired && <span className="text-red-500 text-sm">*</span>}
               </h3>
@@ -135,13 +151,11 @@ const AccordionSection = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {isCompleted && (
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            )}
+            {isCompleted && <CheckCircle className="w-5 h-5 text-green-600" />}
             {isOpen ? (
-              <ChevronUp className="w-5 h-5 text-gray-600" />
+              <ChevronUp className="w-5 h-5 text-gray-600 dark:text-white/90" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-gray-600" />
+              <ChevronDown className="w-5 h-5 text-gray-600 dark:text-white/90" />
             )}
           </div>
         </div>
@@ -193,7 +207,7 @@ const FileUpload = ({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+      <label className="block text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
         <Icon className="w-4 h-4" />
         {label}
       </label>
@@ -214,14 +228,15 @@ const FileUpload = ({
         />
         <label htmlFor={`file-${label}`} className="cursor-pointer">
           <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-white/70">
             Drop file here or{" "}
             <span className="text-blue-600 hover:underline">browse</span>
           </p>
         </label>
         {currentFile && (
           <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-700">
-            {currentFile.name} ({(currentFile.size / 1024 / 1024).toFixed(2)} MB)
+            {currentFile.name} ({(currentFile.size / 1024 / 1024).toFixed(2)}{" "}
+            MB)
           </div>
         )}
       </div>
@@ -237,10 +252,15 @@ type YouTubeUrlInputProps = {
   error?: string;
 };
 
-const YouTubeUrlInput = ({ label, value, onChange, error }: YouTubeUrlInputProps) => {
+const YouTubeUrlInput = ({
+  label,
+  value,
+  onChange,
+  error,
+}: YouTubeUrlInputProps) => {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+      <label className="block text-sm font-medium text-gray-700 dark:text-white/90 flex items-center gap-2">
         <Video className="w-4 h-4 text-blue-600" />
         {label}
       </label>
@@ -248,14 +268,12 @@ const YouTubeUrlInput = ({ label, value, onChange, error }: YouTubeUrlInputProps
         type="text"
         value={value}
         onChange={onChange}
-        className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+        className={`w-full border dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
           error ? "border-red-400" : "border-gray-300"
         }`}
         placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=xyz)"
       />
-      {error && (
-        <p className="mt-1 text-xs text-red-600">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       {typeof value === "string" && value && (
         <div className="mt-3">
           <iframe
@@ -356,34 +374,36 @@ const EditCourse = () => {
 
   // Toggle accordion section
   const toggleSection = (section) => {
-    setOpenSections(prev => ({
+    setOpenSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   };
 
   // Check if section is completed
   const isSectionCompleted = (section) => {
     switch (section) {
-      case 'basic':
+      case "basic":
         return formData.title && description;
-      case 'details':
-        return formData.categoryId && formData.subCategoryId && formData.duration;
-      case 'media':
-        return (thumbnailFile || formData.thumbnail);
-      case 'pricing':
+      case "details":
+        return (
+          formData.categoryId && formData.subCategoryId && formData.duration
+        );
+      case "media":
+        return thumbnailFile || formData.thumbnail;
+      case "pricing":
         return formData.price;
-      case 'features':
+      case "features":
         return true; // Always completed as it has defaults
-      case 'tags':
+      case "tags":
         return selectedTags.length > 0;
-      case 'seo':
+      case "seo":
         return true; // Optional section
-      case 'modules':
+      case "modules":
         return modules.length > 0;
-      case 'faqs':
+      case "faqs":
         return true; // Optional section
-      case 'publication':
+      case "publication":
         return true; // Always completed as it has defaults
       default:
         return false;
@@ -391,7 +411,14 @@ const EditCourse = () => {
   };
 
   // Validation schema
-  const validateForm = (formData, description, seoContent, selectedTags, files, demoVideoUrl) => {
+  const validateForm = (
+    formData,
+    description,
+    seoContent,
+    selectedTags,
+    files,
+    demoVideoUrl
+  ) => {
     const errors = {};
 
     if (!formData.title.trim()) {
@@ -431,7 +458,8 @@ const EditCourse = () => {
     }
 
     if (formData.seoMetaDescription.length > 160) {
-      errors.seoMetaDescription = "Meta description must be less than 160 characters";
+      errors.seoMetaDescription =
+        "Meta description must be less than 160 characters";
     }
 
     if (seoContent.length > 10000) {
@@ -448,7 +476,12 @@ const EditCourse = () => {
       errors.thumbnailFile = "Thumbnail image is required";
     }
 
-    if (demoVideoUrl && !/^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]{11}$/.test(demoVideoUrl)) {
+    if (
+      demoVideoUrl &&
+      !/^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]{11}$/.test(
+        demoVideoUrl
+      )
+    ) {
       errors.demoVideoUrl = "Please enter a valid YouTube URL";
     }
 
@@ -488,9 +521,10 @@ const EditCourse = () => {
           course.subCategoryId?._id ||
           "",
         level: course.level || "beginner",
-        price: typeof course.price === "object" && course.price?.$numberDecimal
-          ? course.price.$numberDecimal
-          : course.price || "",
+        price:
+          typeof course.price === "object" && course.price?.$numberDecimal
+            ? course.price.$numberDecimal
+            : course.price || "",
         currency: course.currency || "INR",
         duration: course.duration || "",
         instructorId: course.instructorId || course.instructor?._id || "",
@@ -576,7 +610,11 @@ const EditCourse = () => {
   };
 
   const addCustomTag = () => {
-    if (customTag.trim() && !selectedTags.includes(customTag.trim()) && selectedTags.length < 10) {
+    if (
+      customTag.trim() &&
+      !selectedTags.includes(customTag.trim()) &&
+      selectedTags.length < 10
+    ) {
       setSelectedTags([...selectedTags, customTag.trim()]);
       setCustomTag("");
       setFormErrors((prev) => ({ ...prev, tags: "" }));
@@ -596,7 +634,14 @@ const EditCourse = () => {
     e.preventDefault();
 
     const files = { thumbnailFile, coverImageFile };
-    const errors = validateForm(formData, description, seoContent, selectedTags, files, demoVideoUrl);
+    const errors = validateForm(
+      formData,
+      description,
+      seoContent,
+      selectedTags,
+      files,
+      demoVideoUrl
+    );
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -621,7 +666,10 @@ const EditCourse = () => {
 
     submitFormData.set("title", String(formData.title));
     submitFormData.set("subtitle", String(formData.subtitle));
-    submitFormData.set("seoMetaDescription", String(formData.seoMetaDescription));
+    submitFormData.set(
+      "seoMetaDescription",
+      String(formData.seoMetaDescription)
+    );
 
     submitFormData.set("description", description);
     submitFormData.set("seoContent", seoContent);
@@ -639,7 +687,9 @@ const EditCourse = () => {
       ).unwrap();
       setPopup({
         isVisible: true,
-        message: isDraft ? "Course saved as draft successfully!" : "Course updated successfully!",
+        message: isDraft
+          ? "Course saved as draft successfully!"
+          : "Course updated successfully!",
         type: "success",
       });
     } catch (error) {
@@ -668,16 +718,36 @@ const EditCourse = () => {
   }
 
   const accordionSections = [
-    { key: 'basic', title: 'Basic Information', icon: Type, isRequired: true },
-    { key: 'details', title: 'Course Details', icon: FileText, isRequired: true },
-    { key: 'media', title: 'Media Files', icon: Image, isRequired: true },
-    { key: 'pricing', title: 'Pricing', icon: DollarSign, isRequired: true },
-    { key: 'features', title: 'Course Features', icon: Award, isRequired: false },
-    { key: 'tags', title: 'Tags', icon: Tag, isRequired: true },
-    { key: 'seo', title: 'SEO Content', icon: Search, isRequired: false },
-    { key: 'modules', title: 'Course Modules', icon: Settings, isRequired: false },
-    { key: 'faqs', title: 'FAQs', icon: MessageCircle, isRequired: false },
-    { key: 'publication', title: 'Publication Status', icon: Eye, isRequired: false },
+    { key: "basic", title: "Basic Information", icon: Type, isRequired: true },
+    {
+      key: "details",
+      title: "Course Details",
+      icon: FileText,
+      isRequired: true,
+    },
+    { key: "media", title: "Media Files", icon: Image, isRequired: true },
+    { key: "pricing", title: "Pricing", icon: DollarSign, isRequired: true },
+    {
+      key: "features",
+      title: "Course Features",
+      icon: Award,
+      isRequired: false,
+    },
+    { key: "tags", title: "Tags", icon: Tag, isRequired: true },
+    { key: "seo", title: "SEO Content", icon: Search, isRequired: false },
+    {
+      key: "modules",
+      title: "Course Modules",
+      icon: Settings,
+      isRequired: false,
+    },
+    { key: "faqs", title: "FAQs", icon: MessageCircle, isRequired: false },
+    {
+      key: "publication",
+      title: "Publication Status",
+      icon: Eye,
+      isRequired: false,
+    },
   ];
 
   return (
@@ -688,20 +758,20 @@ const EditCourse = () => {
         isVisible={popup.isVisible}
         onClose={() => setPopup({ ...popup, isVisible: false })}
       />
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50  dark:bg-white/[0.03]">
         <div className="mx-auto py-8 px-4">
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h1 className="text-3xl font-bold flex items-center gap-3 text-gray-900">
-              <div className="p-2 bg-blue-100 rounded-lg">
+          <div className="bg-white dark:bg-white/[0.03] rounded-lg shadow-sm p-6 mb-6">
+            <h1 className="text-3xl font-bold flex items-center gap-3 text-gray-900 dark:text-white/90">
+              <div className="p-2 bg-blue-100 dark:bg-white/[0.09] rounded-lg">
                 <Edit className="w-8 h-8 text-blue-600" />
               </div>
               Edit Course
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 dark:text-white/70 mt-2">
               Update your course details below
             </p>
             {formData.title && (
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-white/70 mt-1">
                 Currently editing: <strong>{formData.title}</strong>
               </p>
             )}
@@ -726,11 +796,11 @@ const EditCourse = () => {
                   // isCompleted={isSectionCompleted(section.key)}
                   isRequired={section.isRequired}
                 >
-                  {section.key === 'basic' && (
+                  {section.key === "basic" && (
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                             Course Title *
                           </label>
                           <input
@@ -738,18 +808,22 @@ const EditCourse = () => {
                             name="title"
                             value={formData.title}
                             onChange={handleInputChange}
-                            className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                              formErrors.title ? "border-red-400" : "border-gray-300"
+                            className={`w-full border rounded-lg px-4 py-3 focus:ring-2 dark:text-white/70 focus:ring-blue-500 focus:border-transparent ${
+                              formErrors.title
+                                ? "border-red-400"
+                                : "border-gray-300"
                             }`}
                             placeholder="Enter course title"
                             required
                           />
                           {formErrors.title && (
-                            <p className="mt-1 text-xs text-red-600">{formErrors.title}</p>
+                            <p className="mt-1 text-xs text-red-600">
+                              {formErrors.title}
+                            </p>
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                             Course Subtitle
                           </label>
                           <input
@@ -757,13 +831,13 @@ const EditCourse = () => {
                             name="subtitle"
                             value={formData.subtitle}
                             onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full border border-gray-300  dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Enter course subtitle"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                           Course Description *
                         </label>
                         <QuillEditor
@@ -772,13 +846,15 @@ const EditCourse = () => {
                           placeholder="Describe your course in detail..."
                         />
                         {formErrors.description && (
-                          <p className="mt-2 text-xs text-red-600">{formErrors.description}</p>
+                          <p className="mt-2 text-xs text-red-600">
+                            {formErrors.description}
+                          </p>
                         )}
                       </div>
                     </div>
                   )}
 
-                  {section.key === 'details' && (
+                  {section.key === "details" && (
                     <div className="space-y-4">
                       <CategorySubcategoryDropdowns
                         selectedCategoryId={formData.categoryId}
@@ -787,66 +863,103 @@ const EditCourse = () => {
                         onSubcategoryChange={handleSubcategoryChange}
                       />
                       {formErrors.categoryId && (
-                        <p className="mt-1 text-xs text-red-600">{formErrors.categoryId}</p>
+                        <p className="mt-1 text-xs text-red-600">
+                          {formErrors.categoryId}
+                        </p>
                       )}
                       {formErrors.subCategoryId && (
-                        <p className="mt-1 text-xs text-red-600">{formErrors.subCategoryId}</p>
+                        <p className="mt-1 text-xs text-red-600">
+                          {formErrors.subCategoryId}
+                        </p>
                       )}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium dark:text-white/90 text-gray-700 mb-2">
                             Level
                           </label>
                           <select
                             name="level"
                             value={formData.level}
                             onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full border dark:text-white/70 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           >
-                            <option value="beginner">Beginner</option>
-                            <option value="intermediate">Intermediate</option>
-                            <option value="advanced">Advanced</option>
-                            <option value="all">All Levels</option>
+                            <option
+                              className="dark:text-black"
+                              value="beginner"
+                            >
+                              Beginner
+                            </option>
+                            <option
+                              className="dark:text-black"
+                              value="intermediate"
+                            >
+                              Intermediate
+                            </option>
+                            <option
+                              className="dark:text-black"
+                              value="advanced"
+                            >
+                              Advanced
+                            </option>
+                            <option className="dark:text-black" value="all">
+                              All Levels
+                            </option>
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                             Duration (hours) *
                           </label>
                           <input
-type="number"
+                            type="number"
                             name="duration"
                             value={formData.duration}
                             onChange={handleInputChange}
-                            className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                              formErrors.duration ? "border-red-400" : "border-gray-300"
+                            className={`w-full border dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                              formErrors.duration
+                                ? "border-red-400"
+                                : "border-gray-300"
                             }`}
                             placeholder="Enter duration in hours"
                             required
                           />
                           {formErrors.duration && (
-                            <p className="mt-1 text-xs text-red-600">{formErrors.duration}</p>
+                            <p className="mt-1 text-xs text-red-600">
+                              {formErrors.duration}
+                            </p>
                           )}
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                             Enrollment Type
                           </label>
                           <select
                             name="enrollmentType"
                             value={formData.enrollmentType}
                             onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full border dark:text-white/70 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           >
-                            <option value="open">Open Enrollment</option>
-                            <option value="restricted">Restricted</option>
-                            <option value="invitation">Invitation Only</option>
+                            <option className="dark:text-black" value="open">
+                              Open Enrollment
+                            </option>
+                            <option
+                              className="dark:text-black"
+                              value="restricted"
+                            >
+                              Restricted
+                            </option>
+                            <option
+                              className="dark:text-black"
+                              value="invitation"
+                            >
+                              Invitation Only
+                            </option>
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                             Maximum Students
                           </label>
                           <input
@@ -854,7 +967,7 @@ type="number"
                             name="maxStudents"
                             value={formData.maxStudents}
                             onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full border dark:text-white/70 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Leave empty for unlimited"
                           />
                         </div>
@@ -862,7 +975,7 @@ type="number"
                     </div>
                   )}
 
-                  {section.key === 'media' && (
+                  {section.key === "media" && (
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FileUpload
@@ -881,15 +994,19 @@ type="number"
                         />
                       </div>
                       {formErrors.thumbnailFile && (
-                        <p className="text-xs text-red-600">{formErrors.thumbnailFile}</p>
+                        <p className="text-xs text-red-600">
+                          {formErrors.thumbnailFile}
+                        </p>
                       )}
-                      
+
                       {/* Show current images if available */}
                       {(formData.thumbnail || formData.coverImage) && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {formData.thumbnail && (
                             <div>
-                              <h4 className="text-sm font-medium text-gray-700 mb-2">Current Thumbnail</h4>
+                              <h4 className="text-sm font-medium text-gray-700 dark:text-white/90   mb-2">
+                                Current Thumbnail
+                              </h4>
                               <img
                                 src={`${baseUrl}/${formData.thumbnail}`}
                                 alt="Current thumbnail"
@@ -899,7 +1016,9 @@ type="number"
                           )}
                           {formData.coverImage && (
                             <div>
-                              <h4 className="text-sm font-medium text-gray-700 mb-2">Current Cover Image</h4>
+                              <h4 className="text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
+                                Current Cover Image
+                              </h4>
                               <img
                                 src={`${baseUrl}/${formData.coverImage}`}
                                 alt="Current cover"
@@ -909,24 +1028,27 @@ type="number"
                           )}
                         </div>
                       )}
-                      
+
                       <YouTubeUrlInput
                         label="Demo Video (YouTube URL)"
                         value={demoVideoUrl}
                         onChange={(e) => {
                           setDemoVideoUrl(e.target.value);
-                          setFormErrors((prev) => ({ ...prev, demoVideoUrl: "" }));
+                          setFormErrors((prev) => ({
+                            ...prev,
+                            demoVideoUrl: "",
+                          }));
                         }}
                         error={formErrors.demoVideoUrl}
                       />
                     </div>
                   )}
 
-                  {section.key === 'pricing' && (
+                  {section.key === "pricing" && (
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2 flex items-center gap-2">
                             <DollarSign className="w-4 h-4" />
                             Price *
                           </label>
@@ -935,34 +1057,46 @@ type="number"
                             name="price"
                             value={formData.price}
                             onChange={handleInputChange}
-                            className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                              formErrors.price ? "border-red-400" : "border-gray-300"
+                            className={`w-full border dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                              formErrors.price
+                                ? "border-red-400"
+                                : "border-gray-300"
                             }`}
                             placeholder="Enter price"
                             required
                           />
                           {formErrors.price && (
-                            <p className="mt-1 text-xs text-red-600">{formErrors.price}</p>
+                            <p className="mt-1 text-xs text-red-600">
+                              {formErrors.price}
+                            </p>
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                             Currency
                           </label>
                           <select
                             name="currency"
                             value={formData.currency}
                             onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full border border-gray-300 dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           >
-                            <option value="INR">INR (₹)</option>
-                            <option value="USD">USD ($)</option>
-                            <option value="EUR">EUR (€)</option>
-                            <option value="GBP">GBP (£)</option>
+                            <option className="dark:text-black" value="INR">
+                              INR (₹)
+                            </option>
+                            <option className="dark:text-black" value="USD">
+                              USD ($)
+                            </option>
+                            <option className="dark:text-black" value="EUR">
+                              EUR (€)
+                            </option>
+                            <option className="dark:text-black" value="GBP">
+                              GBP (£)
+                            </option>
                           </select>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-4">
                         <label className="flex items-center gap-2">
                           <input
@@ -972,13 +1106,15 @@ type="number"
                             onChange={handleInputChange}
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
-                          <span className="text-sm text-gray-700">Subscription-based pricing</span>
+                          <span className="text-sm text-gray-700 dark:text-white/70">
+                            Subscription-based pricing
+                          </span>
                         </label>
                       </div>
                     </div>
                   )}
 
-                  {section.key === 'features' && (
+                  {section.key === "features" && (
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <label className="flex items-center gap-2">
@@ -990,7 +1126,9 @@ type="number"
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
                           <Award className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm text-gray-700">Certificate Available</span>
+                          <span className="text-sm text-gray-700 dark:text-white/70">
+                            Certificate Available
+                          </span>
                         </label>
                         <label className="flex items-center gap-2">
                           <input
@@ -1001,7 +1139,9 @@ type="number"
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
                           <Download className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm text-gray-700">Downloadable Content</span>
+                          <span className="text-sm text-gray-700 dark:text-white/70">
+                            Downloadable Content
+                          </span>
                         </label>
                         <label className="flex items-center gap-2">
                           <input
@@ -1012,7 +1152,9 @@ type="number"
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
                           <MessageCircle className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm text-gray-700">Course Forum</span>
+                          <span className="text-sm text-gray-700 dark:text-white/70">
+                            Course Forum
+                          </span>
                         </label>
                         <label className="flex items-center gap-2">
                           <input
@@ -1023,7 +1165,9 @@ type="number"
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
                           <Lock className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm text-gray-700">Private Course</span>
+                          <span className="text-sm text-gray-700 dark:text-white/70">
+                            Private Course
+                          </span>
                         </label>
                         <label className="flex items-center gap-2">
                           <input
@@ -1034,16 +1178,18 @@ type="number"
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
                           <Users className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm text-gray-700">Enable Waitlist</span>
+                          <span className="text-sm text-gray-700 dark:text-white/70">
+                            Enable Waitlist
+                          </span>
                         </label>
                       </div>
                     </div>
                   )}
 
-                  {section.key === 'tags' && (
+                  {section.key === "tags" && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2 flex items-center gap-2">
                           <Tag className="w-4 h-4" />
                           Course Tags *
                         </label>
@@ -1068,7 +1214,7 @@ type="number"
                             type="text"
                             value={customTag}
                             onChange={(e) => setCustomTag(e.target.value)}
-                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="flex-1 border dark:text-white/70 border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Add custom tag"
                             onKeyPress={(e) => {
                               if (e.key === "Enter") {
@@ -1086,13 +1232,17 @@ type="number"
                           </button>
                         </div>
                         {formErrors.tags && (
-                          <p className="mt-1 text-xs text-red-600">{formErrors.tags}</p>
+                          <p className="mt-1 text-xs text-red-600">
+                            {formErrors.tags}
+                          </p>
                         )}
                       </div>
-                      
+
                       {selectedTags.length > 0 && (
                         <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Tags:</h4>
+                          <h4 className="text-sm font-medium text-gray-700 dark:text-white/70 mb-2">
+                            Selected Tags:
+                          </h4>
                           <div className="flex flex-wrap gap-2">
                             {selectedTags.map((tag) => (
                               <span
@@ -1115,10 +1265,10 @@ type="number"
                     </div>
                   )}
 
-                  {section.key === 'seo' && (
+                  {section.key === "seo" && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                           SEO Meta Description
                         </label>
                         <textarea
@@ -1126,8 +1276,10 @@ type="number"
                           value={formData.seoMetaDescription}
                           onChange={handleInputChange}
                           rows={3}
-                          className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                            formErrors.seoMetaDescription ? "border-red-400" : "border-gray-300"
+                          className={`w-full border dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            formErrors.seoMetaDescription
+                              ? "border-red-400"
+                              : "border-gray-300"
                           }`}
                           placeholder="Enter meta description for search engines (max 160 characters)"
                           maxLength={160}
@@ -1136,12 +1288,14 @@ type="number"
                           {formData.seoMetaDescription.length}/160 characters
                         </p>
                         {formErrors.seoMetaDescription && (
-                          <p className="mt-1 text-xs text-red-600">{formErrors.seoMetaDescription}</p>
+                          <p className="mt-1 text-xs text-red-600">
+                            {formErrors.seoMetaDescription}
+                          </p>
                         )}
                       </div>
-                      
+
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                           SEO Content
                         </label>
                         <QuillEditor
@@ -1150,13 +1304,15 @@ type="number"
                           placeholder="Add SEO-friendly content for better search rankings..."
                         />
                         {formErrors.seoContent && (
-                          <p className="mt-2 text-xs text-red-600">{formErrors.seoContent}</p>
+                          <p className="mt-2 text-xs text-red-600">
+                            {formErrors.seoContent}
+                          </p>
                         )}
                       </div>
                     </div>
                   )}
 
-                  {section.key === 'modules' && (
+                  {section.key === "modules" && (
                     <div>
                       <ModuleSection
                         modules={modules}
@@ -1167,19 +1323,21 @@ type="number"
                     </div>
                   )}
 
-
-                  {section.key === 'faqs' && (
+                  {section.key === "faqs" && (
                     <div>
                       <Faqs courseId={courseId} />
                     </div>
                   )}
 
-                  {section.key === 'publication' && (
+                  {section.key === "publication" && (
                     <div className="space-y-4">
-                      <div className="p-4 bg-blue-50 rounded-lg">
-                        <h4 className="font-medium text-blue-900 mb-2">Publication Status</h4>
-                        <p className="text-sm text-blue-700 mb-3">
-                          Choose whether to publish your course immediately or save as draft.
+                      <div className="p-4 bg-blue-50 dark:bg-white/[0.03] rounded-lg">
+                        <h4 className="font-medium text-blue-900 dark:text-blue-400  mb-2">
+                          Publication Status
+                        </h4>
+                        <p className="text-sm text-blue-700 dark:text-blue-600 mb-3">
+                          Choose whether to publish your course immediately or
+                          save as draft.
                         </p>
                         <label className="flex items-center gap-2">
                           <input
@@ -1190,18 +1348,23 @@ type="number"
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
                           <Eye className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm text-gray-700">Publish Course</span>
+                          <span className="text-sm text-gray-700 dark:text-white/70">
+                            Publish Course
+                          </span>
                         </label>
                       </div>
-                      
+
                       {formData.isPublished && (
                         <div className="p-4 bg-green-50 rounded-lg">
                           <div className="flex items-center gap-2 mb-2">
                             <CheckCircle className="w-5 h-5 text-green-600" />
-                            <span className="font-medium text-green-900">Ready to Publish</span>
+                            <span className="font-medium text-green-900">
+                              Ready to Publish
+                            </span>
                           </div>
                           <p className="text-sm text-green-700">
-                            Your course will be visible to students once published.
+                            Your course will be visible to students once
+                            published.
                           </p>
                         </div>
                       )}
@@ -1249,7 +1412,7 @@ type="number"
                 )}
               </button>
             </div> */}
-            <div className="mt-8 flex justify-end bg-white rounded-lg shadow-sm p-6">
+            <div className="mt-8 flex justify-end bg-white dark:bg-white/[0.03] rounded-lg shadow-sm p-6">
               <button
                 type="submit"
                 disabled={loading}
@@ -1268,7 +1431,6 @@ type="number"
                 )}
               </button>
             </div>
-
           </form>
         </div>
       </div>

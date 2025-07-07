@@ -393,13 +393,14 @@ const CreateCertificateTemplate = () => {
       position: { x: 100, y: 520 },
       draggable: true,
     },
-    qr_code: {
-      content: "[qr_code]",
-      image_size: "80",
-      enable: true,
-      position: { x: 400, y: 450 },
-      draggable: true,
-    },
+    // qr_code: {
+    //   content: "[qr_code]",
+    //   image_size: "80",
+    //   image: null,
+    //   enable: true,
+    //   position: { x: 400, y: 450 },
+    //   draggable: true,
+    // },
     hint: {
       content: "Verify at lms.rocket-soft.org",
       font_size: "12",
@@ -700,40 +701,40 @@ const CreateCertificateTemplate = () => {
 
     const isDragging = draggedElement === elementKey;
 
-    if (elementKey === "qr_code") {
-      return (
-        <div
-          key={elementKey}
-          onMouseDown={(e) => handleMouseDown(e, elementKey)}
-          style={{
-            position: "absolute",
-            left: `${element.position.x}px`,
-            top: `${element.position.y}px`,
-            width: `${element.image_size}px`,
-            height: `${element.image_size}px`,
-            backgroundColor: "#f0f0f0",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "12px",
-            color: "#666",
-            border: "1px solid #ccc",
-            cursor: "move",
-            userSelect: "none",
-            zIndex: isDragging ? 10 : 1,
-            opacity: isDragging ? 0.8 : 1,
-            borderColor: isDragging ? "#3b82f6" : "#ccc",
-            borderWidth: isDragging ? "2px" : "1px",
-            borderStyle: isDragging ? "dashed" : "solid",
-          }}
-          className="hover:bg-blue-50 hover:border-blue-300 group"
-          title="Drag to move"
-        >
-          <Move className="w-4 h-4 text-blue-400 absolute -top-1 -right-1 opacity-0 group-hover:opacity-100" />
-          QR Code
-        </div>
-      );
-    }
+    // if (elementKey === "qr_code") {
+    //   return (
+    //     <div
+    //       key={elementKey}
+    //       onMouseDown={(e) => handleMouseDown(e, elementKey)}
+    //       style={{
+    //         position: "absolute",
+    //         left: `${element.position.x}px`,
+    //         top: `${element.position.y}px`,
+    //         width: `${element.image_size}px`,
+    //         height: `${element.image_size}px`,
+    //         backgroundColor: "#f0f0f0",
+    //         display: "flex",
+    //         alignItems: "center",
+    //         justifyContent: "center",
+    //         fontSize: "12px",
+    //         color: "#666",
+    //         border: "1px solid #ccc",
+    //         cursor: "move",
+    //         userSelect: "none",
+    //         zIndex: isDragging ? 10 : 1,
+    //         opacity: isDragging ? 0.8 : 1,
+    //         borderColor: isDragging ? "#3b82f6" : "#ccc",
+    //         borderWidth: isDragging ? "2px" : "1px",
+    //         borderStyle: isDragging ? "dashed" : "solid",
+    //       }}
+    //       className="hover:bg-blue-50 hover:border-blue-300 group"
+    //       title="Drag to move"
+    //     >
+    //       <Move className="w-4 h-4 text-blue-400 absolute -top-1 -right-1 opacity-0 group-hover:opacity-100" />
+    //       QR Code
+    //     </div>
+    //   );
+    // }
 
     if (!element.image) return null;
 
@@ -1265,7 +1266,7 @@ const CreateCertificateTemplate = () => {
                   </div>
 
                   {/* QR Code */}
-                  <div className="border rounded-lg p-4">
+                  {/* <div className="border rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <input
                         type="checkbox"
@@ -1283,8 +1284,17 @@ const CreateCertificateTemplate = () => {
                         QR Code
                       </label>
                     </div>
+
                     {elements.qr_code.enable && (
                       <div className="space-y-3">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleFileChange(e, "qr_code", "image")
+                          }
+                          className="w-full border rounded px-3 py-2"
+                        />
                         <input
                           type="number"
                           value={elements.qr_code.image_size}
@@ -1300,7 +1310,7 @@ const CreateCertificateTemplate = () => {
                         />
                       </div>
                     )}
-                  </div>
+                  </div> */}
 
                   {/* Stamp */}
                   <div className="border rounded-lg p-4">

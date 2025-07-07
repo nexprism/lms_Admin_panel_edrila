@@ -1,9 +1,11 @@
-
-
 import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createModule } from "../../store/slices/module";
-import { createLesson, deleteLesson, updateLesson } from "../../store/slices/lesson";
+import {
+  createLesson,
+  deleteLesson,
+  updateLesson,
+} from "../../store/slices/lesson";
 import { RootState, AppDispatch } from "../../hooks/redux";
 
 import {
@@ -84,7 +86,6 @@ const Modal = ({
         className={`relative w-fit max-h-[70vh] min-h-fit overflow-scroll hide-scrollbar rounded-xl transform scale-95 animate-scale-in
                     max-w-${maxWidth}`}
       >
-
         {/* Modal Body */}
         <div
           className="  overflow-y-auto custom-scrollbar"
@@ -155,21 +156,21 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
       };
 
       const result = await dispatch(createModule(payload)).unwrap();
-      
+
       // Debug logging to see what we get back
       console.log("Module creation result:", result);
       console.log("Result.data:", result.data);
-      
+
       // Immediate UI update - this will update the UI instantly
       onModuleCreated(result.data || result);
-      
+
       // Show success feedback
       setPopup({
         message: "Module created successfully!",
         type: "success",
         isVisible: true,
       });
-      
+
       // Reset form for next module
       setModuleData({
         title: "",
@@ -178,7 +179,6 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
         estimatedDuration: 60,
         isPublished: false,
       });
-      
     } catch (error) {
       console.error("Error creating module:", error);
       setPopup({
@@ -199,22 +199,22 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
         isVisible={popup.isVisible}
         onClose={() => setPopup({ ...popup, isVisible: false })}
       />
-      <div className="bg-white border-2 border-blue-200 rounded-2xl p-8 shadow-lg">
+      <div className="bg-white   dark:bg-white/[0.03] border-2 border-blue-200 rounded-2xl p-8 shadow-lg">
         <div className="text-center mb-8">
           <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
             <BookOpen className="w-8 h-8 text-blue-600" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white/90 mb-2">
             Create New Module
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-white/70">
             First, create your module. Then you'll be able to add lessons to it.
           </p>
         </div>
 
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
               Module Title *
             </label>
             <input
@@ -224,12 +224,12 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
                 setModuleData({ ...moduleData, title: e.target.value })
               }
               placeholder="e.g., Introduction to React Basics"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg"
+              className="w-full px-4 py-3 border-2 dark:text-white/70 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
               Module Description
             </label>
             <textarea
@@ -238,14 +238,14 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
                 setModuleData({ ...moduleData, description: e.target.value })
               }
               placeholder="Describe what students will learn in this module..."
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+              className="w-full px-4 py-3 border-2 dark:text-white/70 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
               rows={4}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                 Estimated Duration (minutes)
               </label>
               <input
@@ -254,16 +254,16 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
                 onChange={(e) =>
                   setModuleData({
                     ...moduleData,
-                    estimatedDuration: parseInt(e.target.value) ,
+                    estimatedDuration: parseInt(e.target.value),
                   })
                 }
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                className="w-full px-4 py-3 border-2 border-gray-300 dark:text-white/70 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 min="1"
                 placeholder="60"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                 Module Order
               </label>
               <input
@@ -275,7 +275,7 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
                     order: parseInt(e.target.value) || 1,
                   })
                 }
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                className="w-full px-4 py-3 border-2 border-gray-300 dark:text-white/70  rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 min="1"
               />
             </div>
@@ -291,7 +291,10 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
               }
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-            <label htmlFor="isPublished" className="text-gray-700 font-medium">
+            <label
+              htmlFor="isPublished"
+              className="text-gray-700 dark:text-white/70 font-medium"
+            >
               Publish module immediately
             </label>
           </div>
@@ -413,12 +416,16 @@ const LessonEditor = ({
             if (mod.lessons) {
               console.log("Checking module lessons:", mod.lessons);
               for (const l of mod.lessons) {
-
                 console.log("Checking lesson:", l);
                 // Check if the lesson matches and has textLessons
-                console.log("Comparing lesson._id:", l._id, "with lesson._id:", lesson._id);
+                console.log(
+                  "Comparing lesson._id:",
+                  l._id,
+                  "with lesson._id:",
+                  lesson._id
+                );
                 // If lesson has textLessons, return the first one
-                  console.log("l.textLessons", l.textLessons);
+                console.log("l.textLessons", l.textLessons);
                 if (l._id == lesson._id && l.textLessons[0]?._id) {
                   return l.textLessons._id || l.textLessons[0]?._id;
                 }
@@ -441,7 +448,6 @@ const LessonEditor = ({
                 nu++;
               }
             }
-
           }
           return null;
         }
@@ -550,40 +556,41 @@ const LessonEditor = ({
       console.log("Saving lesson data:", lessonData);
 
       let result;
-      
+
       // Check if this is an update (lesson has an ID) or create new lesson
       if (savedLessonId) {
         // Update existing lesson
         const token = localStorage.getItem("token") || "";
-        result = await dispatch(updateLesson({
-          lessonId: savedLessonId,
-          lessonData,
-          token
-        })).unwrap();
-        
+        result = await dispatch(
+          updateLesson({
+            lessonId: savedLessonId,
+            lessonData,
+            token,
+          })
+        ).unwrap();
+
         console.log("Lesson updated successfully:", result);
-        
+
         // For updates, use the existing lesson ID
-        const updatedLesson = { 
-          ...lesson, 
-          _id: savedLessonId, 
+        const updatedLesson = {
+          ...lesson,
+          _id: savedLessonId,
           id: savedLessonId,
           title: lesson.title,
           type: lesson.type,
           order: lesson.order,
           isRequired: lesson.isRequired,
         };
-        
+
         if (onChange) {
           onChange(updatedLesson);
         }
-        
+
         setPopup({
           message: "Lesson updated successfully!",
           type: "success",
           isVisible: true,
         });
-        
       } else {
         // Create new lesson
         result = await dispatch(createLesson(lessonData)).unwrap();
@@ -594,8 +601,12 @@ const LessonEditor = ({
         if (newLessonId) {
           setSavedLessonId(newLessonId);
           // Update the lesson object with the new ID
-          const updatedLesson = { ...lesson, _id: newLessonId, id: newLessonId };
-          
+          const updatedLesson = {
+            ...lesson,
+            _id: newLessonId,
+            id: newLessonId,
+          };
+
           // Call onSave callback to update parent state immediately (replaces onChange call)
           if (onSave) {
             const enhancedResult = {
@@ -608,28 +619,29 @@ const LessonEditor = ({
                 type: lesson.type,
                 order: lesson.order,
                 isRequired: lesson.isRequired,
-              }
+              },
             };
             onSave(enhancedResult);
           } else {
             // Fallback to onChange if onSave is not provided
             onChange(updatedLesson);
           }
-          
+
           setPopup({
             message: "Lesson created successfully!",
             type: "success",
             isVisible: true,
           });
-          
+
           console.log("Lesson created successfully:", result);
         }
       }
-      
     } catch (error) {
       console.error("Error saving lesson:", error);
       setPopup({
-        message: savedLessonId ? "Failed to update lesson" : "Failed to create lesson",
+        message: savedLessonId
+          ? "Failed to update lesson"
+          : "Failed to create lesson",
         type: "error",
         isVisible: true,
       });
@@ -710,11 +722,11 @@ const LessonEditor = ({
       }
       case "text": {
         let textLessonId = contentId; // Use the contentId we already calculated
-        
+
         // If we don't have contentId, try to find it from lesson data
         if (!textLessonId) {
           textLessonId = lesson.textLessons?._id || lesson.textLessonId;
-          
+
           // Search in courseData modules if still not found
           if (!textLessonId && courseData?.modules) {
             for (const mod of courseData.modules) {
@@ -730,9 +742,9 @@ const LessonEditor = ({
             }
           }
         }
-        
+
         console.log("Passing textLessonId to TextLesson:", textLessonId);
-        
+
         return (
           <TextLesson
             section={section || courseId}
@@ -793,7 +805,14 @@ const LessonEditor = ({
             }
           }
         }
-        console.log("Files component - contentId:", contentId, "fileId:", fileId, "lesson:", lesson);
+        console.log(
+          "Files component - contentId:",
+          contentId,
+          "fileId:",
+          fileId,
+          "lesson:",
+          lesson
+        );
         return (
           <Files
             {...commonProps}
@@ -856,7 +875,7 @@ const LessonEditor = ({
             </span>
           </div>
         )} */}
-{/* 
+        {/* 
         <button
           type="button"
           onClick={() => setShowSettings(!showSettings)}
@@ -990,9 +1009,9 @@ const LessonEditor = ({
                   }
                   disabled={savedLessonId} // Make readonly when lesson is already saved
                   className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base ${
-                    savedLessonId 
-                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
-                      : ''
+                    savedLessonId
+                      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                      : ""
                   }`}
                 >
                   <option value="video-lesson">🎬 Video Lesson</option>
@@ -1071,7 +1090,6 @@ const LessonEditor = ({
 
           {/* Content Form */}
           {renderContentModal()}
-
         </div>
       </Modal>
     </>
@@ -1188,28 +1206,42 @@ const SavedModuleDisplay = ({
               <div className="flex items-center space-x-2 text-gray-600">
                 <Clock className="w-4 h-4" />
                 <span>
-                  {module.estimatedDuration || module.module?.estimatedDuration || 60} minutes
+                  {module.estimatedDuration ||
+                    module.module?.estimatedDuration ||
+                    60}{" "}
+                  minutes
                 </span>
               </div>
 
               <div
                 className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                  (module.isPublished !== undefined ? module.isPublished : module.module?.isPublished)
+                  (
+                    module.isPublished !== undefined
+                      ? module.isPublished
+                      : module.module?.isPublished
+                  )
                     ? "bg-emerald-100 text-emerald-800"
                     : "bg-amber-100 text-amber-800"
                 }`}
               >
                 <div
                   className={`w-2 h-2 rounded-full mr-2 ${
-                    (module.isPublished !== undefined ? module.isPublished : module.module?.isPublished)
-                      ? "bg-emerald-500" 
+                    (
+                      module.isPublished !== undefined
+                        ? module.isPublished
+                        : module.module?.isPublished
+                    )
+                      ? "bg-emerald-500"
                       : "bg-amber-500"
                   }`}
                 ></div>
-                {(module.isPublished !== undefined ? module.isPublished : module.module?.isPublished) 
-                  ? "Published" 
-                  : "Draft"
-                }
+                {(
+                  module.isPublished !== undefined
+                    ? module.isPublished
+                    : module.module?.isPublished
+                )
+                  ? "Published"
+                  : "Draft"}
               </div>
             </div>
 
@@ -1263,7 +1295,10 @@ const SavedModuleDisplay = ({
                       title: lessonData.title || lesson.title,
                       type: lessonData.type || lesson.type,
                       order: lessonData.order || lesson.order,
-                      isRequired: lessonData.isRequired !== undefined ? lessonData.isRequired : lesson.isRequired,
+                      isRequired:
+                        lessonData.isRequired !== undefined
+                          ? lessonData.isRequired
+                          : lesson.isRequired,
                     };
                     // Update the lesson with the properly structured saved data
                     onLessonChange(idx, updatedLesson);
@@ -1344,9 +1379,9 @@ const ModuleSection = ({
   const handleModuleCreated = async (newModule: any) => {
     // Debug logging to see the structure
     console.log("New module received:", newModule);
-    
+
     // Immediate UI update - normalize the module structure
-    const moduleWithLessons = { 
+    const moduleWithLessons = {
       // Ensure all required properties are available at the top level
       _id: newModule._id || newModule.id,
       id: newModule._id || newModule.id,
@@ -1357,34 +1392,34 @@ const ModuleSection = ({
       isPublished: newModule.isPublished || false,
       courseId: newModule.courseId || courseId,
       lessons: [], // Start with empty lessons array
-      
+
       // Keep the original module data for reference
       module: newModule,
-      
+
       // Include any other properties from the response
       ...newModule,
     };
-    
+
     console.log("Processed module:", moduleWithLessons);
-    
+
     const updatedModules = [...savedModules, moduleWithLessons];
-    
+
     // Update state immediately for instant UI feedback
     setSavedModules(updatedModules);
     setShowCreateForm(false);
-    
+
     // Show success popup
     setPopup({
       message: "Module created successfully!",
       type: "success",
       isVisible: true,
     });
-    
+
     // Call parent callback for immediate update
     if (onModulesChange) {
       onModulesChange(updatedModules);
     }
-    
+
     // No automatic refresh - keep changes purely local for better performance
   };
 
@@ -1394,7 +1429,7 @@ const ModuleSection = ({
         ? { ...module, lessons: [...(module.lessons || []), newLesson] }
         : module
     );
-    
+
     // Immediate UI update
     setSavedModules(updatedModules);
 
@@ -1404,7 +1439,11 @@ const ModuleSection = ({
     }
   };
 
-  const updateLessonInModule = (moduleIndex: number, lessonIndex: number, updatedLesson: any) => {
+  const updateLessonInModule = (
+    moduleIndex: number,
+    lessonIndex: number,
+    updatedLesson: any
+  ) => {
     const updatedModules = savedModules.map((module, idx) =>
       idx === moduleIndex
         ? {
@@ -1415,7 +1454,7 @@ const ModuleSection = ({
           }
         : module
     );
-    
+
     // Immediate UI update
     setSavedModules(updatedModules);
 
@@ -1429,7 +1468,7 @@ const ModuleSection = ({
     if (window.confirm("Are you sure you want to delete this lesson?")) {
       const lessonToDelete = savedModules[moduleIndex].lessons[lessonIndex];
       const lessonId = lessonToDelete._id || lessonToDelete.id;
-      
+
       const updatedModules = savedModules.map((module, idx) =>
         idx === moduleIndex
           ? {
@@ -1530,18 +1569,18 @@ const ModuleSection = ({
         isVisible={popup.isVisible}
         onClose={() => setPopup({ ...popup, isVisible: false })}
       />
-      <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-xl p-8">
+      <div className="bg-gradient-to-br from-gray-50 to-white dark:from-white/[0.03] dark:to-white/[0.03] rounded-2xl shadow-xl p-8">
         <div className="mb-8">
           {/* Header Section */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white/90 flex items-center gap-3">
                 <div className="p-2 bg-blue-100 rounded-xl">
                   <BookOpen className="w-8 h-8 text-blue-600" />
                 </div>
                 Course Content
               </h2>
-              <p className="text-gray-600 mt-2">
+              <p className="text-gray-600 dark:text-white/70 mt-2">
                 Build and manage your course content
               </p>
             </div>
@@ -1559,7 +1598,7 @@ const ModuleSection = ({
 
           {/* Tab Navigation */}
           <div className="mb-6">
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl">
+            <div className="flex space-x-1 bg-gray-100 dark:bg-white/[0.06] p-1 rounded-xl">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -1571,8 +1610,8 @@ const ModuleSection = ({
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 flex-1 justify-center ${
                       isActive
-                        ? `bg-white shadow-sm text-${tab.color}-600 border border-${tab.color}-200`
-                        : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                        ? `bg-white dark:bg-white/[0.1] shadow-sm text-${tab.color}-600 border border-${tab.color}-200`
+                        : "text-gray-600 dark:text-white/70 hover:text-gray-800 hover:bg-gray-50 dark:hover:bg-white/[0.06] dark:hover:text-white/90"
                     }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -1582,7 +1621,7 @@ const ModuleSection = ({
                         className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
                           isActive
                             ? `bg-${tab.color}-100 text-${tab.color}-700`
-                            : "bg-gray-200 text-gray-600"
+                            : "bg-gray-200  text-gray-600"
                         }`}
                       >
                         {totalModules}
