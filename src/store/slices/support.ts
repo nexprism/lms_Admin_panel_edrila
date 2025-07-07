@@ -9,6 +9,7 @@ interface SupportTicket {
     description: string;
     priority: string;
     status: string;
+    attachments: string[];
     createdAt: string;
     updatedAt: string;
 }

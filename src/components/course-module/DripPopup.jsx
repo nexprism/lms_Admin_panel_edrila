@@ -135,6 +135,7 @@ const DripPopup = ({
   const dispatch = useDispatch();
   const [dripData, setDripData] = useState(initialData || {});
   const { data: course, loading } = useSelector((state) => state.drip);
+  console.log('targetType:', course);
   const [edit, setEdit] = useState(false);
 
   const [popup, setPopup] = useState({
@@ -151,16 +152,18 @@ const DripPopup = ({
     dispatch(fetchCourseContents());
   }, [dispatch]);
 
+  console.log("Initial Data:", initialData[0]?.dripType);
+
   const [form, setForm] = useState({
-    dripType: initialData?.dripType || "",
-    referenceType: initialData?.referenceType || "enrollment",
-    referenceId: initialData?.referenceId || initialData?.targetId || "",
-    delayDays: initialData?.delayDays || 0,
-    unlockDate: initialData?.unlockDate || "",
-    requiredScore: initialData?.requiredScore || "",
-    conditionOperator: initialData?.conditionOperator || "AND",
-    targetType: targetType || initialData?.targetType || "lesson",
-    targetId: targetId || initialData?.targetId || "",
+    dripType: initialData[0]?.dripType || "",
+    referenceType: initialData[0]?.referenceType || "enrollment",
+    referenceId: initialData[0]?.referenceId || initialData[0]?.targetId || "",
+    delayDays: initialData[0]?.delayDays || 0,
+    unlockDate: initialData[0]?.unlockDate || "",
+    requiredScore: initialData[0]?.requiredScore || "",
+    conditionOperator: initialData[0]?.conditionOperator || "AND",
+    targetType: targetType || initialData[0]?.targetType || "lesson",
+    targetId: targetId || initialData[0]?.targetId || "",
   });
 
   const [activeCategory, setActiveCategory] = useState("all");
@@ -265,19 +268,22 @@ const DripPopup = ({
       );
     }
 
-    if (form.referenceType === "lesson") {
-      // Filter lessons based on dripType
-      let filteredLessons = course.lessons || [];
+  if (form.referenceType === "lesson") {
+    let filteredLessons = course.lessons || [];
 
-      if (form.dripType === "after_quiz_passed") {
-        filteredLessons = filteredLessons.filter(
-          (lesson) => lesson.type === "quiz"
-        );
-      } else if (form.dripType === "after_assignment_submitted") {
-        filteredLessons = filteredLessons.filter(
-          (lesson) => lesson.type === "assignment"
-        );
-      }
+    if (form.dripType === "after_quiz_passed") {
+      filteredLessons = filteredLessons.filter(
+        (lesson) => lesson.type === "quiz"
+      );
+    } else if (form.dripType === "after_assignment_submitted") {
+      filteredLessons = filteredLessons.filter(
+        (lesson) => lesson.type === "assignment"
+      );
+    } else if (form.dripType === "after_lesson_completed" || form.dripType === "days_after_lesson_completed") {
+      filteredLessons = filteredLessons.filter(
+        (lesson) => lesson.type === "video-lesson"
+      );
+    }
 
       return filteredLessons.map((lesson) => {
         const module = course.modules?.find(
@@ -293,8 +299,9 @@ const DripPopup = ({
       });
     }
 
-    return [];
-  };
+  return [];
+};
+
 
   const getSelectedOptionLabel = () => {
     const options = getDropdownOptions();
