@@ -607,12 +607,13 @@ const CourseAccordion = ({ courseId }) => {
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
+            {console.log("Drip Modal Data:", dripModalData)}
 
               <DripPopup
                 onSubmit={handleDripSubmit}
                 onClose={closeDripModal}
                 initialData={{
-                  ...dripModalData.lesson?.dripSettings,
+                  ...dripModalData.lesson?.dripRules,
                   targetType: dripModalData.targetType,
                   targetId: dripModalData.targetId,
                 }}
