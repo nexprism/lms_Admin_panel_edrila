@@ -132,19 +132,18 @@ const StudentList: React.FC = () => {
   const { students, loading, error, pagination, searchQuery, filters } =
     useAppSelector((state) => state.students);
 
-  // Add this after the useAppSelector line
-  console.log("Pagination state:", pagination);
-  console.log("Total pages:", pagination.totalPages);
-  console.log("Current page:", pagination.page);
-  console.log("Total items:", pagination.total);
+// Add this after the useAppSelector line
+console.log('Pagination state:', pagination);
+console.log('Total pages:', pagination.totalPages);
+console.log('Current page:', pagination.page);
+console.log('Total items:', pagination.total);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const [searchInput, setSearchInput] = useState(searchQuery);
-  const [localFilters, setLocalFilters] =
-    useState<Record<string, any>>(filters);
+  const [localFilters, setLocalFilters] = useState<Record<string, any>>(filters);
 
   const [popup, setPopup] = useState<{
     message: string;
@@ -203,9 +202,7 @@ const StudentList: React.FC = () => {
           filters: {
             ...(localFilters.status ? { status: localFilters.status } : {}),
           },
-          searchFields: searchQuery
-            ? { name: searchQuery, email: searchQuery }
-            : {},
+          searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
           sort: { createdAt: "desc" },
         })
       );
@@ -260,9 +257,7 @@ const StudentList: React.FC = () => {
         await dispatch(deleteStudent(studentToDelete._id)).unwrap();
 
         setPopup({
-          message: `Student "${
-            studentToDelete.fullName || studentToDelete.name
-          }" deleted successfully`,
+          message: `Student "${studentToDelete.fullName || studentToDelete.name}" deleted successfully`,
           type: "success",
           isVisible: true,
         });
@@ -347,7 +342,7 @@ const StudentList: React.FC = () => {
             </div>
 
             {/* Status Filter */}
-            {/* <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-gray-400" />
               <select
                 value={localFilters.status || ""}
@@ -358,7 +353,7 @@ const StudentList: React.FC = () => {
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
-            </div> */}
+            </div>
 
             {/* Limit */}
             <div className="flex items-center gap-2">
@@ -430,10 +425,7 @@ const StudentList: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
               {students.length === 0 && !loading ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
-                  >
+                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                     No students found.
                   </td>
                 </tr>
@@ -447,21 +439,22 @@ const StudentList: React.FC = () => {
                       {(pagination.page - 1) * pagination.limit + idx + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <img
-                        src={
-                          student?.profilePicture || student?.image
-                            ? `${import.meta.env.VITE_IMAGE_URL}/${
-                                student.profilePicture || student.image
-                              }`
-                            : `https://placehold.co/40x40?text=${
-                                (student?.fullName || student?.name)?.charAt(
+                     <img
+  src={
+    student?.profilePicture || student?.image
+      ? `${import.meta.env.VITE_IMAGE_URL}/${student.profilePicture || student.image}`
+      : `https://placehold.co/40x40?text=${(student.fullName || student.name)?.charAt(
                                   0
-                                ) || "S"
-                              }`
-                        }
-                        alt={student?.fullName || student?.name || "Student"}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
+                                ) || "S"}`
+  }
+  onError={(e) => {
+    (e.currentTarget as HTMLImageElement).src =
+      "https://static.vecteezy.com/system/resources/previews/026/619/142/original/default-avatar-profile-icon-of-social-media-user-photo-image-vector.jpg";
+  }}
+  alt={student?.fullName || student?.name || "Student"}
+  className="w-10 h-10 rounded-full object-cover"
+/>
+
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {student.fullName || student.name}
@@ -480,9 +473,7 @@ const StudentList: React.FC = () => {
                       ) : (
                         <span className="inline-flex items-center">
                           <XCircle className="text-red-500 h-5 w-5" />
-                          <span className="ml-2 text-red-700 dark:text-red-400">
-                            Inactive
-                          </span>
+                          <span className="ml-2 text-red-700 dark:text-red-400">Inactive</span>
                         </span>
                       )}
                     </td>

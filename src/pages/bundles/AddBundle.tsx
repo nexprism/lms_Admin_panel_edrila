@@ -564,48 +564,63 @@ const AddBundleForm = () => {
           </div>
         </div>
 
-        {/* Pricing */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
-              Price *
-            </label>
-            <input
-              type="number"
-              name="price"
-              value={formData.price}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 text-black dark:text-white/90 dark:placeholder:text-white/40 placeholder:text-black/60 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="699"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
-              Discount (%) (max 100)
-            </label>
-            <input
-              type="number"
-              name="discount"
-              value={formData.discount}
-              onChange={(e) => {
-                let value = e.target.value;
-                // Only allow numbers between 0 and 100
-                if (Number(value) > 100) value = "100";
-                if (Number(value) < 0) value = "0";
-                setFormData((prev) => ({
-                  ...prev,
-                  discount: value,
-                }));
-              }}
-              min={0}
-              max={100}
-              className="w-full px-3 py-2 border border-gray-300 text-black dark:text-white/90 dark:placeholder:text-white/40 placeholder:text-black/60 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="10"
-            />
-          </div>
-        </div>
+                {/* Pricing */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Price *
+                        </label>
+                        <input
+                            type="number"
+                            name="price"
+                            value={formData.price}
+                            onChange={e => {
+                                let value = e.target.value;
+                                // Allow only up to 2 decimal places
+                                if (value.includes('.')) {
+                                    const [intPart, decPart] = value.split('.');
+                                    if (decPart.length > 2) {
+                                        value = `${intPart}.${decPart.slice(0, 2)}`;
+                                    }
+                                }
+                                setFormData(prev => ({
+                                    ...prev,
+                                    price: value
+                                }));
+                            }}
+                            required
+                            step="0.01"
+                            min="0"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="699"
+                        />
+                    </div>
+                    
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Discount (%) (max 100)
+                        </label>
+                        <input
+                            type="number"
+                            name="discount"
+                            value={formData.discount}
+                            onChange={e => {
+                                let value = e.target.value;
+                                // Only allow numbers between 0 and 100
+                                if (Number(value) > 100) value = '100';
+                                if (Number(value) < 0) value = '0';
+                                setFormData(prev => ({
+                                    ...prev,
+                                    discount: value
+                                }));
+                            }}
+                            min={0}
+                            max={100}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="10"
+                        />
+                    </div>
+                </div>
 
         {/* File Uploads */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

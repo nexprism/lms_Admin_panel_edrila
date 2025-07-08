@@ -460,16 +460,17 @@ const CategoryList: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     <img
-                      src={
-                        cat?.image
-                          ? `${import.meta.env.VITE_IMAGE_URL}/${cat.image}`
-                          : `https://placehold.co/40x40?text=${
-                              cat?.name?.charAt(0) || "C"
-                            }`
-                      }
-                      alt={cat?.image ? cat?.name : "No image"}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
+  src={`${import.meta.env.VITE_IMAGE_URL}/${cat.image}`}
+  onError={(e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src =
+      "https://tse1.mm.bing.net/th/id/OIP.FR4m6MpuRDxDsAZlyvKadQHaFL?pid=Api&P=0&h=180";
+  }}
+  alt={cat?.name || "No image"}
+  className="w-10 h-10 rounded-full object-cover"
+/>
+
+
                   </td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                     {cat.name}

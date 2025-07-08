@@ -710,7 +710,15 @@ const AddCourse = () => {
                     type="number"
                     name="duration"
                     value={formData.duration}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      // Only allow integers (no decimals)
+                      const value = e.target.value;
+                      if (value === "" || /^\d+$/.test(value)) {
+                        handleInputChange(e);
+                      }
+                    }}
+                    step="1"
+                    min="1"
                     className={`w-full border rounded-xl px-4 py-3 dark:text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
                       formErrors.duration ? "border-red-400" : "border-gray-200"
                     }`}
@@ -805,25 +813,34 @@ const AddCourse = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold dark:text-white/90 mb-2">
-                  Price *
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                  className={`w-full border rounded-xl px-4 py-3 focus:ring-2 dark:text-white/90 dark:placeholder:text-white/80  placeholder:text-black/80  text-black focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
-                    formErrors.price ? "border-red-400" : "border-gray-200"
-                  }`}
-                  placeholder="Course price"
-                  required
-                />
-                {formErrors.price && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {formErrors.price}
-                  </p>
-                )}
+              <label className="block text-sm font-semibold dark:text-white/90 mb-2">
+                Price *
+              </label>
+              <input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={(e) => {
+                // Allow only numbers with up to 2 decimal places
+                const value = e.target.value;
+                if (
+                  value === "" ||
+                  /^\d+(\.\d{0,2})?$/.test(value)
+                ) {
+                  handleInputChange(e);
+                }
+                }}
+                step="0.01"
+                min="0"
+                className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                formErrors.price ? "border-red-400" : "border-gray-200"
+                }`}
+                placeholder="Course price"
+                required
+              />
+              {formErrors.price && (
+                <p className="mt-1 text-xs text-red-600">{formErrors.price}</p>
+              )}
               </div>
               <div>
                 <label className="block text-sm font-semibold dark:text-white/90 mb-2">
@@ -842,7 +859,7 @@ const AddCourse = () => {
                 </select>
               </div>
             </div>
-          </div>
+            </div>
 
           {/* Tags */}
           <div className="bg-white dark:bg-white/[0.03] rounded-2xl shadow-xl p-8">

@@ -907,71 +907,38 @@ const EditCourse = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
-                            Duration (hours) *
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Duration (mins) *
                           </label>
                           <input
-                            type="number"
-                            name="duration"
-                            value={formData.duration}
-                            onChange={handleInputChange}
-                            className={`w-full border dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                              formErrors.duration
+                                                      type="number"
+                          name="duration"
+                          value={formData.duration}
+                          onChange={handleInputChange}
+                          className={`w-full border dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            formErrors.duration
                                 ? "border-red-400"
                                 : "border-gray-300"
-                            }`}
-                            placeholder="Enter duration in hours"
-                            required
+                          }`}
+                          placeholder="Enter duration in minutes"
+                          required
+                          min={1}
+                          step={1}
+                          onWheel={e => e.currentTarget.blur()}
+                          onInput={e => {
+                            // Prevent decimals
+                            const value = e.currentTarget.value;
+                            if (value && value.includes('.')) {
+                            e.currentTarget.value = value.split('.')[0];
+                            }
+                          }}
                           />
                           {formErrors.duration && (
-                            <p className="mt-1 text-xs text-red-600">
-                              {formErrors.duration}
-                            </p>
+                          <p className="mt-1 text-xs text-red-600">{formErrors.duration}</p>
                           )}
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
-                            Enrollment Type
-                          </label>
-                          <select
-                            name="enrollmentType"
-                            value={formData.enrollmentType}
-                            onChange={handleInputChange}
-                            className="w-full border dark:text-white/70 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          >
-                            <option className="dark:text-black" value="open">
-                              Open Enrollment
-                            </option>
-                            <option
-                              className="dark:text-black"
-                              value="restricted"
-                            >
-                              Restricted
-                            </option>
-                            <option
-                              className="dark:text-black"
-                              value="invitation"
-                            >
-                              Invitation Only
-                            </option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
-                            Maximum Students
-                          </label>
-                          <input
-                            type="number"
-                            name="maxStudents"
-                            value={formData.maxStudents}
-                            onChange={handleInputChange}
-                            className="w-full border dark:text-white/70 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Leave empty for unlimited"
-                          />
-                        </div>
-                      </div>
+                      
                     </div>
                   )}
 
@@ -1056,14 +1023,24 @@ const EditCourse = () => {
                             type="number"
                             name="price"
                             value={formData.price}
-                            onChange={handleInputChange}
-                            className={`w-full border dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                              formErrors.price
-                                ? "border-red-400"
-                                : "border-gray-300"
+                            onChange={(e) => {
+                              // Allow only numbers with up to 2 decimal places
+                              const value = e.target.value;
+                              if (
+                                value === "" ||
+                                /^\d+(\.\d{0,2})?$/.test(value)
+                              ) {
+                                handleInputChange(e);
+                              }
+                            }}
+                            className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                              formErrors.price ? "border-red-400" : "border-gray-300"
                             }`}
                             placeholder="Enter price"
                             required
+                            step="0.01"
+                            min="0"
+                            onWheel={e => e.currentTarget.blur()}
                           />
                           {formErrors.price && (
                             <p className="mt-1 text-xs text-red-600">
@@ -1096,21 +1073,8 @@ const EditCourse = () => {
                           </select>
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            name="isSubscription"
-                            checked={formData.isSubscription}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700 dark:text-white/70">
-                            Subscription-based pricing
-                          </span>
-                        </label>
-                      </div>
+                      
+                 
                     </div>
                   )}
 

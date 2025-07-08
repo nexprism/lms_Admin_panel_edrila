@@ -254,11 +254,17 @@ const BundleList: React.FC = () => {
                       {(pagination.page - 1) * pagination.limit + idx + 1}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                      <img
-                        src={VITE_IMAGE_URL + "/" + bundle.thumbnail}
-                        alt={bundle.title}
-                        className="w-14 h-10 rounded-sm object-cover"
-                      />
+                     <img
+                       src={VITE_IMAGE_URL + "/" + bundle.thumbnail}
+                       alt={bundle.title}
+                       className="w-14 h-10 rounded-sm object-cover"
+                       onError={(e) => {
+                         e.currentTarget.onerror = null; // prevent infinite loop
+                         e.currentTarget.src =
+                           "https://tse2.mm.bing.net/th/id/OIP.z2HmY-oQPSmmDwR-MYmW6QAAAA?pid=Api&P=0&h=180";
+                       }}
+                     />
+
                     </td>
 
                     <td className="px-6 py-4">
