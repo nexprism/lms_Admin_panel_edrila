@@ -171,8 +171,9 @@ const CourseAccordion = ({ courseId }) => {
     console.log("Saving drip settings:", dripSettings);
     // Here you would typically make an API call to save the drip settings
     // For now, just close the modal
-
-    if (result?.success || result.statusText === "OK") {
+    
+console.log("Drip settings submitted:", result);
+    if (result) {
       setPopup({
         isVisible: true,
         message: "Drip settings saved successfully!",
