@@ -19,6 +19,7 @@ import {
   X,
   AlertTriangle,
   Eye,
+  Award,
 } from "lucide-react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -168,14 +169,11 @@ const StudentList: React.FC = () => {
   // Fetch students
   useEffect(() => {
     // Build filters object for API query
-    const activeFilters: Record<string, any> = {
-    };
+    const activeFilters: Record<string, any> = {};
 
     // Set isActive based on status filter
     if (localFilters.status === "active") {
       activeFilters.isActive = true;
-
-
 
       activeFilters.isActive = false;
     }
@@ -498,12 +496,11 @@ const StudentList: React.FC = () => {
                             <Eye className="h-5 w-5" />
                           </button>
                         </Link>
-                        {/* <button
-                          onClick={() => openDeleteModal(student)}
-                          className="text-red-500 hover:text-red-700 transition-colors p-1"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button> */}
+                        <Link to={`/certificates/issue?user=${student._id}`}>
+                          <button className="text-green-500 hover:text-green-700 transition-colors p-1">
+                            <Award className="h-5 w-5" />
+                          </button>
+                        </Link>
                       </div>
                     </td>
                   </tr>

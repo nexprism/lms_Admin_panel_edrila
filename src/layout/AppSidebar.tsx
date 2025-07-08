@@ -125,8 +125,11 @@ const navItems: NavItem[] = [
     icon: <PieChartIcon />,
     name: "Certifications",
     subItems: [
-      { name: "All Certifications", path: "/certificates-template/all" },
-      { name: "Issue Certificate", path: "/certificates-template/add" },
+      {
+        name: "All Templates",
+        path: "/certificates-template/all",
+      },
+      { name: "Add Template", path: "/certificates-template/add" },
       // {
       //   name: "Certificates",
       //   path: "/certificates",

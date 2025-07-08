@@ -34,6 +34,7 @@ import HelpDesk from "./pages/HelpDesk/RequestList";
 import TicketDetails from "./pages/HelpDesk/TicketDetails";
 import CertificationList from "./pages/Certification/CertificationList";
 import EditCreateCertificateTemplate from "./pages/Certification/EditeCertification";
+import IssueCertification from "./pages/Certification/IssueCertification";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -148,10 +149,17 @@ export default function App() {
                 path="/certificates-template/add"
                 element={<CreateCertificateTemplate />}
               />
-              <Route path="/certificates-template/all" element={<CertificationList />} />
+              <Route
+                path="/certificates-template/all"
+                element={<CertificationList />}
+              />
               <Route
                 path="/certificates-template/edit/:certificateId"
                 element={<EditCreateCertificateTemplate />}
+              />
+              <Route
+                path="/certificates/issue"
+                element={<IssueCertification />}
               />
 
               {/* Files */}

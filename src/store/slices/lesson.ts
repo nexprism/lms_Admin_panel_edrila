@@ -130,7 +130,7 @@ export const updateLessonMobileOnly = createAsyncThunk(
           },
         }
       );
-      window.location.reload();
+      // window.location.reload();
 
       return response.data;
     } catch (error: any) {

@@ -56,19 +56,12 @@ export const fetchDripRules = createAsyncThunk(
   }
 );
 
-
 export const updateDripRuleByReferenceId = createAsyncThunk(
   "drip/updateDripRuleByReferenceId",
-  async (
-    {
-      referenceId,
-      updateData,
-    }: { referenceId: string; updateData: Partial<DripRulePayload> },
-    { rejectWithValue }
-  ) => {
+  async (updateData, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.put(
-        `/drip/drip-rules/by-reference/${referenceId}`,
+        `/drip/drip-rules/by-target/${updateData.targetId}`,
         updateData,
         {
           headers: {
@@ -76,14 +69,12 @@ export const updateDripRuleByReferenceId = createAsyncThunk(
           },
         }
       );
-      return response.data;
+      return response;
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
-
-
 
 export const deleteDripRule = createAsyncThunk(
   "drip/deleteDripRule",
@@ -187,24 +178,22 @@ const dripSlice = createSlice({
       .addCase(updateDripRuleByReferenceId.fulfilled, (state, action) => {
         state.loading = false;
         // Optionally update the state with the updated rule
-        const updatedRule = action.payload;
-        if (state.data) {
-          const index = state.data.findIndex(
-            (rule: any) => rule.referenceId === updatedRule.referenceId
-          );
-          if (index !== -1) {
-            state.data[index] = updatedRule;
-          } else {
-            state.data.push(updatedRule);
-          }
-        }
+        // const updatedRule = action.payload;
+        // if (state.data) {
+        //   const index = state.data.findIndex(
+        //     (rule: any) => rule.referenceId === updatedRule.referenceId
+        //   );
+        //   if (index !== -1) {
+        //     state.data[index] = updatedRule;
+        //   } else {
+        //     state.data.push(updatedRule);
+        //   }
+        // }
       })
       .addCase(updateDripRuleByReferenceId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
-
-
   },
 });
 

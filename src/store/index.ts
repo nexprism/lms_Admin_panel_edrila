@@ -19,6 +19,7 @@ import studentsSlice from "./slices/students";
 import Support from "./slices/support";
 import certificateReducer from "./slices/certificate";
 import dashboardReducer from "./slices/dashboard";
+import issueCertificate from "./slices/IssuesCertification";
 
 export const store = configureStore({
   reducer: {
@@ -41,6 +42,7 @@ export const store = configureStore({
     support: Support,
     dashboard: dashboardReducer,
     certificate: certificateReducer, // Assuming you have a certificate reducer
+    issueCertificate: issueCertificate, // Importing issueCertificate slice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -14,6 +14,7 @@ import {
 import {
   fetchCourseContents,
   createDripRule,
+  updateDripRuleByReferenceId,
 } from "../../store/slices/drip.js";
 import { useSelector, useDispatch } from "react-redux";
 import PopupAlert from "../../components/popUpAlert.jsx";
@@ -135,7 +136,7 @@ const DripPopup = ({
   const dispatch = useDispatch();
   const [dripData, setDripData] = useState(initialData || {});
   const { data: course, loading } = useSelector((state) => state.drip);
-  console.log('targetType:', course);
+  console.log("targetType:", course);
   const [edit, setEdit] = useState(false);
 
   const [popup, setPopup] = useState({
@@ -227,22 +228,19 @@ const DripPopup = ({
 
         let result;
         if (edit) {
-          result = await dispatch(createDripRule(dripRuleData));
+          result = await dispatch(updateDripRuleByReferenceId(dripRuleData));
         } else {
           result = await dispatch(createDripRule(dripRuleData));
         }
-        if (createDripRule.fulfilled.match(result)) {
-          setPopup({ isVisible: true, message: "Success!", type: "success" });
-        } else {
-          setPopup({ isVisible: true, message: "Error!", type: "error" });
-        }
-        if (onSubmit) onSubmit(dripRuleData);
+        console.log("Drip rule creation result:", result);
+
+        onSubmit(dripRuleData, result.payload);
       } catch (error) {
-        setPopup({
-          isVisible: true,
-          message: `Failed to add Drip Rule , Please try again later!`,
-          type: "error",
-        });
+        // setPopup({
+        //   isVisible: true,
+        //   message: `Failed to add Drip Rule , Please try again later!`,
+        //   type: "error",
+        // });
         console.error("Failed to create drip rule:", error);
       }
     }
@@ -268,22 +266,25 @@ const DripPopup = ({
       );
     }
 
-  if (form.referenceType === "lesson") {
-    let filteredLessons = course.lessons || [];
+    if (form.referenceType === "lesson") {
+      let filteredLessons = course.lessons || [];
 
-    if (form.dripType === "after_quiz_passed") {
-      filteredLessons = filteredLessons.filter(
-        (lesson) => lesson.type === "quiz"
-      );
-    } else if (form.dripType === "after_assignment_submitted") {
-      filteredLessons = filteredLessons.filter(
-        (lesson) => lesson.type === "assignment"
-      );
-    } else if (form.dripType === "after_lesson_completed" || form.dripType === "days_after_lesson_completed") {
-      filteredLessons = filteredLessons.filter(
-        (lesson) => lesson.type === "video-lesson"
-      );
-    }
+      if (form.dripType === "after_quiz_passed") {
+        filteredLessons = filteredLessons.filter(
+          (lesson) => lesson.type === "quiz"
+        );
+      } else if (form.dripType === "after_assignment_submitted") {
+        filteredLessons = filteredLessons.filter(
+          (lesson) => lesson.type === "assignment"
+        );
+      } else if (
+        form.dripType === "after_lesson_completed" ||
+        form.dripType === "days_after_lesson_completed"
+      ) {
+        filteredLessons = filteredLessons.filter(
+          (lesson) => lesson.type === "video-lesson"
+        );
+      }
 
       return filteredLessons.map((lesson) => {
         const module = course.modules?.find(
@@ -299,9 +300,8 @@ const DripPopup = ({
       });
     }
 
-  return [];
-};
-
+    return [];
+  };
 
   const getSelectedOptionLabel = () => {
     const options = getDropdownOptions();

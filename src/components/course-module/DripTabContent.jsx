@@ -20,6 +20,7 @@ import {
 import { fetchCourseById } from "../../store/slices/course";
 import { updateLessonMobileOnly } from "../../store/slices/lesson"; // Import the lesson thunk
 import DripPopup from "./DripPopup";
+import PopupAlert from "../popUpAlert";
 
 const CourseAccordion = ({ courseId }) => {
   const dispatch = useDispatch();
@@ -36,7 +37,11 @@ const CourseAccordion = ({ courseId }) => {
   const [modules, setModules] = useState([]);
   const [dripModalData, setDripModalData] = useState(null);
   const [savingSettings, setSavingSettings] = useState(false); // Local loading state for settings save
-
+  const [popup, setPopup] = useState({
+    isVisible: false,
+    message: "",
+    type: "",
+  });
   // Fetch course data when component mounts or courseId changes
   useEffect(() => {
     if (courseId) {
@@ -118,13 +123,22 @@ const CourseAccordion = ({ courseId }) => {
 
       setModules(updatedModules);
       closeModal();
-
+      setPopup({
+        isVisible: true,
+        message: "Lesson settings updated successfully!",
+        type: "success",
+      });
       // Optional: Show success message
       console.log("Mobile-only setting updated successfully:", result);
     } catch (error) {
       console.error("Failed to update mobile-only setting:", error);
       // Optional: Show error message to user
-      alert("Failed to update lesson settings. Please try again.");
+      setPopup({
+        isVisible: true,
+        message: `Failed to update lesson settings: ${error.message || error}`,
+        type: "error",
+      });
+      // alert("Failed to update lesson settings. Please try again.");
     } finally {
       setSavingSettings(false);
     }
@@ -153,10 +167,25 @@ const CourseAccordion = ({ courseId }) => {
     setDripModalData(null);
   };
 
-  const handleDripSubmit = (dripSettings) => {
+  const handleDripSubmit = (dripSettings, result) => {
     console.log("Saving drip settings:", dripSettings);
     // Here you would typically make an API call to save the drip settings
     // For now, just close the modal
+
+    if (result?.success || result.statusText === "OK") {
+      setPopup({
+        isVisible: true,
+        message: "Drip settings saved successfully!",
+        type: "success",
+      });
+    } else {
+      return setPopup({
+        isVisible: true,
+        message: "Failed to save drip settings. Please try again.",
+        type: "error",
+      });
+    }
+
     closeDripModal();
   };
 
@@ -261,370 +290,388 @@ const CourseAccordion = ({ courseId }) => {
   }
 
   return (
-    <div className="max-w-full mx-auto min-h-fit">
-      {/* Course Stats Header */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-white/[0.03] dark:to-white/[0.03] rounded-lg border border-blue-100 p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <BookOpen className="w-6 h-6 text-blue-600" />
+    <>
+      <div className="max-w-full mx-auto min-h-fit">
+        {/* Course Stats Header */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-white/[0.03] dark:to-white/[0.03] rounded-lg border border-blue-100 p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <BookOpen className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-white/90">
+                  Total Modules
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white/90">
+                  {modules.length}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-white/90">Total Modules</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white/90">
-                {modules.length}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            {/* <div className="p-2 bg-green-100 rounded-lg">
+            <div className="flex items-center space-x-3">
+              {/* <div className="p-2 bg-green-100 rounded-lg">
               <Users className="w-6 h-6 text-green-600" />
             </div> */}
-            {/* <div>
+              {/* <div>
               <p className="text-sm font-medium text-gray-600">Progress</p>
               <p className="text-2xl font-bold text-gray-900">
                 {completedLessons}/{totalLessons}
               </p>
             </div> */}
-          </div>
-          <div className="flex items-center space-x-3">
-            {/* <div className="p-2 bg-purple-100 rounded-lg">
+            </div>
+            <div className="flex items-center space-x-3">
+              {/* <div className="p-2 bg-purple-100 rounded-lg">
               <Clock className="w-6 h-6 text-purple-600" />
             </div> */}
-            <div>
-              {/* <p className="text-sm font-medium text-gray-600">
+              <div>
+                {/* <p className="text-sm font-medium text-gray-600">
                 Total Duration
               </p> */}
-              {/* <p className="text-2xl font-bold text-gray-900">
+                {/* <p className="text-2xl font-bold text-gray-900">
                 {Math.floor(totalDuration / 60)}h {totalDuration % 60}m
               </p> */}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-                
-      {/* Course Modules */}
-      <div className="bg-white dark:bg-white/[0.03] rounded-lg shadow-lg border border-blue-100">
-        <div className="divide-y divide-blue-100">
-          {modules.map((module) => (
-            <div key={module.id || module._id} className="bg-white dark:bg-white/[0.03] ">
-              {/* Module Header */}
+
+        {/* Course Modules */}
+        <div className="bg-white dark:bg-white/[0.03] rounded-lg shadow-lg border border-blue-100">
+          <div className="divide-y divide-blue-100">
+            {modules.map((module) => (
               <div
-                className="flex items-center justify-between p-4 hover:bg-blue-50 dark:hover:dark:bg-white/[0.06] cursor-pointer transition-all duration-200"
-                onClick={() => toggleModule(module.id || module._id)}
+                key={module.id || module._id}
+                className="bg-white dark:bg-white/[0.03] "
               >
-                <div className="flex items-center space-x-3">
-                  <div className="transition-transform duration-300 ease-in-out">
-                    {expandedModules.has(module.id || module._id) ? (
-                      <ChevronDown className="w-5 h-5 text-blue-600" />
-                    ) : (
-                      <ChevronRight className="w-5 h-5 text-blue-600" />
+                {/* Module Header */}
+                <div
+                  className="flex items-center justify-between p-4 hover:bg-blue-50 dark:hover:dark:bg-white/[0.06] cursor-pointer transition-all duration-200"
+                  onClick={() => toggleModule(module.id || module._id)}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="transition-transform duration-300 ease-in-out">
+                      {expandedModules.has(module.id || module._id) ? (
+                        <ChevronDown className="w-5 h-5 text-blue-600" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-blue-600" />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90">
+                        {module.title || module.name}
+                      </h3>
+                      {module.description && (
+                        <p className="text-sm text-gray-600 dark:text-white/70 mt-1">
+                          {module.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    {!module.isPublished && (
+                      <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
+                        Draft
+                      </span>
                     )}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90">
-                      {module.title || module.name}
-                    </h3>
-                    {module.description && (
-                      <p className="text-sm text-gray-600 dark:text-white/70 mt-1">
-                        {module.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  {!module.isPublished && (
-                    <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
-                      Draft
-                    </span>
-                  )}
-                  <div className="text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full font-medium">
-                    {module.lessons?.length || 0} lessons
-                  </div>
-                  {/* {module.estimatedDuration && (
+                    <div className="text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full font-medium">
+                      {module.lessons?.length || 0} lessons
+                    </div>
+                    {/* {module.estimatedDuration && (
                     <div className="text-sm text-gray-500 flex items-center">
                       <Clock className="w-4 h-4 mr-1" />
                       {module.estimatedDuration}min
                     </div>
                   )} */}
+                  </div>
                 </div>
-              </div>
 
-              {/* Lessons List */}
-              <div
-                className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                  expandedModules.has(module.id || module._id)
-                    ? "max-h-screen opacity-100"
-                    : "max-h-0 opacity-0"
-                }`}
-              >
-                <div className="bg-blue-50 dark:bg-white/[0.01] border-t border-blue-100">
-                  {module.lessons?.map((lesson, index) => (
-                    <div
-                      key={lesson.id || lesson._id}
-                      className="flex items-center justify-between p-4 pl-12 hover:bg-white dark:hover:bg-white/[0.06] transition-colors duration-200 border-b border-blue-100 last:border-b-0"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
-                            lesson.isCompleted
-                              ? "bg-green-600 text-white"
-                              : "bg-blue-600 text-white"
-                          }`}
-                        >
-                          {lesson.isCompleted ? "✓" : index + 1}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="text-gray-500 dark:text-white/70" >
-                            {getLessonTypeIcon(lesson.type)}
-                          </div>
-                          <span className="text-gray-900 dark:text-white/90 font-medium">
-                            {lesson.title || lesson.name}
-                          </span>
-                          {lesson.duration && (
-                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                              {lesson.duration}min
-                            </span>
-                          )}
-                          {(lesson.ismobileOnly ||
-                            lesson.accessSettings?.platform === "phone") && (
-                            <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
-                              Mobile Only
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            openModal("view", lesson, module);
-                          }}
-                          className="flex items-center space-x-1 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm font-medium shadow-sm"
-                        >
-                          <Eye className="w-4 h-4" />
-                          <span>View</span>
-                        </button>
-
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleDripSettings(
-                              lesson.id || lesson._id,
-                              module.id || module._id
-                            );
-                          }}
-                          className="flex items-center space-x-1 px-3 py-1.5 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors duration-200 text-sm font-medium shadow-sm"
-                        >
-                          <Zap className="w-4 h-4" />
-                          <span>Drip</span>
-                        </button>
-
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleLessonSettings(
-                              lesson.id || lesson._id,
-                              module.id || module._id
-                            );
-                          }}
-                          className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-md transition-colors duration-200"
-                        >
-                          {/* <Settings className="w-4 h-4" /> */}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-
-                  {(!module.lessons || module.lessons.length === 0) && (
-                    <div className="p-8 text-center text-gray-500">
-                      <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p>No lessons in this module yet</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Access Settings Modal */}
-      {modalData && modalData.type === "view" && (
-        <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-[2px] bg-opacity-50 flex items-center justify-center z-[10000] p-4"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-white dark:bg-[#101828] rounded-lg shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white/90">
-                  Course Access Settings
-                </h3>
-                <button
-                  onClick={closeModal}
-                  className="p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
-                  disabled={savingSettings}
+                {/* Lessons List */}
+                <div
+                  className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                    expandedModules.has(module.id || module._id)
+                      ? "max-h-screen opacity-100"
+                      : "max-h-0 opacity-0"
+                  }`}
                 >
-                  <X className="w-5 h-5 text-gray-500" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div className="pt-4 border-t border-gray-200">
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white/90 mb-3">
-                      Where do you want to make this lesson available?
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-white/70 mb-4">
-                      Choose the platform(s) where students can access "
-                      {modalData.lesson.title || modalData.lesson.name}".
-                    </p>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                        <input
-                          type="radio"
-                          id="phone-only"
-                          name="access-type"
-                          value="phone"
-                          defaultChecked={
-                            modalData.lesson.ismobileOnly ||
-                            modalData.lesson.accessSettings?.platform ===
-                              "phone"
-                          }
-                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                          disabled={savingSettings}
-                        />
-                        <label
-                          htmlFor="phone-only"
-                          className="ml-3 flex-1 cursor-pointer"
-                        >
-                          <div className="font-medium text-gray-900 dark:text-white/90">
-                            Phone Only
+                  <div className="bg-blue-50 dark:bg-white/[0.01] border-t border-blue-100">
+                    {module.lessons?.map((lesson, index) => (
+                      <div
+                        key={lesson.id || lesson._id}
+                        className="flex items-center justify-between p-4 pl-12 hover:bg-white dark:hover:bg-white/[0.06] transition-colors duration-200 border-b border-blue-100 last:border-b-0"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
+                              lesson.isCompleted
+                                ? "bg-green-600 text-white"
+                                : "bg-blue-600 text-white"
+                            }`}
+                          >
+                            {lesson.isCompleted ? "✓" : index + 1}
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-white/70">
-                            Mobile app access only
+                          <div className="flex items-center space-x-2">
+                            <div className="text-gray-500 dark:text-white/70">
+                              {getLessonTypeIcon(lesson.type)}
+                            </div>
+                            <span className="text-gray-900 dark:text-white/90 font-medium">
+                              {lesson.title || lesson.name}
+                            </span>
+                            {lesson.duration && (
+                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                {lesson.duration}min
+                              </span>
+                            )}
+                            {(lesson.ismobileOnly ||
+                              lesson.accessSettings?.platform === "phone") && (
+                              <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
+                                Mobile Only
+                              </span>
+                            )}
                           </div>
-                        </label>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openModal("view", lesson, module);
+                            }}
+                            className="flex items-center space-x-1 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm font-medium shadow-sm"
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span>View</span>
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDripSettings(
+                                lesson.id || lesson._id,
+                                module.id || module._id
+                              );
+                            }}
+                            className="flex items-center space-x-1 px-3 py-1.5 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors duration-200 text-sm font-medium shadow-sm"
+                          >
+                            <Zap className="w-4 h-4" />
+                            <span>Drip</span>
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleLessonSettings(
+                                lesson.id || lesson._id,
+                                module.id || module._id
+                              );
+                            }}
+                            className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-md transition-colors duration-200"
+                          >
+                            {/* <Settings className="w-4 h-4" /> */}
+                          </button>
+                        </div>
                       </div>
+                    ))}
 
-                      <div className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                        <input
-                          type="radio"
-                          id="both-platforms"
-                          name="access-type"
-                          value="both"
-                          defaultChecked={
-                            !modalData.lesson.ismobileOnly &&
-                            (!modalData.lesson.accessSettings?.platform ||
+                    {(!module.lessons || module.lessons.length === 0) && (
+                      <div className="p-8 text-center text-gray-500">
+                        <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p>No lessons in this module yet</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Access Settings Modal */}
+        {modalData && modalData.type === "view" && (
+          <div
+            className="fixed inset-0 bg-black/20 backdrop-blur-[2px] bg-opacity-50 flex items-center justify-center z-[10000] p-4"
+            onClick={closeModal}
+          >
+            <div
+              className="bg-white dark:bg-[#101828] rounded-lg shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white/90">
+                    Course Access Settings
+                  </h3>
+                  <button
+                    onClick={closeModal}
+                    className="p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                    disabled={savingSettings}
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="pt-4 border-t border-gray-200">
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white/90 mb-3">
+                        Where do you want to make this lesson available?
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-white/70 mb-4">
+                        Choose the platform(s) where students can access "
+                        {modalData.lesson.title || modalData.lesson.name}".
+                      </p>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all duration-200">
+                          <input
+                            type="radio"
+                            id="phone-only"
+                            name="access-type"
+                            value="phone"
+                            defaultChecked={
+                              modalData.lesson.ismobileOnly ||
                               modalData.lesson.accessSettings?.platform ===
-                                "both")
-                          }
-                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                          disabled={savingSettings}
-                        />
-                        <label
-                          htmlFor="both-platforms"
-                          className="ml-3 flex-1 cursor-pointer"
-                        >
-                          <div className="font-medium text-gray-900 dark:text-white/90">
-                            Web & App Both
-                          </div>
-                          <div className="text-sm text-gray-600 dark:text-white/70">
-                            Available on all platforms
-                          </div>
-                        </label>
+                                "phone"
+                            }
+                            className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            disabled={savingSettings}
+                          />
+                          <label
+                            htmlFor="phone-only"
+                            className="ml-3 flex-1 cursor-pointer"
+                          >
+                            <div className="font-medium text-gray-900 dark:text-white/90">
+                              Phone Only
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-white/70">
+                              Mobile app access only
+                            </div>
+                          </label>
+                        </div>
+
+                        <div className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all duration-200">
+                          <input
+                            type="radio"
+                            id="both-platforms"
+                            name="access-type"
+                            value="both"
+                            defaultChecked={
+                              !modalData.lesson.ismobileOnly &&
+                              (!modalData.lesson.accessSettings?.platform ||
+                                modalData.lesson.accessSettings?.platform ===
+                                  "both")
+                            }
+                            className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            disabled={savingSettings}
+                          />
+                          <label
+                            htmlFor="both-platforms"
+                            className="ml-3 flex-1 cursor-pointer"
+                          >
+                            <div className="font-medium text-gray-900 dark:text-white/90">
+                              Web & App Both
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-white/70">
+                              Available on all platforms
+                            </div>
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                <button
-                  onClick={closeModal}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
-                  disabled={savingSettings}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    const selectedOption = document.querySelector(
-                      'input[name="access-type"]:checked'
-                    );
-                    const platform = selectedOption
-                      ? selectedOption.value
-                      : "both";
-                    handleAccessSettingsSave(
-                      modalData.lesson.id || modalData.lesson._id,
-                      modalData.module.id || modalData.module._id,
-                      { platform }
-                    );
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={savingSettings}
-                >
-                  {savingSettings && (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  )}
-                  <span>{savingSettings ? "Saving..." : "Save Settings"}</span>
-                </button>
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={closeModal}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+                    disabled={savingSettings}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      const selectedOption = document.querySelector(
+                        'input[name="access-type"]:checked'
+                      );
+                      const platform = selectedOption
+                        ? selectedOption.value
+                        : "both";
+                      handleAccessSettingsSave(
+                        modalData.lesson.id || modalData.lesson._id,
+                        modalData.module.id || modalData.module._id,
+                        { platform }
+                      );
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={savingSettings}
+                  >
+                    {savingSettings && (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    )}
+                    <span>
+                      {savingSettings ? "Saving..." : "Save Settings"}
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Drip Settings Modal */}
-      {dripModalData && (
-        <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-[2px] bg-opacity-50 flex items-center justify-center z-[10000] p-4"
-          onClick={closeDripModal}
-        >
+        {/* Drip Settings Modal */}
+        {dripModalData && (
           <div
-            className="bg-white dark:bg-[#101828] rounded-lg shadow-2xl max-w-5xl h-[94%] overflow-y-auto w-full transform transition-all duration-300 scale-100"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 bg-black/20 backdrop-blur-[2px] bg-opacity-50 flex items-center justify-center z-[10000] p-4"
+            onClick={closeDripModal}
           >
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white/90">
-                  Drip Settings -{" "}
-                  {dripModalData.lesson?.title || dripModalData.lesson?.name}
-                </h3>
-                <button
-                  onClick={closeDripModal}
-                  className="p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
-                >
-                  <X className="w-5 h-5 text-gray-500" />
-                </button>
-              </div>
-            {console.log("Drip Modal Data:", dripModalData)}
+            <div
+              className="bg-white dark:bg-[#101828] rounded-lg shadow-2xl max-w-5xl h-[94%] overflow-y-auto w-full transform transition-all duration-300 scale-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white/90">
+                    Drip Settings -{" "}
+                    {dripModalData.lesson?.title || dripModalData.lesson?.name}
+                  </h3>
+                  <button
+                    onClick={closeDripModal}
+                    className="p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+                {console.log("Drip Modal Data:", dripModalData)}
 
-              <DripPopup
-                onSubmit={handleDripSubmit}
-                onClose={closeDripModal}
-                initialData={{
-                  ...dripModalData.lesson?.dripRules,
-                  targetType: dripModalData.targetType,
-                  targetId: dripModalData.targetId,
-                }}
-                targetType={dripModalData.targetType}
-                targetId={dripModalData.targetId}
-              />
+                <DripPopup
+                  onSubmit={handleDripSubmit}
+                  onClose={closeDripModal}
+                  initialData={{
+                    ...dripModalData.lesson?.dripRules,
+                    targetType: dripModalData.targetType,
+                    targetId: dripModalData.targetId,
+                  }}
+                  targetType={dripModalData.targetType}
+                  targetId={dripModalData.targetId}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+
+      {
+        <PopupAlert
+          message={popup.message}
+          type={popup.type}
+          isVisible={popup.isVisible}
+          onClose={() => setPopup({ ...popup, isVisible: false })}
+        />
+      }
+    </>
   );
 };
 
