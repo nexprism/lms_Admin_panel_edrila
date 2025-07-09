@@ -239,7 +239,7 @@ function StudentDetail() {
               <StatCard
                 icon={BookOpen}
                 title="Enrolled Courses"
-                value={data.enrollments.length}
+                value={data?.enrollments?.length}
                 subtitle="Active enrollments"
                 color="blue"
               />
