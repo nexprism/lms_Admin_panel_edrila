@@ -37,10 +37,12 @@ const CreateStudentPopup: React.FC<CreateStudentPopupProps> = ({ open, onClose }
         setMessage({ type: "success", text: "Student created successfully!" });
         setForm({ fullName: "", email: "", password: "" });
         setSubmitted(false);
+        window.location.reload(); // Reload to reflect changes
         setTimeout(() => {
           setMessage({ type: "", text: "" });
           onClose();
         }, 2000);
+
       } else {
         let errMsg = error || result?.payload || "Failed to create student.";
         setMessage({ type: "error", text: typeof errMsg === "string" ? errMsg : "Failed to create student." });
