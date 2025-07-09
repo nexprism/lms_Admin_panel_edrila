@@ -57,6 +57,7 @@ const EnrollStudentPopup: React.FC<EnrollStudentPopupProps> = ({ open, onClose, 
         setTimeout(() => {
           onClose();
         }, 1500);
+        window.location.reload(); // Reload to reflect changes
       } else {
         setLocalError(result.payload || "Failed to enroll student.");
       }

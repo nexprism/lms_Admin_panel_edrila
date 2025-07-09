@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { createStudent } from "../../store/slices/students";
@@ -29,9 +28,12 @@ const CreateStudentPopup: React.FC<CreateStudentPopupProps> = ({ open, onClose }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+    setMessage({ type: "", text: "" });
     try {
       const result = await dispatch(createStudent(form));
-      if (result.meta.requestStatus === "fulfilled") {
+      // Handle undefined/null result or payload
+      console.log("Create Student Result:", result);
+      if (result?.meta?.requestStatus === "fulfilled") {
         setMessage({ type: "success", text: "Student created successfully!" });
         setForm({ fullName: "", email: "", password: "" });
         setSubmitted(false);
@@ -39,9 +41,13 @@ const CreateStudentPopup: React.FC<CreateStudentPopupProps> = ({ open, onClose }
           setMessage({ type: "", text: "" });
           onClose();
         }, 2000);
+      } else {
+        let errMsg = error || result?.payload || "Failed to create student.";
+        setMessage({ type: "error", text: typeof errMsg === "string" ? errMsg : "Failed to create student." });
+        setTimeout(() => setMessage({ type: "", text: "" }), 3000);
       }
-    } catch (err) {
-      setMessage({ type: "error", text: error || "Failed to create student." });
+    } catch (err: any) {
+      setMessage({ type: "error", text: err?.message || "Failed to create student." });
       setTimeout(() => setMessage({ type: "", text: "" }), 3000);
     }
   };
@@ -154,7 +160,11 @@ const CreateStudentPopup: React.FC<CreateStudentPopupProps> = ({ open, onClose }
           ) : (
             <AlertCircle className="w-5 h-5" />
           )}
-          <span>{message.text}</span>
+          <span>
+            {message.text || (message.type === "success"
+              ? "Student created successfully!"
+              : "Failed to create student.")}
+          </span>
         </div>
       )}
     </div>

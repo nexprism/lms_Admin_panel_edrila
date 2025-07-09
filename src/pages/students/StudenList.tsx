@@ -27,6 +27,7 @@ import PopupAlert from "../../components/popUpAlert";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { Link } from "react-router";
 import EnrollStudentPopup from "../../components/students/EnrollStudentPopup";
+import CreateStudentPopup from "../../components/students/CreateStudentPopup";
 
 interface Student {
   _id: string;
@@ -142,6 +143,8 @@ const StudentList: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [createPopupOpen, setCreatePopupOpen] = useState(false);
+  const [enrollPopupOpen, setEnrollPopupOpen] = useState(false);
 
   const [searchInput, setSearchInput] = useState(searchQuery);
   const [localFilters, setLocalFilters] = useState<Record<string, any>>(filters);
@@ -155,9 +158,6 @@ const StudentList: React.FC = () => {
     type: "success",
     isVisible: false,
   });
-
-  // Enroll Student Popup state
-  const [enrollPopupOpen, setEnrollPopupOpen] = useState(false);
 
   // Debounce search input
   useEffect(() => {
@@ -450,72 +450,72 @@ const StudentList: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                students.map((student, idx) => (
-                  <tr
-                    key={student._id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                      {(pagination.page - 1) * pagination.limit + idx + 1}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                     <img
-  src={
-    student?.profilePicture || student?.image
-      ? `${import.meta.env.VITE_IMAGE_URL}/${student.profilePicture || student.image}`
-      : `https://placehold.co/40x40?text=${(student.fullName || student.name)?.charAt(
-                                  0
-                                ) || "S"}`
-  }
-  onError={(e) => {
-    (e.currentTarget as HTMLImageElement).src =
-      "https://static.vecteezy.com/system/resources/previews/026/619/142/original/default-avatar-profile-icon-of-social-media-user-photo-image-vector.jpg";
-  }}
-  alt={student?.fullName || student?.name || "Student"}
-  className="w-10 h-10 rounded-full object-cover"
-/>
-
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                      {student.fullName || student.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                      {student.email}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {student.isActive ? (
-                        <span className="inline-flex items-center">
-                          <CheckCircle className="text-green-500 h-5 w-5" />
-                          <span className="ml-2 text-green-700 dark:text-green-400">
-                            Active
+                students.map((student, idx) => {
+                  if (!student) return null; // Defensive: skip undefined/null student
+                  return (
+                    <tr
+                      key={student._id || idx}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                        {(pagination.page - 1) * pagination.limit + idx + 1}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <img
+                          src={
+                            student?.profilePicture || student?.image
+                              ? `${import.meta.env.VITE_IMAGE_URL}/${student?.profilePicture || student?.image}`
+                              : `https://placehold.co/40x40?text=${(student?.fullName || student?.name || "S")?.charAt(0)}`
+                          }
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src =
+                              "https://static.vecteezy.com/system/resources/previews/026/619/142/original/default-avatar-profile-icon-of-social-media-user-photo-image-vector.jpg";
+                          }}
+                          alt={student?.fullName || student?.name || "Student"}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        {student?.fullName || student?.name || "-"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                        {student?.email || "-"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {student?.isActive ? (
+                          <span className="inline-flex items-center">
+                            <CheckCircle className="text-green-500 h-5 w-5" />
+                            <span className="ml-2 text-green-700 dark:text-green-400">
+                              Active
+                            </span>
                           </span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center">
-                          <XCircle className="text-red-500 h-5 w-5" />
-                          <span className="ml-2 text-red-700 dark:text-red-400">Inactive</span>
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(student.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
-                        <Link to={`/students/${student._id}`}>
-                          <button className="text-blue-500 hover:text-blue-700 transition-colors p-1">
-                            <Eye className="h-5 w-5" />
-                          </button>
-                        </Link>
-                        <Link to={`/certificates/issue?user=${student._id}`}>
-                          <button className="text-green-500 hover:text-green-700 transition-colors p-1">
-                            <Award className="h-5 w-5" />
-                          </button>
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                        ) : (
+                          <span className="inline-flex items-center">
+                            <XCircle className="text-red-500 h-5 w-5" />
+                            <span className="ml-2 text-red-700 dark:text-red-400">Inactive</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {student?.createdAt ? new Date(student.createdAt).toLocaleDateString() : "-"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end space-x-2">
+                          <Link to={`/students/${student._id}`}>
+                            <button className="text-blue-500 hover:text-blue-700 transition-colors p-1">
+                              <Eye className="h-5 w-5" />
+                            </button>
+                          </Link>
+                          <Link to={`/certificates/issue?user=${student._id}`}>
+                            <button className="text-green-500 hover:text-green-700 transition-colors p-1">
+                              <Award className="h-5 w-5" />
+                            </button>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -585,6 +585,12 @@ const StudentList: React.FC = () => {
         onConfirm={handleDeleteConfirm}
         student={studentToDelete}
         isDeleting={isDeleting}
+      />
+
+      {/* Create Student Popup */}
+      <CreateStudentPopup
+        open={createPopupOpen}
+        onClose={() => setCreatePopupOpen(false)}
       />
 
       {/* Enroll Student Popup */}
