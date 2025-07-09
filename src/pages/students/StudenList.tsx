@@ -26,6 +26,7 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PopupAlert from "../../components/popUpAlert";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { Link } from "react-router";
+import EnrollStudentPopup from "../../components/students/EnrollStudentPopup";
 
 interface Student {
   _id: string;
@@ -132,11 +133,11 @@ const StudentList: React.FC = () => {
   const { students, loading, error, pagination, searchQuery, filters } =
     useAppSelector((state) => state.students);
 
-// Add this after the useAppSelector line
-console.log('Pagination state:', pagination);
-console.log('Total pages:', pagination.totalPages);
-console.log('Current page:', pagination.page);
-console.log('Total items:', pagination.total);
+  // Add this after the useAppSelector line
+  console.log('Pagination state:', pagination);
+  console.log('Total pages:', pagination.totalPages);
+  console.log('Current page:', pagination.page);
+  console.log('Total items:', pagination.total);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
@@ -154,6 +155,9 @@ console.log('Total items:', pagination.total);
     type: "success",
     isVisible: false,
   });
+
+  // Enroll Student Popup state
+  const [enrollPopupOpen, setEnrollPopupOpen] = useState(false);
 
   // Debounce search input
   useEffect(() => {
@@ -322,9 +326,25 @@ console.log('Total items:', pagination.total);
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
             Students
           </h1>
-          <span className="text-gray-500 text-sm dark:text-gray-400">
-            Total: {pagination.total}
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="text-gray-500 text-sm dark:text-gray-400">
+              Total: {pagination.total}
+            </span>
+            {/* Add Student Button */}
+            <button
+              onClick={() => setCreatePopupOpen(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2 rounded-md shadow transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            >
+              + Add Student
+            </button>
+            {/* Enroll Student Button */}
+            <button
+              onClick={() => setEnrollPopupOpen(true)}
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2 rounded-md shadow transition-colors focus:outline-none focus:ring-2 focus:ring-green-400"
+            >
+              + Enroll Student
+            </button>
+          </div>
         </div>
 
         {/* Search & Filter */}
@@ -565,6 +585,12 @@ console.log('Total items:', pagination.total);
         onConfirm={handleDeleteConfirm}
         student={studentToDelete}
         isDeleting={isDeleting}
+      />
+
+      {/* Enroll Student Popup */}
+      <EnrollStudentPopup
+        open={enrollPopupOpen}
+        onClose={() => setEnrollPopupOpen(false)}
       />
     </div>
   );

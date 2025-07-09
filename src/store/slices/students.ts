@@ -123,6 +123,53 @@ export const deleteStudent = createAsyncThunk<string, string>(
   }
 );
 
+
+export interface CreateStudentPayload {
+  fullName: string;
+  email: string;
+  password: string;
+  [key: string]: any;
+}
+
+export const createStudent = createAsyncThunk<Student, CreateStudentPayload>(
+  "students/create",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(
+        `${API_BASE_URL}/create-user`,
+        payload
+      );
+      return response.data?.data?.student;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+
+export interface EnrollStudentPayload {
+  userId: string;
+  courseId: string;
+}
+
+export const enrollStudent = createAsyncThunk<
+  any,
+  EnrollStudentPayload
+>(
+  "students/enroll",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(
+        `${API_BASE_URL}/enrollment/admin-enroll`,
+        payload
+      );
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 const initialState: StudentState = {
   students: [],
   studentDetails: null,
@@ -205,6 +252,33 @@ const studentSlice = createSlice({
         );
       })
       .addCase(deleteStudent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(createStudent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      }
+      )
+      .addCase(createStudent.fulfilled, (state, action) => {
+        state.loading = false;
+        state.students.push(action.payload);
+      })
+      .addCase(createStudent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(enrollStudent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(enrollStudent.fulfilled, (state, action) => {
+        state.loading = false;
+        
+        // Assuming the response contains the updated student data
+        const updatedStudent = action.payload.student;
+      })
+      .addCase(enrollStudent.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

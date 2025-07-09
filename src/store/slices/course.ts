@@ -215,3 +215,7 @@ const courseSlice = createSlice({
 });
 
 export default courseSlice.reducer;
+
+// Selector to get all courses (array)
+export const getAllCourses = (state: any) =>
+  state.course?.data?.courses || [];
