@@ -179,6 +179,10 @@ console.log("Drip settings submitted:", result);
         message: "Drip settings saved successfully!",
         type: "success",
       });
+      // Refresh course data after successful drip update
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } else {
       return setPopup({
         isVisible: true,
