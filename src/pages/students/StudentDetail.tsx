@@ -361,7 +361,7 @@ function StudentDetail() {
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <Phone className="w-5 h-5 text-gray-400 mr-3" />
                     <div>
-                      <p className="text-sm font-medium text-gray-900">Not provided</p>
+                      <p className="text-sm font-medium text-gray-900">{data?.phone}</p>
                       <p className="text-xs text-gray-500">Mobile Number</p>
                     </div>
                   </div>
@@ -484,7 +484,7 @@ function StudentDetail() {
                 </div>
                 )}
 
-        {activeTab === "profile" && (
+      {activeTab === "profile" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Skills */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -492,52 +492,90 @@ function StudentDetail() {
                 <Star className="mr-2 h-5 w-5 text-yellow-500" />
                 Skills & Expertise
               </h3>
-              {data.skills?.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {data.skills.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Star className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-600">No skills listed yet</p>
-                </div>
-              )}
+              {(() => {
+                // Parse skills from different formats
+                const parseSkills = (skills) => {
+                  if (!skills) return [];
+                  if (Array.isArray(skills)) {
+                    // If it's an array, flatten any comma-separated strings
+                    return skills.flatMap(skill => 
+                      typeof skill === 'string' ? skill.split(',').map(s => s.trim()).filter(Boolean) : skill
+                    );
+                  }
+                  if (typeof skills === 'string') {
+                    // If it's a string, split by comma
+                    return skills.split(',').map(s => s.trim()).filter(Boolean);
+                  }
+                  return [];
+                };
+
+                const skillsArray = parseSkills(data.skills);
+                
+                return skillsArray.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {skillsArray.map((skill, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200 hover:bg-blue-200 transition-colors duration-200"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Star className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-600">No skills listed yet</p>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Qualifications */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            {/* <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-6">
                 <Award className="mr-2 h-5 w-5 text-green-500" />
                 Qualifications
               </h3>
-              {data.qualifications?.length > 0 ? (
-                <div className="space-y-3">
-                  {data.qualifications.map((qualification, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center p-3 bg-gray-50 rounded-lg"
-                    >
-                      <GraduationCap className="h-5 w-5 text-gray-400 mr-3" />
-                      <span className="text-sm font-medium text-gray-900">
-                        {qualification}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Award className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-600">No qualifications listed yet</p>
-                </div>
-              )}
-            </div>
+              {(() => {
+                // Parse qualifications from different formats (same logic as skills)
+                const parseQualifications = (qualifications) => {
+                  if (!qualifications) return [];
+                  if (Array.isArray(qualifications)) {
+                    return qualifications.flatMap(qual => 
+                      typeof qual === 'string' ? qual.split(',').map(q => q.trim()).filter(Boolean) : qual
+                    );
+                  }
+                  if (typeof qualifications === 'string') {
+                    return qualifications.split(',').map(q => q.trim()).filter(Boolean);
+                  }
+                  return [];
+                };
+
+                const qualificationsArray = parseQualifications(data.qualifications);
+                
+                return qualificationsArray.length > 0 ? (
+                  <div className="space-y-3">
+                    {qualificationsArray.map((qualification, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                      >
+                        <GraduationCap className="h-5 w-5 text-gray-400 mr-3" />
+                        <span className="text-sm font-medium text-gray-900">
+                          {qualification}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Award className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-600">No qualifications listed yet</p>
+                  </div>
+                );
+              })()}
+            </div> */}
 
             {/* Education */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -550,7 +588,7 @@ function StudentDetail() {
                   {data.education.map((edu, index) => (
                     <div
                       key={index}
-                      className="border-l-4 border-purple-500 pl-4 py-2"
+                      className="border-l-4 border-purple-500 pl-4 py-2 hover:bg-gray-50 transition-colors duration-200 rounded-r-lg"
                     >
                       <h4 className="font-semibold text-gray-900 mb-1">
                         {edu.degree || "Degree"}
