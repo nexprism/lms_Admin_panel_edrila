@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
-import { fetchStudentById } from "../../store/slices/students";
+import { fetchStudentById, disableDripForUser } from "../../store/slices/students";
 import {
   User,
   Mail,
@@ -43,6 +43,23 @@ function StudentDetail() {
   const [enrollPopupOpen, setEnrollPopupOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Add local state to track disabling drip
+  const [dripLoading, setDripLoading] = useState<string | null>(null);
+
+  // Add state for confirmation popup
+  const [confirmDrip, setConfirmDrip] = useState<{ courseId: string, courseTitle: string } | null>(null);
+
+  // Toast state
+  const [toast, setToast] = useState<{ message: string; type?: "success" | "error" } | null>(null);
+
+  useEffect(() => {
+    // Auto-hide toast after 2.5s
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -61,6 +78,34 @@ function StudentDetail() {
       fetchData();
     }
   }, [studentId, dispatch]);
+
+  // Handler for disabling drip (called after confirmation)
+  const handleDisableDrip = async (courseId: string) => {
+    if (!data?._id) return;
+    setDripLoading(courseId);
+    try {
+      await dispatch(disableDripForUser({ courseId, userId: data._id }));
+      setData((prev: any) => ({
+        ...prev,
+        enrollments: prev.enrollments.map((enr: any) =>
+          enr.course?._id === courseId
+            ? { ...enr, dripEnabled: false }
+            : enr
+        ),
+      }));
+      setConfirmDrip(null); // Close popup first
+      setTimeout(() => {
+        setToast({ message: "Drip setting disabled successfully.", type: "success" });
+      }, 100); // Delay to ensure popup closes before toast shows
+    } catch (e) {
+      setConfirmDrip(null);
+      setTimeout(() => {
+        setToast({ message: "Failed to disable drip setting.", type: "error" });
+      }, 100);
+    } finally {
+      setDripLoading(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -352,84 +397,69 @@ function StudentDetail() {
               </div>
             </div>
 
-                  {Array.isArray(data.enrollments) && data.enrollments.length > 0 && Object.keys(data.enrollments[0]).length > 0 ? (
+                    {Array.isArray(data.enrollments) && data.enrollments.length > 0 && Object.keys(data.enrollments[0]).length > 0 ? (
                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {data.enrollments.map((enrollment, index) => (
                       <div
-                      key={index}
-                      className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-200 overflow-hidden"
+                        key={index}
+                        className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-200 overflow-hidden"
                       >
-                      <div className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                          <BookOpen className="w-5 h-5 text-white" />
+                        <div className="p-6">
+                          <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <BookOpen className="w-5 h-5 text-white" />
+                            </div>
+                            {/* <span
+                            className={`ml-auto inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              (enrollment.status === "active")
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                            }`}
+                            >
+                            {(enrollment.status
+                              ? enrollment.status.charAt(0).toUpperCase() + enrollment.status.slice(1)
+                              : "Unknown")}
+                            </span> */}
                           </div>
-                          <span
-                          className={`ml-auto inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            (enrollment.status === "active")
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                          }`}
+                          </div>
+                          
+                          <h4 className="font-semibold text-gray-900 mb-2 text-lg">
+                            {enrollment.course?.title || "Untitled Course"}
+                          </h4>
+                          <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                            {enrollment.course?.subtitle || "No subtitle available"}
+                          </p>
+                          {/* Drip Setting Button */}
+                            <button
+                              className="inline-flex items-center px-3 py-1.5 bg-rose-100 text-rose-700 rounded-md text-xs font-medium hover:bg-rose-200 transition-colors mb-2"
+                              onClick={() =>
+                                setConfirmDrip({
+                                  courseId: enrollment.course._id,
+                                  courseTitle: enrollment.course?.title || "this course",
+                                })
+                              }
+                            >
+                              <XCircle className="w-3 h-3 mr-1" />
+                              Disable Drip
+                            </button>
+
+                          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                          <a
+                            href={enrollment.course?._id ? `/courses/edit/${enrollment.course._id}` : "#"}
+                            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
                           >
-                          {(enrollment.status
-                            ? enrollment.status.charAt(0).toUpperCase() + enrollment.status.slice(1)
-                            : "Unknown")}
-                          </span>
-                        </div>
-                        </div>
-                        
-                        <h4 className="font-semibold text-gray-900 mb-2 text-lg">
-                        {enrollment.course?.title || "Untitled Course"}
-                        </h4>
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                        {enrollment.course?.subtitle || "No subtitle available"}
-                        </p>
-                        
-                        {/* <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-500">Progress</span>
-                          <span className="text-sm font-medium text-gray-900">
-                          {enrollment.progressPercentage}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                          className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${enrollment.progressPercentage}%` }}
-                          />
-                        </div>
-                        
-                        <div className="pt-2 border-t border-gray-100">
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-500">Enrolled</p>
-                            <p className="font-medium">{formatDate(enrollment.enrolledAt)}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">Access</p>
-                            <p className="font-medium capitalize">{enrollment.accessType}</p>
-                          </div>
+                            View Course
+                            <ArrowRight className="w-4 h-4 ml-1" />
+                          </a>
+                          {enrollment.certificateIssued && (
+                            <span className="inline-flex items-center text-sm text-green-600">
+                            <Award className="w-4 h-4 mr-1" />
+                            Certified
+                            </span>
+                          )}
                           </div>
                         </div>
-                        </div> */}
-                        
-                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                        <a
-                          href={enrollment.course?._id ? `/courses/edit/${enrollment.course._id}` : "#"}
-                          className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                          View Course
-                          <ArrowRight className="w-4 h-4 ml-1" />
-                        </a>
-                        {enrollment.certificateIssued && (
-                          <span className="inline-flex items-center text-sm text-green-600">
-                          <Award className="w-4 h-4 mr-1" />
-                          Certified
-                          </span>
-                        )}
-                        </div>
-                      </div>
                       </div>
                     ))}
                     </div>
@@ -451,7 +481,7 @@ function StudentDetail() {
                     </button>
                     </div>
                   )}
-                  </div>
+                </div>
                 )}
 
         {activeTab === "profile" && (
@@ -601,6 +631,55 @@ function StudentDetail() {
         onClose={() => setEnrollPopupOpen(false)}
         studentId={data?._id}
       />
+
+      {/* Confirmation Popup for Drip Disable */}
+      {confirmDrip && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-lg p-8 max-w-sm w-full">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Disable Drip Setting
+            </h3>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to disable drip setting for <span className="font-semibold">{confirmDrip.courseTitle}</span>?<br />
+              <span className="text-xs text-gray-500">This action cannot be undone.</span>
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                onClick={() => setConfirmDrip(null)}
+                disabled={!!dripLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 rounded-md bg-rose-600 text-white hover:bg-rose-700 flex items-center ${dripLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => handleDisableDrip(confirmDrip.courseId)}
+                disabled={!!dripLoading}
+              >
+                {dripLoading ? (
+                  <span className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                ) : (
+                  <XCircle className="w-4 h-4 mr-2" />
+                )}
+                Yes, Disable
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Message */}
+      {toast && (
+        <div
+          className={`fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${
+            toast.type === "success"
+              ? "bg-emerald-600"
+              : "bg-rose-600"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

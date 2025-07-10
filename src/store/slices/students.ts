@@ -124,6 +124,30 @@ export const deleteStudent = createAsyncThunk<string, string>(
 );
 
 
+
+export interface DisableDripPayload {
+  courseId: string;
+  userId: string;
+}
+
+export const disableDripForUser = createAsyncThunk<
+  { courseId: string; userId: string },
+  DisableDripPayload
+>(
+  "students/disableDripForUser",
+  async ({ courseId, userId }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(
+        `${API_BASE_URL}/courses/${courseId}/disable-drip`,
+        { userId }
+      );
+      return response.data?.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 export interface CreateStudentPayload {
   fullName: string;
   email: string;
@@ -279,6 +303,17 @@ const studentSlice = createSlice({
         const updatedStudent = action.payload.student;
       })
       .addCase(enrollStudent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(disableDripForUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(disableDripForUser.fulfilled, (state, action) => {
+        state.loading = false;
+     })
+      .addCase(disableDripForUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
