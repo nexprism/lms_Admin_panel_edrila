@@ -983,7 +983,7 @@ export default function FileUploadForm({
                 </button>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-white rounded-xl">
+              {/* <div className="flex items-center justify-between p-4 bg-white rounded-xl">
                 <div className="flex items-center gap-3">
                   {publicContent ? <Globe className="w-5 h-5 text-gray-600" /> : <Lock className="w-5 h-5 text-gray-600" />}
                   <div>
@@ -1006,7 +1006,7 @@ export default function FileUploadForm({
                     }`}
                   />
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
