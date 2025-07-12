@@ -104,12 +104,16 @@ export const fetchStudentById = createAsyncThunk<Student, string>(
       const response = await axiosInstance.get(
         `${API_BASE_URL}/students/${id}`
       );
-      return response.data?.data?.student;
+      const student = response.data?.data?.student;
+      console.log("Fetched student details:", student);
+      return student;
     } catch (error: any) {
+      console.error("Error fetching student:", error);
       return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
+
 
 export const deleteStudent = createAsyncThunk<string, string>(
   "students/delete",

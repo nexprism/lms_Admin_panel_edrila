@@ -486,6 +486,24 @@ function StudentDetail() {
 
       {activeTab === "profile" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-6">
+        <User className="mr-2 h-5 w-5 text-indigo-500" />
+        About {data.fullName}
+      </h3>
+      {data.bio ? (
+        <div className="prose prose-indigo max-w-none">
+          <p className="text-gray-700 whitespace-pre-line">{data.bio}</p>
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <User className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <p className="text-gray-600">
+            {data.fullName} hasn't added a bio yet
+          </p>
+        </div>
+      )}
+    </div>
             {/* Skills */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-6">
@@ -640,14 +658,23 @@ function StudentDetail() {
                           <Eye className="w-3 h-3 mr-1" />
                           View
                         </a>
-                        <a
+                        {/* <a
                           href={doc.Doc ? `${ImageUrl}/${doc.Doc}` : "#"}
                           download
                           className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
                         >
                           <Download className="w-3 h-3 mr-1" />
                           Download
-                        </a>
+                        </a> */}
+                        <a
+  href={doc.Doc ? `${ImageUrl}/${doc.Doc}` : "#"}
+  download={doc.name || `document-${index + 1}.pdf`}
+  className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+>
+  <Download className="w-3 h-3 mr-1" />
+  Download
+</a>
+
                       </div>
                     </div>
                   ))}
