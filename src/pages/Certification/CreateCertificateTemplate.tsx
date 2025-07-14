@@ -414,7 +414,7 @@ const CreateCertificateTemplate = () => {
     platform_signature: {
       content: "[platform_signature]",
       image: null,
-      image_size: "80",
+      image_size: "128",
       enable: true,
       position: { x: 400, y: 480 },
       draggable: true,
@@ -422,7 +422,7 @@ const CreateCertificateTemplate = () => {
     stamp: {
       content: "[stamp]",
       image: null,
-      image_size: "80",
+      image_size: "128",
       enable: true,
       position: { x: 500, y: 450 },
       draggable: true,
