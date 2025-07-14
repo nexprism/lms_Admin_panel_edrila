@@ -226,7 +226,7 @@ const RequestList: React.FC = () => {
                                             <div className="text-xs text-gray-400">{ticket.userId?.email}</div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 capitalize">
-                                            {ticket.category}
+                                            {ticket.category == "course" ? "bug" : ticket.category}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 capitalize">
                                             {ticket.priority}
