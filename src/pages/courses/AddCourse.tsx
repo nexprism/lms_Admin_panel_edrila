@@ -408,6 +408,8 @@ const AddCourse = () => {
     isSubscription: false,
     isPrivate: false,
     enableWaitlist: false,
+    accessType: "lifetime", // added
+    accessPeriod: "",       // added
   });
 
   const predefinedTags = [
@@ -502,7 +504,6 @@ const AddCourse = () => {
     Object.keys(formData).forEach((key) => {
       submitFormData.append(key, String(formData[key]));
     });
-
     submitFormData.append("description", description);
     submitFormData.append("seoContent", seoContent);
     submitFormData.append("tags", JSON.stringify(selectedTags));
@@ -546,6 +547,8 @@ const AddCourse = () => {
         isSubscription: false,
         isPrivate: false,
         enableWaitlist: false,
+        accessType: "lifetime",
+        accessPeriod: "",
       });
       setDescription("");
       setSeoContent("");
@@ -731,6 +734,60 @@ const AddCourse = () => {
                     </p>
                   )}
                 </div>
+              </div>
+              {/* Access Type & Period */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold dark:text-white/90 mb-2">
+                    Access Type
+                  </label>
+                  <select
+                    name="accessType"
+                    value={formData.accessType}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 dark:text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                  >
+                    <option value="lifetime">Lifetime</option>
+                    <option value="limited">Limited</option>
+                  </select>
+                </div>
+                {(formData.accessType === "limited" || formData.accessType === "subscription") && (
+                    <div>
+                    <label className="block text-sm font-semibold dark:text-white/90 mb-2">
+                      Access Period
+                    </label>
+                    <input
+                      type="text"
+                      name="accessPeriod"
+                      value={formData.accessPeriod}
+                      onChange={(e) => {
+                      const value = e.target.value;
+                      // Only allow values containing "day", "month", or "year"
+                      const valid =
+                        value.trim() === "" ||
+                        /(day|month|year)/i.test(value);
+                      handleInputChange(e);
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        accessPeriod:
+                        !valid && value.trim() !== ""
+                          ? 'Access period must include "day", "month", or "year"'
+                          : "",
+                      }));
+                      }}
+                      min="1"
+                      className={`w-full border border-gray-200 rounded-xl px-4 py-3 dark:text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                      formErrors.accessPeriod ? "border-red-400" : ""
+                      }`}
+                      placeholder="2 weeks, 1 month, etc."
+                    />
+                    {formErrors.accessPeriod && (
+                      <p className="mt-1 text-xs text-red-600">
+                      {formErrors.accessPeriod}
+                      </p>
+                    )}
+                    </div>
+                )}
               </div>
             </div>
           </div>

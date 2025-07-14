@@ -358,6 +358,8 @@ const EditCourse = () => {
     isSubscription: false,
     isPrivate: false,
     enableWaitlist: false,
+    accessType: "lifetime", // added
+    accessPeriod: "",       // added
   });
 
   // Predefined tags
@@ -542,6 +544,8 @@ const EditCourse = () => {
         isSubscription: course.isSubscription || false,
         isPrivate: course.isPrivate || false,
         enableWaitlist: course.enableWaitlist || false,
+        accessType: course.accessType || "lifetime", // added
+        accessPeriod: course.accessPeriod || "",      // added
       }));
 
       setDescription(course.description || "");
@@ -911,34 +915,66 @@ const EditCourse = () => {
                           Duration (mins) *
                           </label>
                           <input
-                                                      type="number"
-                          name="duration"
-                          value={formData.duration}
-                          onChange={handleInputChange}
-                          className={`w-full border dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                            formErrors.duration
-                                ? "border-red-400"
-                                : "border-gray-300"
-                          }`}
-                          placeholder="Enter duration in minutes"
-                          required
-                          min={1}
-                          step={1}
-                          onWheel={e => e.currentTarget.blur()}
-                          onInput={e => {
-                            // Prevent decimals
-                            const value = e.currentTarget.value;
-                            if (value && value.includes('.')) {
-                            e.currentTarget.value = value.split('.')[0];
-                            }
-                          }}
+                            type="number"
+                            name="duration"
+                            value={formData.duration}
+                            onChange={handleInputChange}
+                            className={`w-full border dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                              formErrors.duration
+                                  ? "border-red-400"
+                                  : "border-gray-300"
+                            }`}
+                            placeholder="Enter duration in minutes"
+                            required
+                            min={1}
+                            step={1}
+                            onWheel={e => e.currentTarget.blur()}
+                            onInput={e => {
+                              // Prevent decimals
+                              const value = e.currentTarget.value;
+                              if (value && value.includes('.')) {
+                              e.currentTarget.value = value.split('.')[0];
+                              }
+                            }}
                           />
                           {formErrors.duration && (
                           <p className="mt-1 text-xs text-red-600">{formErrors.duration}</p>
                           )}
                         </div>
                       </div>
-                      
+                      {/* Access Type & Period */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
+                            Access Type
+                          </label>
+                          <select
+                            name="accessType"
+                            value={formData.accessType}
+                            onChange={handleInputChange}
+                            className="w-full border border-gray-300 dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="lifetime">Lifetime</option>
+                            <option value="limited">Limited</option>
+                          </select>
+                        </div>
+                        {(formData.accessType === "limited" || formData.accessType === "subscription") && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
+                              Access Period (days)
+                            </label>
+                            <input
+                              type="String"
+                              name="accessPeriod"
+                              value={formData.accessPeriod}
+                              onChange={handleInputChange}
+                              min="1"
+                              className="w-full border border-gray-300 dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Number of days"
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 

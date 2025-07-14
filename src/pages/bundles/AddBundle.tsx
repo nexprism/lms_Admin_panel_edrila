@@ -285,6 +285,8 @@ const AddBundleForm = () => {
     tags: "",
     seoTitle: "",
     seoDescription: "",
+    accessPeriod: "",
+    accessType: "lifetime",
   });
 
   const [files, setFiles] = useState<{ [key: string]: File | null }>({
@@ -383,6 +385,8 @@ const AddBundleForm = () => {
         tags: "",
         seoTitle: "",
         seoDescription: "",
+        accessPeriod: "",
+        accessType: "lifetime",
       });
       setFiles({
         thumbnail: null,
@@ -723,6 +727,40 @@ const AddBundleForm = () => {
               placeholder="Get 3-in-1 solar courses and start your career in renewable energy."
             />
           </div>
+        </div>
+
+        {/* Access Type & Period */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
+              Access Type
+            </label>
+            <select
+              name="accessType"
+              value={formData.accessType}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 dark:text-white/90 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="lifetime">Lifetime</option>
+              <option value="limited">Limited</option>
+            </select>
+          </div>
+          {formData.accessType === "limited" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
+                Access Period 
+              </label>
+              <input
+                type="String"
+                name="accessPeriod"
+                value={formData.accessPeriod}
+                onChange={handleInputChange}
+                min={1}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Number of days"
+              />
+            </div>
+          )}
         </div>
 
         {/* Submit Button */}
