@@ -101,7 +101,7 @@ const IssueCertificateForm = () => {
     type: "course",
     status: "issued",
     serial_number: "",
-    causer_Id: "",
+    course_id: "",
     remarks: "",
     date: "",
   });
@@ -160,7 +160,7 @@ const IssueCertificateForm = () => {
       payload.append("type", formData.type);
       payload.append("status", formData.status);
       payload.append("serial_number", formData.serial_number);
-      payload.append("causer_Id", formData.causer_Id);
+      payload.append("course_id", formData.course_id);
       payload.append("remarks", formData.remarks);
       payload.append("date", formData.date);
       payload.append("completion_date", formData.completion_date);
@@ -194,7 +194,7 @@ const IssueCertificateForm = () => {
         type: "course",
         status: "issued",
         serial_number: "",
-        causer_Id: "",
+        course_id: "",
         remarks: "",
         date: "",
       });
@@ -391,8 +391,8 @@ const IssueCertificateForm = () => {
                   Course Submission ID *
                 </label>
                 <select
-                  name="causer_Id"
-                  value={formData.causer_Id || ""}
+                  name="course_id"
+                  value={formData.course_id || ""}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
