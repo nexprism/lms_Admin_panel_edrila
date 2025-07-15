@@ -558,12 +558,12 @@ const AddBundleForm = () => {
               <option className="dark:text-black" value="INR">
                 INR
               </option>
-              <option className="dark:text-black" value="USD">
+              {/* <option className="dark:text-black" value="USD">
                 USD
               </option>
               <option className="dark:text-black" value="EUR">
                 EUR
-              </option>
+              </option> */}
             </select>
           </div>
         </div>

@@ -1097,7 +1097,7 @@ const EditCourse = () => {
                             <option className="dark:text-black" value="INR">
                               INR (₹)
                             </option>
-                            <option className="dark:text-black" value="USD">
+                            {/* <option className="dark:text-black" value="USD">
                               USD ($)
                             </option>
                             <option className="dark:text-black" value="EUR">
@@ -1105,7 +1105,7 @@ const EditCourse = () => {
                             </option>
                             <option className="dark:text-black" value="GBP">
                               GBP (£)
-                            </option>
+                            </option> */}
                           </select>
                         </div>
                       </div>
