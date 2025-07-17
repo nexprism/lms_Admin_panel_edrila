@@ -284,27 +284,27 @@ const Home: React.FC = () => {
             <div className="space-y-4">
               {latest?.supportTickets?.slice(0, 3).map((ticket) => (
                 <div
-                  key={ticket._id}
+                  key={ticket?._id}
                   className="border-l-4 border-blue-500 pl-4"
                 >
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-sm font-medium text-gray-900 truncate">
-                      {ticket.subject.substring(0, 30)}...
+                      {ticket?.subject?.substring(0, 30)}...
                     </p>
                     <span
                       className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        ticket.status
+                        ticket?.status
                       )}`}
                     >
-                      {getStatusIcon(ticket.status)}
-                      <span className="capitalize">{ticket.status}</span>
+                      {getStatusIcon(ticket?.status)}
+                      <span className="capitalize">{ticket?.status}</span>
                     </span>
                   </div>
                   <p className="text-xs text-gray-500">
-                    {ticket.userId.fullName}
+                    {ticket?.userId?.fullName}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {formatDate(ticket.createdAt)}
+                    {formatDate(ticket?.createdAt)}
                   </p>
                 </div>
               ))}
@@ -331,7 +331,7 @@ const Home: React.FC = () => {
                   <div className="flex items-start space-x-3">
                     <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-xs font-medium text-purple-600">
-                        {thread.createdBy.fullName.charAt(0)}
+                        {thread?.createdBy?.fullName.charAt(0)}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
@@ -339,11 +339,11 @@ const Home: React.FC = () => {
                         {thread.title}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {thread.createdBy.fullName}
+                        {thread?.createdBy?.fullName}
                       </p>
-                      {thread.courseId && (
+                      {thread?.courseId && (
                         <p className="text-xs text-gray-400 truncate">
-                          in {thread.courseId.title}
+                          in {thread?.courseId?.title}
                         </p>
                       )}
                       <p className="text-xs text-gray-400">
