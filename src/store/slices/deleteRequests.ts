@@ -105,16 +105,20 @@ export const fetchDeleteRequests = createAsyncThunk(
       
       // Handle different response structures
       const data = response.data?.data || response.data;
-      const paginationData = response.data?.pagination || {};
-      
+      // Pagination fields may be at the root of the response
+      const page = response.data?.page ?? params.page ?? 1;
+      const limit = response.data?.limit ?? params.limit ?? 10;
+      const total = response.data?.total ?? 0;
+      const totalPages = response.data?.totalPages ?? Math.ceil(total / limit);
+
       return {
         requests: Array.isArray(data) ? data : [],
         pagination: {
-          page: paginationData.page || params.page || 1,
-          limit: paginationData.limit || params.limit || 10,
-          total: paginationData.total || 0,
-          totalPages: paginationData.totalPages || Math.ceil((paginationData.total || 0) / (paginationData.limit || params.limit || 10)),
-        }
+          page,
+          limit,
+          total,
+          totalPages,
+        },
       };
     } catch (error: any) {
       console.error('Error fetching delete requests:', error); // Debug log

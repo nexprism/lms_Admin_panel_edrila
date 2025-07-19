@@ -19,6 +19,9 @@ import {
   Mail,
   FileText,
   Eye,
+  X,
+  Hash,
+  UserCheck,
 } from "lucide-react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -51,6 +54,8 @@ const DeleteRequestsList: React.FC = () => {
 
   const [searchInput, setSearchInput] = useState(searchQuery);
   const [localFilters, setLocalFilters] = useState<Record<string, any>>(filters);
+  const [selectedRequest, setSelectedRequest] = useState<DeleteRequest | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Debounce search input
   useEffect(() => {
@@ -137,6 +142,16 @@ const DeleteRequestsList: React.FC = () => {
     setSearchInput("");
     setLocalFilters({});
     dispatch(resetFilters());
+  };
+
+  const handleViewDetails = (request: DeleteRequest) => {
+    setSelectedRequest(request);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedRequest(null);
   };
 
   const getStatusIcon = (status: string) => {
@@ -241,25 +256,7 @@ const DeleteRequestsList: React.FC = () => {
               </select>
             </div>
 
-            {/* Date Range Filters */}
-            <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-gray-400" />
-              <input
-                type="date"
-                value={localFilters.dateFrom || ""}
-                onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                placeholder="From Date"
-              />
-              <span className="text-gray-400">to</span>
-              <input
-                type="date"
-                value={localFilters.dateTo || ""}
-                onChange={(e) => handleFilterChange("dateTo", e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                placeholder="To Date"
-              />
-            </div>
+
 
             {/* Limit */}
             <div className="flex items-center gap-2">
@@ -345,7 +342,7 @@ const DeleteRequestsList: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <User className="w-4 h-4 mr-2 text-gray-400" />
+                          {/* <User className="w-4 h-4 mr-2 text-gray-400" /> */}
                           <div>
                             <div className="text-sm font-medium text-gray-900 dark:text-white">
                               {request.user?.fullName || "-"}
@@ -359,7 +356,7 @@ const DeleteRequestsList: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 max-w-xs">
                         <div className="flex items-start">
-                          <FileText className="w-4 h-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
+                          {/* <FileText className="w-4 h-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" /> */}
                           <div className="truncate" title={request.reason}>
                             {request.reason || "-"}
                           </div>
@@ -375,20 +372,19 @@ const DeleteRequestsList: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                          {/* <Calendar className="w-4 h-4 mr-2 text-gray-400" /> */}
                           {request.requestedAt ? new Date(request.requestedAt).toLocaleString() : "-"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
-                          <Link to={`/delete-requests/${request._id}`}>
-                            <button 
-                              className="text-blue-500 hover:text-blue-700 transition-colors p-2 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                              title="View Details"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </button>
-                          </Link>
+                          <button
+                            onClick={() => handleViewDetails(request)}
+                            className="text-blue-500 hover:text-blue-700 transition-colors p-2 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
