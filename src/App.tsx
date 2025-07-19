@@ -36,6 +36,7 @@ import TicketDetails from "./pages/HelpDesk/TicketDetails";
 import CertificationList from "./pages/Certification/CertificationList";
 import EditCreateCertificateTemplate from "./pages/Certification/EditeCertification";
 import IssueCertification from "./pages/Certification/IssueCertification";
+import DeleteRequestsList from "./pages/Students/DeleteRequestsList";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -219,6 +220,7 @@ export default function App() {
               {/* Students */}
               <Route path="/students/all" element={<StudentList />} />
               <Route path="/students/:studentId" element={<StudentDetail />} />
+              <Route path="/students/delete-requests" element={<DeleteRequestsList />} />
 
               {/* Forms */}
               <Route path="/form-elements" element={<FormElements />} />

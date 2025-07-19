@@ -16,6 +16,7 @@ import vedio from "./slices/vedio";
 import anayltics from "./slices/anayltics";
 import plans from "./slices/plans";
 import studentsSlice from "./slices/students";
+import deleteRequestsReducer from "./slices/deleteRequests";
 import Support from "./slices/support";
 import certificateReducer from "./slices/certificate";
 import dashboardReducer from "./slices/dashboard";
@@ -39,6 +40,7 @@ export const store = configureStore({
     analytics: anayltics,
     plan: plans,
     students: studentsSlice,
+    deleteRequests: deleteRequestsReducer,
     support: Support,
     dashboard: dashboardReducer,
     certificate: certificateReducer, // Assuming you have a certificate reducer

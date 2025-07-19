@@ -77,6 +77,8 @@ const navItems: NavItem[] = [
     name: "Students",
     subItems: [
       { name: "All Students", path: "/students/all" },
+      { name: "Delete Requests", path: "/students/delete-requests" }
+
       // { name: "Enrollments", path: "/students/enrollments" },
       // { name: "Attendance", path: "/students/attendance" },
     ],
