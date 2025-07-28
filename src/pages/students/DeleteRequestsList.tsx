@@ -4,6 +4,7 @@ import {
   setSearchQuery,
   setFilters,
   resetFilters,
+  updateDeleteRequestStatus,
 } from "../../store/slices/deleteRequests";
 import {
   Search,
@@ -22,6 +23,9 @@ import {
   X,
   Hash,
   UserCheck,
+  Check,
+  Ban,
+  Edit,
 } from "lucide-react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -56,6 +60,11 @@ const DeleteRequestsList: React.FC = () => {
   const [localFilters, setLocalFilters] = useState<Record<string, any>>(filters);
   const [selectedRequest, setSelectedRequest] = useState<DeleteRequest | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
+  const [actionRequestId, setActionRequestId] = useState<string | null>(null);
+  const [processingAction, setProcessingAction] = useState<string | null>(null);
+  const [additionalNotes, setAdditionalNotes] = useState("");
 
   // Debounce search input
   useEffect(() => {
@@ -97,7 +106,6 @@ const DeleteRequestsList: React.FC = () => {
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
-      // Update pagination state properly
       const activeFilters: Record<string, any> = {};
       if (localFilters.status) activeFilters.status = localFilters.status;
       if (localFilters.dateFrom) activeFilters.dateFrom = localFilters.dateFrom;
@@ -123,7 +131,7 @@ const DeleteRequestsList: React.FC = () => {
 
     dispatch(
       fetchDeleteRequests({
-        page: 1, // Reset to first page when changing limit
+        page: 1,
         limit: newLimit,
         filters: activeFilters,
         searchFields: searchQuery ? { search: searchQuery } : {},
@@ -152,6 +160,50 @@ const DeleteRequestsList: React.FC = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedRequest(null);
+  };
+
+  const handleStatusAction = (requestId: string) => {
+    setActionRequestId(requestId);
+    setActionType('approve'); // Default to approve, user can change in modal
+    setAdditionalNotes("");
+    setShowConfirmDialog(true);
+  };
+
+  const confirmStatusAction = async () => {
+    if (!actionRequestId || !actionType) return;
+
+    setProcessingAction(actionRequestId);
+    
+    try {
+      const status = actionType === 'approve' ? 'approved' : 'rejected';
+      await dispatch(updateDeleteRequestStatus({
+        id: actionRequestId,
+        status,
+        notes: additionalNotes.trim() || undefined
+      })).unwrap();
+
+      // Success - close dialog and reset state
+      setShowConfirmDialog(false);
+      setActionRequestId(null);
+      setActionType(null);
+      setAdditionalNotes("");
+      
+      // Optional: Show success message
+      // You can add a toast notification here
+      
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      // Error handling is managed by Redux slice
+    } finally {
+      setProcessingAction(null);
+    }
+  };
+
+  const cancelStatusAction = () => {
+    setShowConfirmDialog(false);
+    setActionRequestId(null);
+    setActionType(null);
+    setAdditionalNotes("");
   };
 
   const getStatusIcon = (status: string) => {
@@ -256,8 +308,6 @@ const DeleteRequestsList: React.FC = () => {
               </select>
             </div>
 
-
-
             {/* Limit */}
             <div className="flex items-center gap-2">
               <span className="text-sm dark:text-gray-300">Show:</span>
@@ -342,7 +392,6 @@ const DeleteRequestsList: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          {/* <User className="w-4 h-4 mr-2 text-gray-400" /> */}
                           <div>
                             <div className="text-sm font-medium text-gray-900 dark:text-white">
                               {request.user?.fullName || "-"}
@@ -356,7 +405,6 @@ const DeleteRequestsList: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 max-w-xs">
                         <div className="flex items-start">
-                          {/* <FileText className="w-4 h-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" /> */}
                           <div className="truncate" title={request.reason}>
                             {request.reason || "-"}
                           </div>
@@ -372,19 +420,33 @@ const DeleteRequestsList: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center">
-                          {/* <Calendar className="w-4 h-4 mr-2 text-gray-400" /> */}
                           {request.requestedAt ? new Date(request.requestedAt).toLocaleString() : "-"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
-                          <button
+                          {/* <button
                             onClick={() => handleViewDetails(request)}
                             className="text-blue-500 hover:text-blue-700 transition-colors p-2 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20"
                             title="View Details"
                           >
                             <Eye className="h-4 w-4" />
-                          </button>
+                          </button> */}
+                          
+                          {request.status === 'pending' && (
+                            <button
+                              onClick={() => handleStatusAction(request._id)}
+                              disabled={processingAction === request._id}
+                              className="text-indigo-500 hover:text-indigo-700 transition-colors p-2 rounded-md hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Edit Status"
+                            >
+                              {processingAction === request._id ? (
+                                <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-500 rounded-full animate-spin"></div>
+                              ) : (
+                                <Edit className="h-4 w-4" />
+                              )}
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -446,6 +508,191 @@ const DeleteRequestsList: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Status Edit Dialog */}
+{showConfirmDialog && (
+  <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-lg">
+      <h3 className="text-lg font-medium text-gray-900 mb-4">
+        Update Request Status
+      </h3>
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Select Status
+        </label>
+        <div className="space-y-2">
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="status"
+              value="approved"
+              checked={actionType === 'approve'}
+              onChange={() => setActionType('approve')}
+              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+            />
+            <span className="ml-2 text-sm text-gray-700">Approve</span>
+          </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="status"
+              value="rejected"
+              checked={actionType === 'reject'}
+              onChange={() => setActionType('reject')}
+              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+            />
+            <span className="ml-2 text-sm text-gray-700">Reject</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-3">
+        <button
+          onClick={cancelStatusAction}
+          disabled={processingAction !== null}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={confirmStatusAction}
+          disabled={processingAction !== null}
+          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors disabled:opacity-50"
+        >
+          {processingAction ? (
+            <div className="flex items-center">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              Updating...
+            </div>
+          ) : (
+            'Update Status'
+          )}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+      {/* View Details Modal */}
+      {showModal && selectedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                Delete Request Details
+              </h3>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    User Name
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    {selectedRequest.user?.fullName || "-"}
+                  </p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Email
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    {selectedRequest.user?.email || "-"}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Reason for Deletion
+                </label>
+                <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                  {selectedRequest.reason || "-"}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Status
+                  </label>
+                  <div className="mt-1 flex items-center">
+                    {getStatusIcon(selectedRequest.status)}
+                    <span className={`ml-2 capitalize text-sm ${getStatusColor(selectedRequest.status)}`}>
+                      {selectedRequest.status}
+                    </span>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Requested At
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    {selectedRequest.requestedAt ? new Date(selectedRequest.requestedAt).toLocaleString() : "-"}
+                  </p>
+                </div>
+              </div>
+
+              {selectedRequest.processedAt && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Processed At
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                      {new Date(selectedRequest.processedAt).toLocaleString()}
+                    </p>
+                  </div>
+                  
+                  {selectedRequest.processedBy && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Processed By
+                      </label>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                        {selectedRequest.processedBy.fullName}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {selectedRequest.additionalNotes && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Additional Notes
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    {selectedRequest.additionalNotes}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -177,17 +177,15 @@ export const fetchDeleteRequest = createAsyncThunk(
 // Update delete request status
 export const updateDeleteRequestStatus = createAsyncThunk(
   "deleteRequests/updateStatus",
-  async ({ id, status, notes }: { id: string; status: string; notes?: string }, { rejectWithValue }) => {
+  async ({ id, status }: { id: string; status: string }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("accessToken");
-      
       if (!token) {
         return rejectWithValue("Authentication token not found");
       }
-      
-      const response = await axiosInstance.patch(
-        `${API_BASE_URL}/delete-account/${id}/status`,
-        { status, additionalNotes: notes },
+      const response = await axiosInstance.put(
+        `${API_BASE_URL}/delete-account/${id}`,
+        { status },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -195,7 +193,6 @@ export const updateDeleteRequestStatus = createAsyncThunk(
           },
         }
       );
-      
       return response.data?.data || response.data;
     } catch (error: any) {
       return rejectWithValue(
