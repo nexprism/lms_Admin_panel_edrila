@@ -36,7 +36,7 @@ import TicketDetails from "./pages/HelpDesk/TicketDetails";
 import CertificationList from "./pages/Certification/CertificationList";
 import EditCreateCertificateTemplate from "./pages/Certification/EditeCertification";
 import IssueCertification from "./pages/Certification/IssueCertification";
-import DeleteRequestsList from "./pages/Students/DeleteRequestsList";
+import DeleteRequestsList from "./pages/students/DeleteRequestsList";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
