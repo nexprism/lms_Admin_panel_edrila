@@ -216,7 +216,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </h4>
                 {subcategories.map((subcategory, index) => (
                   <div key={index} className="space-y-2 border border-gray-200 rounded-md p-4 dark:border-gray-700">
-                    <div className="flex items-center justify-between">
+                    <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
                       <h5 className="text-md font-medium text-gray-700 dark:text-gray-300">
                         Subcategory #{index + 1}
                       </h5>

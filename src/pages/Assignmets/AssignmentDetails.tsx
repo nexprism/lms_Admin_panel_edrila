@@ -309,7 +309,7 @@ const AssignmentSubmissionReview = () => {
                 <label className="block text-sm font-medium text-gray-600 dark:text-white/90 mb-2">
                   Submitted File
                 </label>
-                <div className="bg-blue-50 dark:bg-white/[0.03] border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+                <div className="bg-blue-50 dark:bg-white/[0.03] border border-blue-200 rounded-lg p-4 flex sm:flex-row items-center sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <FileText className="w-6 h-6 text-blue-600" />
                     <div>

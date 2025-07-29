@@ -261,7 +261,7 @@ const AppSidebar: React.FC = () => {
                     : "menu-dropdown-item-inactive"
                 }`}
               >
-                <span className="flex items-center justify-between w-full">
+                <span className="flex sm:flex-row items-center sm:items-center justify-between gap-4 w-full">
                   <span>{subItem.name}</span>
                   <span className="flex items-center gap-1">
                     {subItem.new && (

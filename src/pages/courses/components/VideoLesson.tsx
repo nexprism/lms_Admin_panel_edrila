@@ -801,7 +801,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
         </div>
         
         {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 flex fixed bottom-0 w-full justify-between items-center">
+        <div className="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row items-start fixed bottom-0 w-full justify-between items-center">
           <div className="text-sm text-gray-600">
             * Required fields
           </div>

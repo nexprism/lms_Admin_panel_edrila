@@ -138,7 +138,7 @@ const InteractionDetails: React.FC<{ interactions: any[] }> = ({
   return (
     <div className="mt-4 border border-gray-200  bg-gray-50 overflow-hidden">
       <div
-        className="p-3 cursor-pointer flex items-center justify-between bg-gray-100 hover:bg-gray-200 transition-colors"
+        className="p-3 cursor-pointer flex sm:flex-row items-center sm:items-center justify-between gap-4 bg-gray-100 hover:bg-gray-200 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2 text-gray-700">
@@ -488,7 +488,7 @@ const Session: React.FC = () => {
 
         {/* Overview Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-blue-200 flex items-center justify-between">
+          <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-blue-200 flex sm:flex-row items-center sm:items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-white/80">
                 Total Sessions
@@ -500,7 +500,7 @@ const Session: React.FC = () => {
             <Video size={40} className="text-blue-400 opacity-70" />
           </div>
 
-          <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-green-200 flex items-center justify-between">
+          <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-green-200 flex sm:flex-row items-center sm:items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-white/80">
                 Unique Users
@@ -512,7 +512,7 @@ const Session: React.FC = () => {
             <Users size={40} className="text-green-400 opacity-70" />
           </div>
 
-          <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-purple-200 flex items-center justify-between">
+          <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-purple-200 flex sm:flex-row items-center sm:items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-white/80">
                 Total Watch Time
@@ -524,7 +524,7 @@ const Session: React.FC = () => {
             <Clock size={40} className="text-purple-400 opacity-70" />
           </div>
 
-          <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-orange-200 flex items-center justify-between">
+          <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-orange-200 flex sm:flex-row items-center sm:items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-white/80  ">
                 Avg. Session Watch Time
@@ -748,7 +748,7 @@ const Session: React.FC = () => {
             {/* Pagination Controls */}
             {sortedAndFilteredSessions.length > 0 && (
               <nav
-                className="flex items-center justify-between border-t border-gray-200 bg-white dark:bg-white/[0.03] px-4 py-3 sm:px-6 mt-4 rounded-b-lg"
+                className="flex sm:flex-row items-center sm:items-center justify-between gap-4 border-t border-gray-200 bg-white dark:bg-white/[0.03] px-4 py-3 sm:px-6 mt-4 rounded-b-lg"
                 aria-label="Pagination"
               >
                 <div className="hidden sm:block">

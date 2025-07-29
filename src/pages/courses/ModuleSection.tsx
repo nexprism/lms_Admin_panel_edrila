@@ -901,7 +901,7 @@ const LessonEditor = ({
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
           {/* Header Section */}
           <div className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 p-5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-4">
               {/* Left Side - Lesson Info */}
               <div className="flex items-center space-x-4">
                 <div
@@ -1135,12 +1135,13 @@ const SavedModuleDisplay = ({
         className="p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
           <h3 className="text-lg font-medium text-gray-900">
             {module.title || module.module?.title || "Untitled Module"}
           </h3>
 
           {/* Left Side - Module Info */}
+
           <div className="flex items-center space-x-3">
             {/* Chevron Icon */}
             {/* <div className="flex items-center justify-center w-6 h-6">
@@ -1246,7 +1247,7 @@ const SavedModuleDisplay = ({
             </div>
 
             {/* Section Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex sm:items-center justify-between flex-col items-start sm:flex-row gap-4 mb-6">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                   <BookOpen className="w-5 h-5 text-blue-600" />
@@ -1569,10 +1570,10 @@ const ModuleSection = ({
         isVisible={popup.isVisible}
         onClose={() => setPopup({ ...popup, isVisible: false })}
       />
-      <div className="bg-gradient-to-br from-gray-50 to-white dark:from-white/[0.03] dark:to-white/[0.03] rounded-2xl shadow-xl p-8">
+      <div className="bg-gradient-to-br from-gray-50 to-white dark:from-white/[0.03] dark:to-white/[0.03] rounded-2xl shadow-xl p-2 sm:p-8">
         <div className="mb-8">
           {/* Header Section */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex sm:items-center justify-between flex-col items-start sm:flex-row gap-4 mb-6">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white/90 flex items-center gap-3">
                 <div className="p-2 bg-blue-100 rounded-xl">

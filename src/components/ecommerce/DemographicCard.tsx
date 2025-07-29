@@ -59,7 +59,7 @@ export default function DemographicCard() {
       </div>
 
       <div className="space-y-5">
-        <div className="flex items-center justify-between">
+        <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="items-center w-full rounded-full max-w-8">
               <img src="./images/country/country-01.svg" alt="usa" />
@@ -84,7 +84,7 @@ export default function DemographicCard() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="items-center w-full rounded-full max-w-8">
               <img src="./images/country/country-02.svg" alt="france" />

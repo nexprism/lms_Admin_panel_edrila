@@ -142,8 +142,8 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl max-w-lg w-full mx-4 overflow-hidden transform transition-all duration-300 scale-100">
+    <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-3xl max-h-[90vh] max-w-lg w-full mx-4 overflow-hidden transform transition-all duration-300 scale-100">
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-8 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-white opacity-10 transform rotate-12 scale-150"></div>
@@ -163,7 +163,7 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
         </div>
 
         {/* Content */}
-        <div className="p-8">
+        <div className="p-8 mb-96 overflow-auto">
           <div className="text-center mb-8">
             <h3 className="text-xl font-semibold dark:text-white/90 mb-2">
               What's Next?
@@ -174,7 +174,7 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
           </div>
 
           {/* Next Steps */}
-          <div className="space-y-4 mb-8">
+          <div className="space-y-4 mb-8 max-h-[200px] overflow-scroll">
             <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
               <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                 <Layers className="w-5 h-5 text-blue-600" />
@@ -218,8 +218,9 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
             </div>
           </div>
 
+        </div>
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 fixed w-full pt-10 bottom-4 px-8 bg-white">
             <button
               onClick={onClose}
               className="flex-1 py-3 px-4 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium"
@@ -234,7 +235,6 @@ const SuccessPopup = ({ isVisible, onClose, onAddContent, courseId }) => {
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
-        </div>
       </div>
     </div>
   );

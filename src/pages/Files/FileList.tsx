@@ -111,7 +111,7 @@ const VideoAnalyticsDashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {/* Total Views Card */}
           <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-gray-200 hover:border-blue-500 transition-all duration-300 transform hover:scale-105">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold text-gray-700 dark:text-white/90">
                 Total Views
               </h3>
@@ -125,7 +125,7 @@ const VideoAnalyticsDashboard = () => {
 
           {/* Total Watch Time Card */}
           <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-gray-200 hover:border-blue-500 transition-all duration-300 transform hover:scale-105">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold text-gray-700 dark:text-white/90">
                 Total Watch Time
               </h3>
@@ -139,7 +139,7 @@ const VideoAnalyticsDashboard = () => {
 
           {/* Active Users Card */}
           <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-gray-200 hover:border-blue-500 transition-all duration-300 transform hover:scale-105">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold text-gray-700 dark:text-white/90">
                 Active Users
               </h3>
@@ -153,7 +153,7 @@ const VideoAnalyticsDashboard = () => {
 
           {/* Avg Completion Rate Card */}
           <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-gray-200 hover:border-blue-500 transition-all duration-300 transform hover:scale-105">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold text-gray-700 dark:text-white/90">
                 Avg. Completion
               </h3>
@@ -167,7 +167,7 @@ const VideoAnalyticsDashboard = () => {
 
           {/* Security Incidents Card */}
           <div className="bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-gray-200 hover:border-red-500 transition-all duration-300 transform hover:scale-105">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold text-gray-700 dark:text-white/90">
                 Security Incidents
               </h3>
@@ -242,7 +242,7 @@ const VideoAnalyticsDashboard = () => {
       {/* User Engagement Section */}
       <section className="mb-10 bg-white dark:bg-white/[0.03] p-6 rounded-xl shadow-md border border-gray-200">
         <h2
-          className="text-xl sm:text-2xl font-bold mb-5 text-gray-800 flex items-center justify-between cursor-pointer"
+          className="text-xl sm:text-2xl font-bold mb-5 text-gray-800 flex sm:flex-row items-center sm:items-center justify-between gap-4 cursor-pointer"
           onClick={() => setOpenUserEngagement(!openUserEngagement)}
         >
           <div className="flex items-center gap-2 dark:text-white/90">
@@ -300,7 +300,7 @@ const VideoAnalyticsDashboard = () => {
 
       {/* Security Incidents Section */}
       {/* <section className="mb-10 bg-white p-6 rounded-xl shadow-md border border-gray-200">
-        <h2 className="text-xl sm:text-2xl font-bold mb-5 text-gray-800 flex items-center justify-between cursor-pointer"
+        <h2 className="text-xl sm:text-2xl font-bold mb-5 text-gray-800 flex sm:flex-row items-center sm:items-center justify-between gap-4 cursor-pointer"
           onClick={() => setOpenSecurityIncidents(!openSecurityIncidents)}>
           <div className="flex items-center gap-2">
             <ShieldAlert className="text-red-500" size={24} /> Security Incidents

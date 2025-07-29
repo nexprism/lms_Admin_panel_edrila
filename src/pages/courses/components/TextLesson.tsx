@@ -317,7 +317,7 @@ const TextLessonEditor = ({
         {/* Enhanced Header - Responsive */}
         <div className="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 sm:p-6 text-white">
-            <div className="flex items-center justify-between">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex items-center justify-center">
                   <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
@@ -498,7 +498,7 @@ const TextLessonEditor = ({
                       {formData.attachments.map((file, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-lg shadow-sm"
+                          className="flex sm:flex-row items-center sm:items-center justify-between gap-4 bg-white border border-gray-200 p-3 rounded-lg shadow-sm"
                         >
                           <div className="flex items-center gap-3 flex-1 min-w-0">
                             <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />

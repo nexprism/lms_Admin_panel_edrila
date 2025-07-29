@@ -165,7 +165,7 @@ export default function AddFilter() {
                             </div>
                             <ul className="mt-2 space-y-1">
                                 {filterOptions.map((opt, idx) => (
-                                    <li key={idx} className="flex items-center justify-between bg-gray-100 dark:bg-gray-800 rounded px-3 py-1">
+                                    <li key={idx} className="flex sm:flex-row items-center sm:items-center justify-between gap-4 bg-gray-100 dark:bg-gray-800 rounded px-3 py-1">
                                         <span>{opt}</span>
                                         <button
                                             type="button"

@@ -367,7 +367,7 @@ export default function EditAssignmentForm({
                 </label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
                   {formData.file ? (
-                    <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
+                    <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 bg-blue-50 p-3 rounded-lg">
                       <div className="flex items-center gap-2">
                         <FileText className="w-5 h-5 text-blue-600" />
                         <span className="text-sm font-medium text-blue-800">
@@ -416,7 +416,7 @@ export default function EditAssignmentForm({
                 </label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-400 transition-colors">
                   {formData.document ? (
-                    <div className="flex items-center justify-between bg-green-50 p-3 rounded-lg">
+                    <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 bg-green-50 p-3 rounded-lg">
                       <div className="flex items-center gap-2">
                         <FileText className="w-5 h-5 text-green-600" />
                         <span className="text-sm font-medium text-green-800">

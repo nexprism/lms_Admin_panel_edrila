@@ -446,7 +446,7 @@ const EditTextLessonEditor = ({
                 {formData.attachments.map((file, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between bg-gray-50 p-2 rounded"
+                    className="flex sm:flex-row items-center sm:items-center justify-between gap-4 bg-gray-50 p-2 rounded"
                   >
                     <span className="text-sm text-gray-700">
                       {file?.name || file._id}
@@ -506,7 +506,7 @@ const EditTextLessonEditor = ({
 
         {/* Footer */}
         <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-          <div className="flex items-center justify-between">
+          <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
             <div className="flex items-center gap-6">
               <label className="flex items-center">
                 <input

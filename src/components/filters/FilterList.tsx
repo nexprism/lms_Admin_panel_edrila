@@ -274,7 +274,7 @@ const EditFilterModal: React.FC<{
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
+          <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
             <div>
               <h3 className="text-xl font-semibold text-gray-900">
                 Edit Filter
@@ -451,7 +451,7 @@ const EditFilterModal: React.FC<{
 
                 {/* Existing Options */}
                 <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-3">
                     <h4 className="text-sm font-medium text-gray-700">
                       Options ({formData.filterOptions.length})
                     </h4>
@@ -620,7 +620,7 @@ const DeleteModal: React.FC<{
       ></div>
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 p-6 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-600" />

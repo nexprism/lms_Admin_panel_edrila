@@ -440,7 +440,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
         <div className="flex min-h-full items-center justify-center p-4">
           <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="sticky top-0 bg-white dark:bg-gray-800 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 flex sm:flex-row items-center sm:items-center justify-between gap-4 p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                 Edit Category
               </h3>
@@ -537,7 +537,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
 
                   {/* Subcategories Section */}
                   <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
                       <h4 className="text-lg font-medium text-gray-900 dark:text-white">
                         Subcategories ({subCategories.length})
                       </h4>
@@ -735,7 +735,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
                               </div>
                             ) : (
                               // Display Mode
-                              <div className="flex items-center justify-between">
+                              <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
                                 <div className="flex items-center gap-4">
                                   <div>
                                     <h6 className="font-medium text-gray-900 dark:text-white">
@@ -802,7 +802,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
             <div className="flex min-h-full items-center justify-center p-4">
               <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 p-6 border-b border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0">
                       <AlertTriangle className="h-6 w-6 text-red-500" />

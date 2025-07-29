@@ -78,7 +78,7 @@ const MultiSelectDropdown = ({
         </div>
       </div>
       <div
-        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white cursor-pointer flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white cursor-pointer flex sm:flex-row items-center sm:items-center justify-between gap-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="text-gray-700">
@@ -125,7 +125,7 @@ const MultiSelectDropdown = ({
                 return (
                   <div
                     key={courseId}
-                    className={`px-3 py-2 cursor-pointer hover:bg-gray-50 flex items-center justify-between ${
+                    className={`px-3 py-2 cursor-pointer hover:bg-gray-50 flex sm:flex-row items-center sm:items-center justify-between gap-4 ${
                       isSelected ? "bg-blue-50" : ""
                     }`}
                     onClick={() => handleCourseToggle(courseId)}

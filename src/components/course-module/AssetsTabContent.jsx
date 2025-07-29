@@ -321,7 +321,7 @@ const AssetsTabContent = ({ courseID }) => {
               }}
             >
               <div>
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
                   <div
                     className={`p-3 rounded-full ${getAssetTypeColor(
                       activeFilter

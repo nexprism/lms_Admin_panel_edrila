@@ -174,7 +174,7 @@ function StudentDetail() {
 
   const StatCard = ({ icon: Icon, title, value, subtitle, color = "blue" }) => (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
-      <div className="flex items-center justify-between">
+      <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-gray-600">{title}</p>
           <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
@@ -315,7 +315,7 @@ function StudentDetail() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Recent Activity */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex sm:items-center justify-between flex-col items-start sm:flex-row gap-4 mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                     <Activity className="mr-2 h-5 w-5 text-blue-500" />
                     Recent Activity
@@ -382,7 +382,7 @@ function StudentDetail() {
           <div className="space-y-8">
             {/* Course Enrollment Header */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">Course Enrollments</h2>
                   <p className="text-gray-600">Track progress across all enrolled courses</p>
@@ -405,7 +405,7 @@ function StudentDetail() {
                         className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-200 overflow-hidden"
                       >
                         <div className="p-6">
-                          <div className="flex items-center justify-between mb-4">
+                          <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
                           <div className="flex items-center">
                             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                             <BookOpen className="w-5 h-5 text-white" />
@@ -444,7 +444,7 @@ function StudentDetail() {
                               Disable Drip
                             </button>
 
-                          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                          <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-100">
                           <a
                             href={enrollment.course?._id ? `/courses/edit/${enrollment.course._id}` : "#"}
                             className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
@@ -640,7 +640,7 @@ function StudentDetail() {
                   {data.documentation.map((doc, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="flex sm:flex-row items-center sm:items-center justify-between gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                       <div className="flex items-center">
                         <FileText className="w-5 h-5 text-gray-400 mr-3" />

@@ -328,7 +328,7 @@ export default function AddAssignmentForm({
         {/* Enhanced Header - Responsive */}
         <div className="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 sm:p-6 text-white">
-            <div className="flex items-center justify-between">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex items-center justify-center">
                   <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
@@ -542,7 +542,7 @@ export default function AddAssignmentForm({
                     </label>
                     <div className="border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl p-4 sm:p-6 bg-gray-50 hover:bg-gray-100 transition-all duration-200">
                       {formData.file ? (
-                        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                        <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 bg-blue-50 border border-blue-200 p-3 rounded-lg">
                           <a
                             href={`${baseUrl}/${formData.file}`}
                             target="_blank"
@@ -596,7 +596,7 @@ export default function AddAssignmentForm({
                     </label>
                     <div className="border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl p-4 sm:p-6 bg-gray-50 hover:bg-gray-100 transition-all duration-200">
                       {formData.document ? (
-                        <div className="flex items-center justify-between bg-green-50 border border-green-200 p-3 rounded-lg">
+                        <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 bg-green-50 border border-green-200 p-3 rounded-lg">
                           <a
                             href={`${baseUrl}/${formData.document}`}
                             target="_blank"

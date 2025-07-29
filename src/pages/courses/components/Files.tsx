@@ -259,7 +259,7 @@ const FilePreview = ({ file, onDownload }) => {
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Info className="w-5 h-5 text-blue-600" />
               <span className="text-sm font-medium text-blue-800">
@@ -794,7 +794,7 @@ export default function FileUploadForm({
             <div className="relative">
               <button
                 onClick={() => setIsLanguageOpen(!isLanguageOpen)}
-                className="w-full px-4 py-3 text-left bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between hover:border-gray-300 transition-all"
+                className="w-full px-4 py-3 text-left bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex sm:flex-row items-center sm:items-center justify-between gap-4 hover:border-gray-300 transition-all"
               >
                 <span className="font-medium">{selectedLanguage}</span>
                 <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isLanguageOpen ? 'rotate-180' : ''}`} />
@@ -910,7 +910,7 @@ export default function FileUploadForm({
                 {selectedFiles.map((file, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
+                    className="flex sm:flex-row items-center sm:items-center justify-between gap-4 bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
                   >
                     <div className="flex items-center gap-3">
                       <FileIcon className="w-6 h-6 text-gray-600" />
@@ -933,7 +933,7 @@ export default function FileUploadForm({
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
             <h3 className="text-sm font-semibold text-gray-700 mb-4">File Settings</h3>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-white rounded-xl">
+              <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 p-4 bg-white rounded-xl">
                 <div className="flex items-center gap-3">
                   <Download className="w-5 h-5 text-gray-600" />
                   <div>
@@ -958,7 +958,7 @@ export default function FileUploadForm({
                 </button>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-white rounded-xl">
+              <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 p-4 bg-white rounded-xl">
                 <div className="flex items-center gap-3">
                   <Eye className="w-5 h-5 text-gray-600" />
                   <div>
@@ -983,7 +983,7 @@ export default function FileUploadForm({
                 </button>
               </div>
 
-              {/* <div className="flex items-center justify-between p-4 bg-white rounded-xl">
+              {/* <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 p-4 bg-white rounded-xl">
                 <div className="flex items-center gap-3">
                   {publicContent ? <Globe className="w-5 h-5 text-gray-600" /> : <Lock className="w-5 h-5 text-gray-600" />}
                   <div>

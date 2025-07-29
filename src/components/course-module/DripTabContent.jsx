@@ -350,7 +350,7 @@ console.log("Drip settings submitted:", result);
               >
                 {/* Module Header */}
                 <div
-                  className="flex items-center justify-between p-4 hover:bg-blue-50 dark:hover:dark:bg-white/[0.06] cursor-pointer transition-all duration-200"
+                  className="flex sm:flex-row items-center sm:items-center justify-between gap-4 p-4 hover:bg-blue-50 dark:hover:dark:bg-white/[0.06] cursor-pointer transition-all duration-200"
                   onClick={() => toggleModule(module.id || module._id)}
                 >
                   <div className="flex items-center space-x-3">
@@ -402,7 +402,7 @@ console.log("Drip settings submitted:", result);
                     {module.lessons?.map((lesson, index) => (
                       <div
                         key={lesson.id || lesson._id}
-                        className="flex items-center justify-between p-4 pl-12 hover:bg-white dark:hover:bg-white/[0.06] transition-colors duration-200 border-b border-blue-100 last:border-b-0"
+                        className="flex sm:flex-row items-center sm:items-center justify-between gap-4 p-4 pl-12 hover:bg-white dark:hover:bg-white/[0.06] transition-colors duration-200 border-b border-blue-100 last:border-b-0"
                       >
                         <div className="flex items-center space-x-3">
                           <div
@@ -504,7 +504,7 @@ console.log("Drip settings submitted:", result);
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white/90">
                     Course Access Settings
                   </h3>
@@ -637,7 +637,7 @@ console.log("Drip settings submitted:", result);
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white/90">
                     Drip Settings -{" "}
                     {dripModalData.lesson?.title || dripModalData.lesson?.name}

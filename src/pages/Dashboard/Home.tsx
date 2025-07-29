@@ -115,7 +115,7 @@ const Home: React.FC = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-600">
                   Total Courses
@@ -131,7 +131,7 @@ const Home: React.FC = () => {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-600">
                   Total Students
@@ -147,7 +147,7 @@ const Home: React.FC = () => {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-600">
                   Support Tickets
@@ -163,7 +163,7 @@ const Home: React.FC = () => {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-600">
                   Forum Threads
@@ -182,7 +182,7 @@ const Home: React.FC = () => {
         {/* Sales Overview */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Sales Overview
               </h3>
@@ -217,7 +217,7 @@ const Home: React.FC = () => {
           </div>
 
           <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-sm p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold">Platform Revenue</h3>
               <IndianRupee className="w-5 h-5" />
             </div>
@@ -236,7 +236,7 @@ const Home: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Latest Courses */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Latest Courses
               </h3>
@@ -275,7 +275,7 @@ const Home: React.FC = () => {
 
           {/* Support Tickets */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Recent Tickets
               </h3>
@@ -287,7 +287,7 @@ const Home: React.FC = () => {
                   key={ticket?._id}
                   className="border-l-4 border-blue-500 pl-4"
                 >
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-1">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {ticket?.subject?.substring(0, 30)}...
                     </p>
@@ -319,7 +319,7 @@ const Home: React.FC = () => {
 
           {/* Forum Activity */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Forum Activity
               </h3>

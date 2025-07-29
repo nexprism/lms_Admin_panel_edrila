@@ -538,7 +538,7 @@ const DripPopup = ({
                       <button
                         type="button"
                         onClick={() => setDropdownOpen(!dropdownOpen)}
-                        className="w-full px-4 py-3 border dark:text-white/70 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-white/[0.03] text-left flex items-center justify-between"
+                        className="w-full px-4 py-3 border dark:text-white/70 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-white/[0.03] text-left flex sm:flex-row items-center sm:items-center justify-between gap-4"
                       >
                         <span
                           className={
@@ -690,7 +690,7 @@ const DripPopup = ({
                         }))
                       }
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
                         <div>
                           <div className="font-medium text-gray-900 dark:text-white/90">
                             {operator.label}

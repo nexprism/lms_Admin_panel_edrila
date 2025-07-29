@@ -119,7 +119,7 @@ const AccordionSection = ({
         }`}
         onClick={onToggle}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div
               className={`p-2 rounded-lg ${
@@ -161,7 +161,7 @@ const AccordionSection = ({
         </div>
       </div>
       {isOpen && (
-        <div className="px-6 py-6 animate-in slide-in-from-top-2 duration-200">
+        <div className="p-2 md:px-6 py-6 animate-in slide-in-from-top-2 duration-200">
           {children}
         </div>
       )}
@@ -763,7 +763,7 @@ const EditCourse = () => {
         onClose={() => setPopup({ ...popup, isVisible: false })}
       />
       <div className="min-h-screen bg-gray-50  dark:bg-white/[0.03]">
-        <div className="mx-auto py-8 px-4">
+        <div className="mx-auto py-8 sm:px-4">
           <div className="bg-white dark:bg-white/[0.03] rounded-lg shadow-sm p-6 mb-6">
             <h1 className="text-3xl font-bold flex items-center gap-3 text-gray-900 dark:text-white/90">
               <div className="p-2 bg-blue-100 dark:bg-white/[0.09] rounded-lg">

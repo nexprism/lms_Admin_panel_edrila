@@ -133,7 +133,7 @@ function Faqs({ courseId }) {
       {showPopup && (
         <div className="fixed top-0 left-0 h-screen right-0 bottom-0 bg-black/50 z-9999 flex items-center justify-center">
           <div className="bg-white dark:bg-[#182131] rounded-2xl  w-1/3 shadow-xl p-8">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex sm:items-center justify-between flex-col items-start sm:flex-row gap-4 mb-6">
               <h2 className="text-2xl font-bold dark:text-white/90 text-gray-900">
                 {selectedFaq ? "Edit Plan" : "Create New Plan"}
               </h2>

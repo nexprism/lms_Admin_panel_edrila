@@ -193,7 +193,7 @@ export default function SignInForm() {
                   )}
                 </div>
                 
-                <div className="flex items-center justify-between">
+                <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <Checkbox 
                       checked={isChecked} 
