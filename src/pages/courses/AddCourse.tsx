@@ -68,34 +68,14 @@ const validateForm = (
     errors.title = "Title must be less than 100 characters";
   }
 
-  if (!description.trim()) {
-    errors.description = "Course description is required";
-  } else if (description.length > 5000) {
-    errors.description = "Description must be less than 5000 characters";
-  }
-
-  if (!formData.categoryId) {
-    errors.categoryId = "Category is required";
-  }
-
-  if (!formData.subCategoryId) {
-    errors.subCategoryId = "Subcategory is required";
-  }
-
-  if (!formData.duration) {
-    errors.duration = "Duration is required";
-  } else if (isNaN(formData.duration) || formData.duration <= 0) {
-    errors.duration = "Duration must be a positive number";
-  } else if (formData.duration > 100000) {
-    errors.duration = "Duration cannot exceed 100000 hours";
-  }
-
-  if (!formData.price) {
+  if (formData.price) {
+    if (isNaN(formData.price) || formData.price < 0) {
+      errors.price = "Price must be a non-negative number";
+    } else if (formData.price > 100000) {
+      errors.price = "Price cannot exceed 100,000";
+    }
+  } else {
     errors.price = "Price is required";
-  } else if (isNaN(formData.price) || formData.price < 0) {
-    errors.price = "Price must be a non-negative number";
-  } else if (formData.price > 100000) {
-    errors.price = "Price cannot exceed 100,000";
   }
 
   if (formData.seoMetaDescription.length > 160) {
@@ -678,16 +658,6 @@ const AddCourse = () => {
                 onCategoryChange={handleCategoryChange}
                 onSubcategoryChange={handleSubcategoryChange}
               />
-              {formErrors.categoryId && (
-                <p className="mt-1 text-xs text-red-600">
-                  {formErrors.categoryId}
-                </p>
-              )}
-              {formErrors.subCategoryId && (
-                <p className="mt-1 text-xs text-red-600">
-                  {formErrors.subCategoryId}
-                </p>
-              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold dark:text-white/90 mb-2">
@@ -722,17 +692,10 @@ const AddCourse = () => {
                     }}
                     step="1"
                     min="1"
-                    className={`w-full border rounded-xl px-4 py-3 dark:text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
-                      formErrors.duration ? "border-red-400" : "border-gray-200"
-                    }`}
+                    className={`w-full border rounded-xl px-4 py-3 dark:text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 border-gray-200`}
                     placeholder="Course duration"
                     required
                   />
-                  {formErrors.duration && (
-                    <p className="mt-1 text-xs text-red-600">
-                      {formErrors.duration}
-                    </p>
-                  )}
                 </div>
               </div>
               {/* Access Type & Period */}
@@ -1203,3 +1166,4 @@ const AddCourse = () => {
 };
 
 export default AddCourse;
+             

@@ -429,28 +429,6 @@ const EditCourse = () => {
       errors.title = "Title must be less than 100 characters";
     }
 
-    if (!description.trim()) {
-      errors.description = "Course description is required";
-    } else if (description.length > 5000) {
-      errors.description = "Description must be less than 5000 characters";
-    }
-
-    if (!formData.categoryId) {
-      errors.categoryId = "Category is required";
-    }
-
-    if (!formData.subCategoryId) {
-      errors.subCategoryId = "Subcategory is required";
-    }
-
-    if (!formData.duration) {
-      errors.duration = "Duration is required";
-    } else if (isNaN(formData.duration) || formData.duration <= 0) {
-      errors.duration = "Duration must be a positive number";
-    } else if (formData.duration > 1000) {
-      errors.duration = "Duration cannot exceed 1000 hours";
-    }
-
     if (!formData.price) {
       errors.price = "Price is required";
     } else if (isNaN(formData.price) || formData.price < 0) {
@@ -866,16 +844,6 @@ const EditCourse = () => {
                         onCategoryChange={handleCategoryChange}
                         onSubcategoryChange={handleSubcategoryChange}
                       />
-                      {formErrors.categoryId && (
-                        <p className="mt-1 text-xs text-red-600">
-                          {formErrors.categoryId}
-                        </p>
-                      )}
-                      {formErrors.subCategoryId && (
-                        <p className="mt-1 text-xs text-red-600">
-                          {formErrors.subCategoryId}
-                        </p>
-                      )}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium dark:text-white/90 text-gray-700 mb-2">
@@ -919,11 +887,7 @@ const EditCourse = () => {
                             name="duration"
                             value={formData.duration}
                             onChange={handleInputChange}
-                            className={`w-full border dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                              formErrors.duration
-                                  ? "border-red-400"
-                                  : "border-gray-300"
-                            }`}
+                            className={`w-full border dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-300`}
                             placeholder="Enter duration in minutes"
                             required
                             min={1}
@@ -937,9 +901,6 @@ const EditCourse = () => {
                               }
                             }}
                           />
-                          {formErrors.duration && (
-                          <p className="mt-1 text-xs text-red-600">{formErrors.duration}</p>
-                          )}
                         </div>
                       </div>
                       {/* Access Type & Period */}
@@ -1439,3 +1400,4 @@ const EditCourse = () => {
 };
 
 export default EditCourse;
+                  
