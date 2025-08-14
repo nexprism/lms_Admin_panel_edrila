@@ -37,6 +37,10 @@ import CertificationList from "./pages/Certification/CertificationList";
 import EditCreateCertificateTemplate from "./pages/Certification/EditeCertification";
 import IssueCertification from "./pages/Certification/IssueCertification";
 import DeleteRequestsList from "./pages/students/DeleteRequestsList";
+import User from "./pages/SalesAnalytics/User";
+import Course from "./pages/SalesAnalytics/Course";
+import Bundel from "./pages/SalesAnalytics/Bundel";
+import Project from "./pages/Files/Project";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -216,6 +220,7 @@ export default function App() {
               <Route path="/files/all" element={<FileList />} />
               <Route path="/files/add" element={<AddFile />} />
               <Route path="/files/sessions" element={<Session />} />
+              <Route path="/files/projects" element={<Project />} />
 
               {/* Students */}
               <Route path="/students/all" element={<StudentList />} />
@@ -224,6 +229,13 @@ export default function App() {
 
               {/* Forms */}
               <Route path="/form-elements" element={<FormElements />} />
+
+              {/* sales analytics */}
+              <Route path="/sales/user" element={<User />} />
+              <Route path="/sales/course" element={<Course />} />
+              <Route path="/sales/bundle" element={<Bundel />} />
+
+              {/* User Profiles */}
 
               {/* Tables */}
               <Route path="/basic-tables" element={<BasicTables />} />
