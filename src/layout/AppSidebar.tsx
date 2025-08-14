@@ -114,8 +114,21 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Dashboard", path: "/files/all" },
       { name: "Video  Logs", path: "/files/sessions" },
+      { name: "Projects", path: "/files/projects" },
     ],
   },
+
+  //sales analytics
+{
+  icon: <TableIcon />,
+  name: "Sales Analytics",
+  subItems: [
+    { name: "User", path: "/sales/user" },
+    { name: "Course", path: "/sales/course" },
+    { name: "Bundle", path: "/sales/bundle" },
+  ],
+}
+,
 
   {
     icon: <TableIcon />,
