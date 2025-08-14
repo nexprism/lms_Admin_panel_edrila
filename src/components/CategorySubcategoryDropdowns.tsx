@@ -185,7 +185,7 @@ export default function CategorySubcategoryDropdowns({
           onChange={handleCategoryChange}
           disabled={disabled || categoriesLoading}
           className="w-full rounded border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-800"
-          required
+          
         >
           <option value="">
             {categoriesLoading ? "Loading categories..." : "Select a category"}
@@ -235,7 +235,7 @@ export default function CategorySubcategoryDropdowns({
                   onChange={(e) => setData({ ...data, title: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter name"
-                  required
+                  
                   disabled={isSubmitting}
                 />
               </div>
@@ -283,7 +283,6 @@ export default function CategorySubcategoryDropdowns({
           onChange={handleSubcategoryChange}
           disabled={disabled || !selectedCategoryId || subcategoriesLoading}
           className="w-full rounded border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-800"
-          required
         >
           <option value="">
             {!selectedCategoryId

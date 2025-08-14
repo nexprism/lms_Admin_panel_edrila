@@ -446,11 +446,11 @@ const EditCourse = () => {
       errors.seoContent = "SEO content must be less than 10,000 characters";
     }
 
-    if (selectedTags.length === 0) {
-      errors.tags = "At least one tag is required";
-    } else if (selectedTags.length > 10) {
-      errors.tags = "Cannot add more than 10 tags";
-    }
+    // if (selectedTags.length === 0) {
+    //   errors.tags = "At least one tag is required";
+    // } else if (selectedTags.length > 10) {
+    //   errors.tags = "Cannot add more than 10 tags";
+    // }
 
     if (!files.thumbnailFile && !formData.thumbnail) {
       errors.thumbnailFile = "Thumbnail image is required";
@@ -889,7 +889,7 @@ const EditCourse = () => {
                             onChange={handleInputChange}
                             className={`w-full border dark:text-white/70 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-300`}
                             placeholder="Enter duration in minutes"
-                            required
+                            
                             min={1}
                             step={1}
                             onWheel={e => e.currentTarget.blur()}
