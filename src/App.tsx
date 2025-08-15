@@ -41,6 +41,7 @@ import User from "./pages/SalesAnalytics/User";
 import Course from "./pages/SalesAnalytics/Course";
 import Bundel from "./pages/SalesAnalytics/Bundel";
 import Project from "./pages/Files/Project";
+import QueryList from "./pages/Query/QueryList";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -234,6 +235,10 @@ export default function App() {
               <Route path="/sales/user" element={<User />} />
               <Route path="/sales/course" element={<Course />} />
               <Route path="/sales/bundle" element={<Bundel />} />
+
+              {/* query */}
+              <Route path="/queries/all" element={<QueryList />} />
+             
 
               {/* User Profiles */}
 

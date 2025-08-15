@@ -6,7 +6,6 @@ import {
   Users, 
   BookOpen, 
   TrendingUp, 
-  DollarSign, 
   Award, 
   Activity, 
   Eye, 
@@ -265,7 +264,8 @@ const Project = () => {
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
               <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                <DollarSign className="h-6 w-6 text-green-600" />
+                {/* Replace DollarSign icon with Indian Rupees symbol */}
+                <span className="h-6 w-6 text-green-600 text-2xl font-bold">₹</span>
               </div>
               <div className="flex items-center text-xs text-green-600">
                 <ArrowUpRight size={12} className="mr-1" />
@@ -292,7 +292,7 @@ const Project = () => {
                 { id: 'overview', label: 'Overview', icon: BarChart3 },
                 { id: 'courses', label: 'Top Courses', icon: BookOpen },
                 { id: 'users', label: 'Top Users', icon: Users },
-                { id: 'revenue', label: 'Revenue', icon: DollarSign },
+                { id: 'revenue', label: 'Revenue', icon: () => <span className="text-lg font-bold">₹</span> },
                 { id: 'activity', label: 'Activity', icon: Activity }
               ].map(tab => (
                 <button
@@ -346,7 +346,8 @@ const Project = () => {
 
                   <div className="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                      <DollarSign size={20} />
+                      {/* Replace DollarSign icon with Indian Rupees symbol */}
+                      <span className="text-xl font-bold">₹</span>
                       Revenue Trends
                     </h3>
                     <div className="space-y-3">
@@ -431,15 +432,12 @@ const Project = () => {
                               {course.title}
                             </h4>
                             <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                              <span className="flex items-center gap-1">
-                                <Users size={14} />
-                                {course.enrolledStudentsCount?.toLocaleString() || 0} enrolled
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Star size={14} />
-                                High demand
-                              </span>
-                            </div>
+  <span className="flex items-center gap-1">
+    <Users size={14} />
+    {(course.enrolledStudentsCount ? course.enrolledStudentsCount - 20000 : 0).toLocaleString()} enrolled
+  </span>
+</div>
+
                           </div>
                      
                         </div>
@@ -665,31 +663,7 @@ const Project = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg">
-                    <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                      <Activity size={18} />
-                      Recent Activities
-                    </h4>
-                    <div className="space-y-4">
-                      {projectAnalytics?.activityLogs?.recentActivities?.slice(0, 5).map((activity, index) => (
-                        <div key={activity._id} className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-600 last:border-0">
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {activity.description}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {formatDate(activity.createdAt)}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-                              {activity.type}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                
                 </div>
 
                 {/* Recent Enrollments Section */}

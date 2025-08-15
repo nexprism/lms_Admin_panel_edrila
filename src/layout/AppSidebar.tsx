@@ -117,6 +117,14 @@ const navItems: NavItem[] = [
       { name: "Projects", path: "/files/projects" },
     ],
   },
+  {
+    icon: <TableIcon />,
+    name: "Queries",
+    subItems: [
+      { name: "All Queries", path: "/queries/all" },
+     
+    ],
+  },
 
   //sales analytics
 {
