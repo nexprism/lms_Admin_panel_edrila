@@ -56,14 +56,14 @@ const navItems: NavItem[] = [
       { name: "Categories List", path: "/categories" },
     ],
   },
-  {
-    icon: <PageIcon />,
-    name: "Filters",
-    subItems: [
-      { name: "Filters List", path: "/filters/all" },
-      { name: "Add Filter", path: "/filters/add" },
-    ],
-  },
+  // {
+  //   icon: <PageIcon />,
+  //   name: "Filters",
+  //   subItems: [
+  //     { name: "Filters List", path: "/filters/all" },
+  //     { name: "Add Filter", path: "/filters/add" },
+  //   ],
+  // },
   {
     icon: <BoxCubeIcon />,
     name: "Course Bundle",
@@ -114,7 +114,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Dashboard", path: "/files/all" },
       { name: "Video  Logs", path: "/files/sessions" },
-      { name: "Projects", path: "/files/projects" },
+      { name: "Performance", path: "/files/projects" },
     ],
   },
   {
