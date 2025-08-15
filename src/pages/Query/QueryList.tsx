@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAllQueries } from "../../store/slices/query";
+import { getAllQueries, updateQuery } from "../../store/slices/query";
 import { RootState } from "../../store";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { 
@@ -42,6 +42,13 @@ const QueryList: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedQuery, setSelectedQuery] = useState<Query | null>(null);
+  const [modalStatus, setModalStatus] = useState("");
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   // Allowed status values for filter
   const allowedStatuses = [
@@ -135,6 +142,35 @@ const QueryList: React.FC = () => {
     if (end < totalPages) pages.push("...", totalPages);
 
     return pages;
+  };
+
+  // Open modal for editing status
+  const handleEditStatus = (query: Query) => {
+    setSelectedQuery(query);
+    setModalStatus(query.status);
+    setModalOpen(true);
+    setModalError(null);
+  };
+
+  // Handle status update
+  const handleUpdateStatus = async () => {
+    if (!selectedQuery || !token) return;
+    setModalLoading(true);
+    setModalError(null);
+    try {
+      await dispatch(
+        updateQuery({
+          queryId: selectedQuery._id,
+          queryData: { status: modalStatus },
+          token,
+        }) as any
+      ).unwrap();
+      setModalOpen(false);
+    } catch (err: any) {
+      setModalError(err?.message || "Failed to update status");
+    } finally {
+      setModalLoading(false);
+    }
   };
 
   return (
@@ -334,7 +370,10 @@ const QueryList: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
-                        <button className="text-blue-500 hover:text-blue-700 transition-colors p-1">
+                        <button
+                          className="text-blue-500 hover:text-blue-700 transition-colors p-1"
+                          onClick={() => handleEditStatus(query)}
+                        >
                           <Pencil className="h-5 w-5" />
                         </button>
                       </div>
@@ -395,6 +434,65 @@ const QueryList: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Status Update Modal */}
+{modalOpen && selectedQuery && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-sm">
+    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+      {/* Close Icon */}
+      <button
+        onClick={() => setModalOpen(false)}
+        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+      >
+        ✕
+      </button>
+
+      <h2 className="text-lg font-semibold mb-4 text-gray-800">
+        Update Status
+      </h2>
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Status
+        </label>
+        <select
+          value={modalStatus}
+          onChange={(e) => setModalStatus(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          {allowedStatuses.map((status) => (
+            <option key={status.value} value={status.value}>
+              {status.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {modalError && (
+        <div className="text-red-600 mb-2 text-sm">{modalError}</div>
+      )}
+
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => setModalOpen(false)}
+          className="px-4 py-2 rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200"
+          disabled={modalLoading}
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleUpdateStatus}
+          className="px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+          disabled={modalLoading}
+        >
+          {modalLoading ? "Updating..." : "Update"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 };
