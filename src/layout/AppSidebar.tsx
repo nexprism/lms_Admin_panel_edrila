@@ -17,7 +17,7 @@ import {
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
-import { Files } from "lucide-react";
+import { Files, UserCircle2Icon } from "lucide-react";
 
 type NavSubItem = {
   name: string;
@@ -118,7 +118,7 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    icon: <TableIcon />,
+    icon: <UserCircle2Icon />,
     name: "Queries",
     subItems: [
       { name: "All Queries", path: "/queries/all" },
