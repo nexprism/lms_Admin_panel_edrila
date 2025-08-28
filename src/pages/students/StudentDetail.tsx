@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
-import { fetchStudentById, disableDripForUser } from "../../store/slices/students";
+import {
+  fetchStudentById,
+  disableDripForUser,
+  banStudent,
+  unbanStudent,
+} from "../../store/slices/students";
 import {
   User,
   Mail,
@@ -27,6 +32,8 @@ import {
   Users,
   Target,
   Bookmark,
+  Ban,
+  ShieldCheck,
 } from "lucide-react";
 import EnrollStudentPopup from "../../components/students/EnrollStudentPopup";
 
@@ -37,7 +44,39 @@ function StudentDetail() {
   const dispatch = useDispatch();
   const { studentId } = params;
 
-  const [data, setData] = useState(null);
+  type StudentData = {
+    _id: string;
+    fullName: string;
+    name?: string;
+    role: string;
+    createdAt: string;
+    isActive: boolean;
+    emailVerified: boolean;
+    mobileVerified: boolean;
+    email: string;
+    phone?: string;
+    enrollments: any[];
+    isBanned?: string | boolean;
+    isShadowBanned?: string | boolean;
+    status?: string;
+    banReason?: string;
+    bio?: string;
+    skills?: string[] | string;
+    qualifications?: string[] | string;
+    education?: Array<{
+      degree?: string;
+      institution?: string;
+      startDate?: string;
+      endDate?: string;
+    }>;
+    documentation?: Array<{
+      name?: string;
+      Doc?: string;
+    }>;
+    // Add any other fields you use from 'data'
+  };
+
+  const [data, setData] = useState<StudentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [enrollPopupOpen, setEnrollPopupOpen] = useState(false);
@@ -47,10 +86,22 @@ function StudentDetail() {
   const [dripLoading, setDripLoading] = useState<string | null>(null);
 
   // Add state for confirmation popup
-  const [confirmDrip, setConfirmDrip] = useState<{ courseId: string, courseTitle: string } | null>(null);
+  const [confirmDrip, setConfirmDrip] = useState<{
+    courseId: string;
+    courseTitle: string;
+  } | null>(null);
 
   // Toast state
-  const [toast, setToast] = useState<{ message: string; type?: "success" | "error" } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type?: "success" | "error";
+  } | null>(null);
+
+  // Ban/Unban modal state
+  const [banModalOpen, setBanModalOpen] = useState(false);
+  const [banReason, setBanReason] = useState("");
+  const [banType, setBanType] = useState<"ban" | "shadowBan">("ban");
+  const [banLoading, setBanLoading] = useState(false);
 
   useEffect(() => {
     // Auto-hide toast after 2.5s
@@ -104,6 +155,49 @@ function StudentDetail() {
       }, 100);
     } finally {
       setDripLoading(null);
+    }
+  };
+
+  // Ban/Unban handlers
+  const openBanModal = () => {
+    setBanModalOpen(true);
+    setBanReason("");
+    setBanType("ban");
+  };
+  const closeBanModal = () => {
+    setBanModalOpen(false);
+    setBanReason("");
+    setBanType("ban");
+    setBanLoading(false);
+  };
+  const handleBanConfirm = async () => {
+    if (!data?._id) return;
+    setBanLoading(true);
+    try {
+      await dispatch(banStudent({
+        userId: data._id,
+        banType,
+        banReason: banReason || "No reason provided",
+      })).unwrap();
+      setToast({ message: "Student banned successfully.", type: "success" });
+      closeBanModal();
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      setToast({ message: "Failed to ban student.", type: "error" });
+      setBanLoading(false);
+    }
+  };
+  const handleUnban = async () => {
+    if (!data?._id) return;
+    setBanLoading(true);
+    try {
+      await dispatch(unbanStudent({ userId: data._id })).unwrap();
+      setToast({ message: "Student unbanned successfully.", type: "success" });
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      setToast({ message: "Failed to unban student.", type: "error" });
+    } finally {
+      setBanLoading(false);
     }
   };
 
@@ -162,8 +256,8 @@ function StudentDetail() {
   const StatusBadge = ({ verified, label, icon: Icon }) => (
     <div
       className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-        verified 
-          ? "bg-emerald-100 text-emerald-800 border border-emerald-200" 
+        verified
+          ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
           : "bg-rose-100 text-rose-800 border border-rose-200"
       }`}
     >
@@ -243,12 +337,47 @@ function StudentDetail() {
                   <Plus className="w-4 h-4 mr-2" />
                   Enroll in Course
                 </button>
-                {/* <button className="inline-flex items-center px-6 py-3 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Profile
-                </button> */}
+                {/* Ban/Unban Button */}
+                {(data.isBanned === true || data.isBanned === "true" || data.isShadowBanned === true || data.isShadowBanned === "true") ? (
+                  <button
+                    onClick={handleUnban}
+                    className="inline-flex items-center px-6 py-3 border border-yellow-500 rounded-xl shadow-sm text-sm font-medium text-yellow-700 bg-yellow-100 hover:bg-yellow-200 transition-all duration-200"
+                    disabled={banLoading}
+                  >
+                    <ShieldCheck className="w-4 h-4 mr-2" />
+                    Unban Student
+                  </button>
+                ) : (
+                  <button
+                    onClick={openBanModal}
+                    className="inline-flex items-center px-6 py-3 border border-red-500 rounded-xl shadow-sm text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 transition-all duration-200"
+                    disabled={banLoading}
+                  >
+                    <Ban className="w-4 h-4 mr-2" />
+                    Ban Student
+                  </button>
+                )}
               </div>
             </div>
+            {/* Ban status display */}
+            {data.status === "ban" && (
+              <div className="mt-4 text-red-600 text-sm">
+                <Ban className="inline w-4 h-4 mr-1" />
+                <span>
+                  Student is <b>Banned</b>
+                  {data.banReason && <>: {data.banReason}</>}
+                </span>
+              </div>
+            )}
+            {data.status === "shadowBan" && (
+              <div className="mt-4 text-yellow-600 text-sm">
+                <Ban className="inline w-4 h-4 mr-1" />
+                <span>
+                  Student is <b>Shadow Banned</b>
+                  {data.banReason && <>: {data.banReason}</>}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -705,7 +834,8 @@ function StudentDetail() {
               Disable Drip Setting
             </h3>
             <p className="text-gray-700 mb-6">
-              Are you sure you want to disable drip setting for <span className="font-semibold">{confirmDrip.courseTitle}</span>?<br />
+              Are you sure you want to disable drip setting for{" "}
+              <span className="font-semibold">{confirmDrip.courseTitle}</span>?<br />
               <span className="text-xs text-gray-500">This action cannot be undone.</span>
             </p>
             <div className="flex justify-end space-x-3">
@@ -727,6 +857,63 @@ function StudentDetail() {
                   <XCircle className="w-4 h-4 mr-2" />
                 )}
                 Yes, Disable
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ban Modal */}
+      {banModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Ban Student
+            </h3>
+            <p className="text-gray-700 mb-4">
+              Are you sure you want to ban{" "}
+              <span className="font-semibold">{data.fullName || data.name}</span>?
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Ban Type</label>
+              <select
+                value={banType}
+                onChange={e => setBanType(e.target.value as "ban" | "shadowBan")}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+              >
+                <option value="ban">Ban</option>
+                <option value="shadowBan">Shadow Ban</option>
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+              <input
+                type="text"
+                value={banReason}
+                onChange={e => setBanReason(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                placeholder="Enter reason (optional)"
+              />
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                onClick={closeBanModal}
+                disabled={banLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 flex items-center ${banLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={handleBanConfirm}
+                disabled={banLoading}
+              >
+                {banLoading ? (
+                  <span className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                ) : (
+                  <Ban className="w-4 h-4 mr-2" />
+                )}
+                Ban
               </button>
             </div>
           </div>

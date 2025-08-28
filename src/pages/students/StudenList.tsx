@@ -5,6 +5,8 @@ import {
   setFilters,
   resetFilters,
   deleteStudent,
+  banStudent,
+  unbanStudent,
 } from "../../store/slices/students";
 import {
   Pencil,
@@ -20,6 +22,8 @@ import {
   AlertTriangle,
   Eye,
   Award,
+  Ban,
+  ShieldCheck,
 } from "lucide-react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -145,6 +149,11 @@ const StudentList: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [createPopupOpen, setCreatePopupOpen] = useState(false);
   const [enrollPopupOpen, setEnrollPopupOpen] = useState(false);
+  const [banModalOpen, setBanModalOpen] = useState(false);
+  const [studentToBan, setStudentToBan] = useState<Student | null>(null);
+  const [banReason, setBanReason] = useState("");
+  const [banType, setBanType] = useState<"ban" | "shadowBan">("ban");
+  const [banLoading, setBanLoading] = useState(false);
 
   const [searchInput, setSearchInput] = useState(searchQuery);
   const [localFilters, setLocalFilters] = useState<Record<string, any>>(filters);
@@ -298,6 +307,67 @@ const StudentList: React.FC = () => {
     }
   };
 
+  // Ban/Unban handlers
+  const openBanModal = (student: Student) => {
+    setStudentToBan(student);
+    setBanModalOpen(true);
+    setBanReason("");
+    setBanType("ban");
+  };
+  const closeBanModal = () => {
+    setStudentToBan(null);
+    setBanModalOpen(false);
+    setBanReason("");
+    setBanType("ban");
+    setBanLoading(false);
+  };
+  const handleBanConfirm = async () => {
+    if (!studentToBan) return;
+    setBanLoading(true);
+    try {
+      await dispatch(banStudent({
+        userId: studentToBan._id,
+        banType,
+        banReason: banReason || "No reason provided",
+      })).unwrap();
+      setPopup({
+        message: `Student "${studentToBan.fullName || studentToBan.name}" banned successfully`,
+        type: "success",
+        isVisible: true,
+      });
+      closeBanModal();
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      setPopup({
+        message: "Failed to ban student. Please try again.",
+        type: "error",
+        isVisible: true,
+      });
+      setBanLoading(false);
+    }
+  };
+  const handleUnban = async (student: Student) => {
+    setBanLoading(true);
+    try {
+      await dispatch(unbanStudent({ userId: student._id })).unwrap();
+      setPopup({
+        message: `Student "${student.fullName || student.name}" unbanned successfully`,
+        type: "success",
+        isVisible: true,
+      });
+            setTimeout(() => window.location.reload(), 1000);
+
+    } catch (error) {
+      setPopup({
+        message: "Failed to unban student. Please try again.",
+        type: "error",
+        isVisible: true,
+      });
+    } finally {
+      setBanLoading(false);
+    }
+  };
+
   const generatePageNumbers = () => {
     const pages = [];
     const totalPages = pagination.totalPages;
@@ -437,6 +507,9 @@ const StudentList: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
                   Created
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                  Ban Status
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
                   Actions
                 </th>
@@ -445,7 +518,7 @@ const StudentList: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
               {students.length === 0 && !loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                     No students found.
                   </td>
                 </tr>
@@ -455,7 +528,8 @@ const StudentList: React.FC = () => {
                   return (
                     <tr
                       key={student._id || idx}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                      onClick={() => window.location.href = `/students/${student._id}`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                         {(pagination.page - 1) * pagination.limit + idx + 1}
@@ -499,18 +573,54 @@ const StudentList: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {student?.createdAt ? new Date(student.createdAt).toLocaleDateString() : "-"}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {student.isBanned == true ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded bg-red-100 text-red-700 font-medium">
+                            Banned
+                            {/* {student.banReason && (
+                              <span className="ml-2 text-xs text-red-500">({student.banReason})</span>
+                            )} */}
+                          </span>
+                        ) : student.isShadowBanned == true ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded bg-yellow-100 text-yellow-700 font-medium">
+                            Shadow Banned
+                            {/* {student.banReason && (
+                              <span className="ml-2 text-xs text-yellow-600">({student.banReason})</span>
+                            )} */}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700 font-medium">
+                            Active
+                          </span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
-                          <Link to={`/students/${student._id}`}>
-                            <button className="text-blue-500 hover:text-blue-700 transition-colors p-1">
-                              <Eye className="h-5 w-5" />
-                            </button>
-                          </Link>
                           <Link to={`/certificates/issue?user=${student._id}`}>
                             <button className="text-green-500 hover:text-green-700 transition-colors p-1">
                               <Award className="h-5 w-5" />
                             </button>
                           </Link>
+                          {/* Ban/Unban Button */}
+                          {student.isBanned == true || student.isShadowBanned == true ? (
+                            <button
+                              className="text-yellow-600 hover:text-yellow-800 transition-colors p-1"
+                              onClick={e => { e.stopPropagation(); handleUnban(student); }}
+                              disabled={banLoading}
+                              title="Unban Student"
+                            >
+                              <ShieldCheck className="h-5 w-5" />
+                            </button>
+                          ) : (
+                            <button
+                              className="text-red-500 hover:text-red-700 transition-colors p-1"
+                              onClick={e => { e.stopPropagation(); openBanModal(student); }}
+                              disabled={banLoading}
+                              title="Ban/Shadow Ban Student"
+                            >
+                              <Ban className="h-5 w-5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -598,6 +708,62 @@ const StudentList: React.FC = () => {
         open={enrollPopupOpen}
         onClose={() => setEnrollPopupOpen(false)}
       />
+
+      {/* Ban Modal */}
+      {banModalOpen && studentToBan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Ban Student
+            </h3>
+            <p className="text-gray-700 mb-4">
+              Are you sure you want to ban <span className="font-semibold">{studentToBan.fullName || studentToBan.name}</span>?
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Ban Type</label>
+              <select
+                value={banType}
+                onChange={e => setBanType(e.target.value as "ban" | "shadowBan")}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+              >
+                <option value="ban">Ban</option>
+                <option value="shadowBan">Shadow Ban</option>
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+              <input
+                type="text"
+                value={banReason}
+                onChange={e => setBanReason(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                placeholder="Enter reason (optional)"
+              />
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                onClick={closeBanModal}
+                disabled={banLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 flex items-center ${banLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={handleBanConfirm}
+                disabled={banLoading}
+              >
+                {banLoading ? (
+                  <span className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                ) : (
+                  <Ban className="w-4 h-4 mr-2" />
+                )}
+                Ban
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

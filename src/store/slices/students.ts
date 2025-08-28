@@ -4,6 +4,8 @@ import axiosInstance from "../../services/axiosConfig";
 
 // types.ts
 export interface Student {
+  isShadowBanned: string;
+  isBanned: string;
   _id: string;
   name: string;
   fullName: string;
@@ -95,6 +97,50 @@ export const fetchAllStudents = createAsyncThunk<
     return rejectWithValue(error.response?.data?.message || error.message);
   }
 });
+
+
+
+export interface BanStudentPayload {
+  userId: string;
+  banType: "shadowBan" | "ban";
+  banReason: string;
+}
+
+export const banStudent = createAsyncThunk<
+  { userId: string; banType: string; banReason: string },
+  BanStudentPayload
+>(
+  "students/banStudent",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.put(
+        `${API_BASE_URL}/ban-shadow-ban`,
+        payload
+      );
+      return response.data?.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+export const unbanStudent = createAsyncThunk<
+  { userId: string },
+  BanStudentPayload
+>(
+  "students/unbanStudent",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.put(
+        `${API_BASE_URL}/unban-user`,
+        payload
+      );
+      return response.data?.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
 
 
 export const fetchStudentById = createAsyncThunk<Student, string>(
@@ -318,6 +364,58 @@ const studentSlice = createSlice({
         state.loading = false;
      })
       .addCase(disableDripForUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(banStudent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(banStudent.fulfilled, (state, action) => {
+        state.loading = false;
+        // Update student in list if present
+        state.students = state.students.map(student =>
+          student._id === action.payload.userId
+            ? { ...student, status: action.payload.banType, banReason: action.payload.banReason, isActive: false }
+            : student
+        );
+        // Update details if present
+        if (state.studentDetails && state.studentDetails._id === action.payload.userId) {
+          state.studentDetails = {
+            ...state.studentDetails,
+            status: action.payload.banType,
+            banReason: action.payload.banReason,
+            isActive: false,
+          };
+        }
+      })
+      .addCase(banStudent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(unbanStudent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(unbanStudent.fulfilled, (state, action) => {
+        state.loading = false;
+        // Update student in list if present
+        state.students = state.students.map(student =>
+          student._id === action.payload.userId
+            ? { ...student, status: "active", banReason: undefined, isActive: true }
+            : student
+        );
+        // Update details if present
+        if (state.studentDetails && state.studentDetails._id === action.payload.userId) {
+          state.studentDetails = {
+            ...state.studentDetails,
+            status: "active",
+            banReason: undefined,
+            isActive: true,
+          };
+        }
+      })
+      .addCase(unbanStudent.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
