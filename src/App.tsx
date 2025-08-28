@@ -42,6 +42,9 @@ import Course from "./pages/SalesAnalytics/Course";
 import Bundel from "./pages/SalesAnalytics/Bundel";
 import Project from "./pages/Files/Project";
 import QueryList from "./pages/Query/QueryList";
+import Coupons from "./pages/coupons/Coupons";
+import CreateCoupon from "./pages/coupons/CreateCoupon";
+import EditCoupon from "./pages/coupons/EditCoupon";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -215,7 +218,13 @@ export default function App() {
               <Route
                 path="/certificates/issue"
                 element={<IssueCertification />}
+                
               />
+
+              {/* Coupons */}
+              <Route path="/coupons/all" element={<Coupons />} />
+              <Route path="/coupons/add" element={<CreateCoupon />} />
+              <Route path="/coupons/edit/:couponId" element={<EditCoupon />} />
 
               {/* Files */}
               <Route path="/files/all" element={<FileList />} />
