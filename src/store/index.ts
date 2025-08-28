@@ -22,6 +22,8 @@ import certificateReducer from "./slices/certificate";
 import dashboardReducer from "./slices/dashboard";
 import issueCertificate from "./slices/IssuesCertification";
 import salesAnalyticsReducer from "./slices/salesAnalyticsSlice";
+import queryReducer from "./slices/query";
+import couponsReducer from "./slices/couponsSlice"; 
 
 export const store = configureStore({
   reducer: {
@@ -47,6 +49,8 @@ export const store = configureStore({
     certificate: certificateReducer, // Assuming you have a certificate reducer
     issueCertificate: issueCertificate, // Importing issueCertificate slice
     salesAnalytics: salesAnalyticsReducer, // Importing salesAnalytics slice
+    query: queryReducer, // Add this line
+    coupons: couponsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

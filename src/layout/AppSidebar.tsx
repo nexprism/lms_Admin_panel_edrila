@@ -17,7 +17,7 @@ import {
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
-import { Files } from "lucide-react";
+import { Files, Tag, UserCircle2Icon } from "lucide-react";
 
 type NavSubItem = {
   name: string;
@@ -56,14 +56,14 @@ const navItems: NavItem[] = [
       { name: "Categories List", path: "/categories" },
     ],
   },
-  {
-    icon: <PageIcon />,
-    name: "Filters",
-    subItems: [
-      { name: "Filters List", path: "/filters/all" },
-      { name: "Add Filter", path: "/filters/add" },
-    ],
-  },
+  // {
+  //   icon: <PageIcon />,
+  //   name: "Filters",
+  //   subItems: [
+  //     { name: "Filters List", path: "/filters/all" },
+  //     { name: "Add Filter", path: "/filters/add" },
+  //   ],
+  // },
   {
     icon: <BoxCubeIcon />,
     name: "Course Bundle",
@@ -109,12 +109,28 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    icon: < Tag />,
+    name: "coupons",
+    subItems: [
+      
+      { name: "coupons", path: "/coupons/all" },
+    ],
+  },
+  {
     icon: <Files />,
     name: "Analytics",
     subItems: [
       { name: "Dashboard", path: "/files/all" },
       { name: "Video  Logs", path: "/files/sessions" },
-      { name: "Projects", path: "/files/projects" },
+      { name: "Performance", path: "/files/projects" },
+    ],
+  },
+  {
+    icon: <UserCircle2Icon />,
+    name: "Queries",
+    subItems: [
+      { name: "All Queries", path: "/queries/all" },
+     
     ],
   },
 
