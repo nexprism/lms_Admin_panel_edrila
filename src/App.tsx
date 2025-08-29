@@ -45,6 +45,7 @@ import QueryList from "./pages/Query/QueryList";
 import Coupons from "./pages/coupons/Coupons";
 import CreateCoupon from "./pages/coupons/CreateCoupon";
 import EditCoupon from "./pages/coupons/EditCoupon";
+import ForumThreadList from "./pages/Forum/ForumThreadList";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -190,6 +191,8 @@ export default function App() {
                 path="/assignments/submissions/:id"
                 element={<AssignmentSubmissionReview />}
               />
+
+              <Route path="/forum" element={<ForumThreadList />} />
 
               {/* Support Tickets */}
               <Route

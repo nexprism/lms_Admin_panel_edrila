@@ -180,6 +180,31 @@ export interface DisableDripPayload {
   userId: string;
 }
 
+
+export interface DisableDripForModulePayload {
+  moduleId: string;
+  userId: string;
+}
+
+export const disableDripForModule = createAsyncThunk<
+  { moduleId: string; userId: string },
+  DisableDripForModulePayload
+>(
+  "students/disableDripForModule",
+  async ({ moduleId, userId }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(
+        `${API_BASE_URL}/module/${moduleId}/disable-drip`,
+        { userId }
+      );
+      return response.data?.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+
 export const disableDripForUser = createAsyncThunk<
   { courseId: string; userId: string },
   DisableDripPayload
@@ -418,7 +443,19 @@ const studentSlice = createSlice({
       .addCase(unbanStudent.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      });
+      })
+      .addCase(disableDripForModule.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(disableDripForModule.fulfilled, (state, action) => {
+        state.loading = false;
+        // Optionally update state if needed
+      })
+      .addCase(disableDripForModule.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
   },
 });
 

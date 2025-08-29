@@ -56,14 +56,13 @@ const navItems: NavItem[] = [
       { name: "Categories List", path: "/categories" },
     ],
   },
-  // {
-  //   icon: <PageIcon />,
-  //   name: "Filters",
-  //   subItems: [
-  //     { name: "Filters List", path: "/filters/all" },
-  //     { name: "Add Filter", path: "/filters/add" },
-  //   ],
-  // },
+  {
+    icon: <PageIcon />,
+    name: "Forums",
+    subItems: [
+      { name: "All Threads", path: "/forum" },
+    ],
+  },
   {
     icon: <BoxCubeIcon />,
     name: "Course Bundle",

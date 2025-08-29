@@ -24,7 +24,7 @@ import issueCertificate from "./slices/IssuesCertification";
 import salesAnalyticsReducer from "./slices/salesAnalyticsSlice";
 import queryReducer from "./slices/query";
 import couponsReducer from "./slices/couponsSlice"; 
-
+import thread from "./slices/forumSlice"
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -51,6 +51,7 @@ export const store = configureStore({
     salesAnalytics: salesAnalyticsReducer, // Importing salesAnalytics slice
     query: queryReducer, // Add this line
     coupons: couponsReducer,
+    forum: thread,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
