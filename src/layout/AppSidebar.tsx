@@ -59,9 +59,7 @@ const navItems: NavItem[] = [
   {
     icon: <PageIcon />,
     name: "Forums",
-    subItems: [
-      { name: "All Threads", path: "/forum" },
-    ],
+    path: "/forum",
   },
   {
     icon: <BoxCubeIcon />,
