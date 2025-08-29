@@ -6,7 +6,9 @@ import {
   disableDripForUser,
   banStudent,
   unbanStudent,
+  disableDripForModule,
 } from "../../store/slices/students";
+import { fetchCourseById } from "../../store/slices/course";
 import {
   User,
   Mail,
@@ -103,6 +105,15 @@ function StudentDetail() {
   const [banType, setBanType] = useState<"ban" | "shadowBan">("ban");
   const [banLoading, setBanLoading] = useState(false);
 
+  // Module drip disable state
+  const [moduleDripPopup, setModuleDripPopup] = useState<{
+    courseId: string;
+    courseTitle: string;
+  } | null>(null);
+  const [selectedModuleId, setSelectedModuleId] = useState<string>("");
+  const [courseModules, setCourseModules] = useState<any[]>([]);
+  const [moduleDripLoading, setModuleDripLoading] = useState(false);
+
   useEffect(() => {
     // Auto-hide toast after 2.5s
     if (toast) {
@@ -130,6 +141,22 @@ function StudentDetail() {
     }
   }, [studentId, dispatch]);
 
+  // Fetch modules for selected course when popup opens
+  useEffect(() => {
+    const fetchModules = async () => {
+      if (moduleDripPopup?.courseId) {
+        try {
+          const response = await dispatch(fetchCourseById({ courseId: moduleDripPopup.courseId })).unwrap();
+          const modules = response?.modules || response?.data?.modules || [];
+          setCourseModules(modules);
+        } catch (e) {
+          setCourseModules([]);
+        }
+      }
+    };
+    if (moduleDripPopup) fetchModules();
+  }, [moduleDripPopup, dispatch]);
+
   // Handler for disabling drip (called after confirmation)
   const handleDisableDrip = async (courseId: string) => {
     if (!data?._id) return;
@@ -155,6 +182,24 @@ function StudentDetail() {
       }, 100);
     } finally {
       setDripLoading(null);
+    }
+  };
+
+  // Handler for disabling drip for module
+  const handleDisableDripForModule = async () => {
+    if (!selectedModuleId || !data?._id) return;
+    setModuleDripLoading(true);
+    try {
+      await dispatch(
+        disableDripForModule({ moduleId: selectedModuleId, userId: data._id })
+      ).unwrap();
+      setToast({ message: "Module drip disabled successfully.", type: "success" });
+      setModuleDripPopup(null);
+      setSelectedModuleId("");
+    } catch (e) {
+      setToast({ message: "Failed to disable module drip.", type: "error" });
+    } finally {
+      setModuleDripLoading(false);
     }
   };
 
@@ -572,6 +617,19 @@ function StudentDetail() {
                               <XCircle className="w-3 h-3 mr-1" />
                               Disable Drip
                             </button>
+                            {/* Disable Drip for Module Button */}
+                            <button
+                              className="inline-flex items-center px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-md text-xs font-medium hover:bg-yellow-200 transition-colors mb-2 ml-2"
+                              onClick={() =>
+                                setModuleDripPopup({
+                                  courseId: enrollment.course._id,
+                                  courseTitle: enrollment.course?.title || "this course",
+                                })
+                              }
+                            >
+                              <XCircle className="w-3 h-3 mr-1" />
+                              Disable Module Drip
+                            </button>
 
                           <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-100">
                           <a
@@ -863,6 +921,61 @@ function StudentDetail() {
         </div>
       )}
 
+      {/* Confirmation Popup for Module Drip Disable */}
+      {moduleDripPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full flex flex-col items-center">
+            <XCircle className="w-10 h-10 text-yellow-500 mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">
+              Disable Drip for Module
+            </h3>
+            <p className="text-gray-700 mb-6 text-center">
+              Select a module from <span className="font-semibold">{moduleDripPopup.courseTitle}</span> to disable drip for this student.<br />
+              <span className="text-xs text-gray-500">This action cannot be undone.</span>
+            </p>
+            <div className="mb-6 w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Module</label>
+              <select
+                value={selectedModuleId}
+                onChange={e => setSelectedModuleId(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500"
+              >
+                <option value="">Select module...</option>
+                {courseModules.map(mod => (
+                  <option key={mod._id || mod.id} value={mod._id || mod.id}>
+                    {mod.title || mod.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex justify-end space-x-3 w-full">
+              <button
+                className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                onClick={() => {
+                  setModuleDripPopup(null);
+                  setSelectedModuleId("");
+                }}
+                disabled={moduleDripLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 rounded-md bg-yellow-600 text-white hover:bg-yellow-700 flex items-center ${moduleDripLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={handleDisableDripForModule}
+                disabled={moduleDripLoading || !selectedModuleId}
+              >
+                {moduleDripLoading ? (
+                  <span className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                ) : (
+                  <XCircle className="w-4 h-4 mr-2" />
+                )}
+                Disable Drip
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Ban Modal */}
       {banModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
@@ -923,13 +1036,22 @@ function StudentDetail() {
       {/* Toast Message */}
       {toast && (
         <div
-          className={`fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${
+          className={`fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow-lg text-white flex items-center space-x-3 transition-all duration-300 ${
             toast.type === "success"
               ? "bg-emerald-600"
               : "bg-rose-600"
           }`}
         >
-          {toast.message}
+          {toast.type === "success" ? (
+            <CheckCircle className="w-5 h-5 text-white" />
+          ) : (
+            <XCircle className="w-5 h-5 text-white" />
+          )}
+          <span>
+            {toast.type === "success"
+              ? "Drip disabled successfully for the selected module."
+              : toast.message}
+          </span>
         </div>
       )}
     </div>
