@@ -253,6 +253,7 @@ const EditCourse = () => {
     level: "beginner",
     price: "",
     currency: "INR",
+    salePrice: "",
     duration: "",
     instructorId: "",
     isPublished: false,
@@ -367,6 +368,7 @@ const EditCourse = () => {
             ? course.price.$numberDecimal
             : course.price || "",
         currency: course.currency || "INR",
+        salePrice: course.salePrice || "",
         duration: course.duration || "",
         instructorId: course.instructorId || course.instructor?._id || "",
         isPublished: course.isPublished || false,
@@ -910,6 +912,39 @@ const EditCourse = () => {
                       {formErrors.price && (
                         <p className="mt-1 text-xs text-red-600">
                           {formErrors.price}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
+                        <DollarSign className="w-4 h-4" />
+                        sale Price
+                      </label>
+                      <input
+                        type="number"
+                        name="salePrice"
+                        value={formData.salePrice}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (
+                            value === "" ||
+                            /^\d+(\.\d{0,2})?$/.test(value)
+                          ) {
+                            handleInputChange(e);
+                          }
+                        }}
+                        className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          formErrors.salePrice ? "border-red-400" : "border-gray-300 dark:border-gray-600"
+                        }`}
+                        placeholder="Enter Sale price"
+                        required
+                        step="0.01"
+                        min="0"
+                        onWheel={(e) => e.currentTarget.blur()}
+                      />
+                      {formErrors.salePrice && (
+                        <p className="mt-1 text-xs text-red-600">
+                          {formErrors.salePrice}
                         </p>
                       )}
                     </div>

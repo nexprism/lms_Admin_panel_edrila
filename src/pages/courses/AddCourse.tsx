@@ -370,6 +370,7 @@ const AddCourse = () => {
     level: "beginner",
     price: "",
     currency: "INR",
+    salePrice: "",
     duration: "",
     instructorId: "",
     isPublished: false,
@@ -508,6 +509,7 @@ const AddCourse = () => {
         level: "beginner",
         price: "",
         currency: "INR",
+        salePrice: "",
         duration: "",
         instructorId: "",
         isPublished: false,
@@ -934,6 +936,30 @@ const AddCourse = () => {
                       <p className="mt-1 text-xs text-red-600">{formErrors.price}</p>
                     )}
                   </div>
+                  <div>
+                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                     Sale Price 
+                   </label>
+                   <input
+                     type="number"
+                     name="salePrice"
+                     value={formData.salePrice}
+                     onChange={(e) => {
+                       const value = e.target.value;
+                       if (
+                         value === "" ||
+                         /^\d+(\.\d{0,2})?$/.test(value)
+                       ) {
+                         handleInputChange(e);
+                       }
+                     }}
+                     step="0.01"
+                     min="0"
+                     className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-300 dark:border-gray-600`}
+                     placeholder="Course sale price"
+                   />
+                 </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       Currency
