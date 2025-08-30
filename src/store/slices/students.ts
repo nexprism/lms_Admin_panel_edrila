@@ -204,6 +204,23 @@ export const disableDripForModule = createAsyncThunk<
   }
 );
 
+export const fetchStudentAnalytics = createAsyncThunk<
+  any,
+  string
+>(
+  "students/fetchAnalytics",
+  async (studentId, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(
+        `${API_BASE_URL}/students/${studentId}/analytics`
+      );
+      return response.data?.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 
 export const disableDripForUser = createAsyncThunk<
   { courseId: string; userId: string },
@@ -456,6 +473,18 @@ const studentSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+      .addCase(fetchStudentAnalytics.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchStudentAnalytics.fulfilled, (state, action) => {
+        state.loading = false;
+        state.analytics = action.payload;
+      })
+      .addCase(fetchStudentAnalytics.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 

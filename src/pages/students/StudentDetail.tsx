@@ -38,6 +38,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import EnrollStudentPopup from "../../components/students/EnrollStudentPopup";
+import StudentAnalyticsTab from "./StudentAnalyticsTab";
 
 const ImageUrl = import.meta.env.VITE_IMAGE_URL;
 
@@ -330,6 +331,7 @@ function StudentDetail() {
     { id: "overview", label: "Overview", icon: User },
     { id: "courses", label: "Courses", icon: BookOpen },
     { id: "profile", label: "Profile", icon: Settings },
+    { id: "analytics", label: "Analytics", icon: TrendingUp }, // new tab
   ];
 
   return (
@@ -874,6 +876,10 @@ function StudentDetail() {
               )}
             </div>
           </div>
+        )}
+
+        {activeTab === "analytics" && (
+          <StudentAnalyticsTab studentId={data?._id} />
         )}
       </div>
 
