@@ -43,10 +43,8 @@ const navItems: NavItem[] = [
   {
     icon: <BoxCubeIcon />,
     name: "Categories",
-    subItems: [
-      { name: "Add Category", path: "/add-category" },
-      { name: "Categories List", path: "/categories" },
-    ],
+    path: "/categories",
+    
   },
   {
     icon: <ListIcon />,
@@ -73,13 +71,8 @@ const navItems: NavItem[] = [
   {
     icon: <UserCircleIcon />,
     name: "Students",
-    subItems: [
-      { name: "All Students", path: "/students/all" },
-      { name: "Delete Requests", path: "/students/delete-requests" }
-
-      // { name: "Enrollments", path: "/students/enrollments" },
-      // { name: "Attendance", path: "/students/attendance" },
-    ],
+    path: "/students/all",
+    
   },
   // {
   //   icon: <UserCircleIcon />,
@@ -109,10 +102,8 @@ const navItems: NavItem[] = [
   {
     icon: < Tag />,
     name: "coupons",
-    subItems: [
-      
-      { name: "coupons", path: "/coupons/all" },
-    ],
+    path: "/coupons/all"
+    
   },
   {
     icon: <Files />,

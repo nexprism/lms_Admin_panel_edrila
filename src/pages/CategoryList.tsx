@@ -19,12 +19,14 @@ import {
   RotateCcw,
   X,
   AlertTriangle,
+  Plus,
 } from "lucide-react";
 import PageBreadcrumb from "../components/common/PageBreadCrumb";
 import PageMeta from "../components/common/PageMeta";
 import EditCategoryModal from "../components/modals/EditCategoryModal";
 import toast from "react-hot-toast";
 import PopupAlert from "../components/popUpAlert";
+import { useNavigate } from "react-router-dom";
 
 interface Category {
   _id: string;
@@ -158,6 +160,8 @@ const CategoryList: React.FC = () => {
     type: "success",
     isVisible: false,
   });
+
+  const navigate = useNavigate();
 
   // Debounce search input
   useEffect(() => {
@@ -345,14 +349,24 @@ const CategoryList: React.FC = () => {
       />
       <PageBreadcrumb pageTitle="Category List" />
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
-            Course Categories
-          </h1>
-          <span className="text-gray-500 text-sm dark:text-gray-400">
-            Total: {pagination.total}
-          </span>
-        </div>
+       <div className="flex justify-between items-center mb-6">
+  <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
+    Course Categories
+  </h1>
+  <div className="flex items-center gap-4">
+    <button
+      className="inline-flex items-center bg-blue-600 text-white gap-2 px-4 py-2 border rounded-md hover:bg-blue-700 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800"
+      onClick={() => navigate("/add-category")}
+    >
+      <Plus className="h-4 w-4" />
+      Add Category
+    </button>
+    <span className="text-gray-500 text-sm dark:text-gray-400">
+      Total: {pagination.total}
+    </span>
+  </div>
+</div>
+
 
         {/* Search & Filter */}
         <div className="bg-white shadow p-4 rounded-md mb-6 dark:bg-gray-900">

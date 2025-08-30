@@ -29,7 +29,7 @@ import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PopupAlert from "../../components/popUpAlert";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import EnrollStudentPopup from "../../components/students/EnrollStudentPopup";
 import CreateStudentPopup from "../../components/students/CreateStudentPopup";
 
@@ -135,6 +135,7 @@ const DeleteModal: React.FC<{
 
 const StudentList: React.FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { students, loading, error, pagination, searchQuery, filters } =
     useAppSelector((state) => state.students);
 
@@ -413,6 +414,15 @@ const StudentList: React.FC = () => {
               className="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2 rounded-md shadow transition-colors focus:outline-none focus:ring-2 focus:ring-green-400"
             >
               + Enroll Student
+            </button>
+
+            {/* Delete Student Button */}
+            <button
+              onClick={() => navigate("/students/delete-requests")}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2 rounded-md shadow transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
+            >
+              
+              Delete Student
             </button>
           </div>
         </div>
