@@ -41,14 +41,6 @@ const navItems: NavItem[] = [
     path: "/",
   },
   {
-    icon: <ListIcon />,
-    name: "Courses",
-    subItems: [
-      { name: "Add Course", path: "/courses/add" },
-      { name: "Courses List", path: "/courses/all/courses" },
-    ],
-  },
-  {
     icon: <BoxCubeIcon />,
     name: "Categories",
     subItems: [
@@ -56,6 +48,15 @@ const navItems: NavItem[] = [
       { name: "Categories List", path: "/categories" },
     ],
   },
+  {
+    icon: <ListIcon />,
+    name: "Courses",
+ path: "/courses/all/courses"    // subItems: [
+    //   { name: "Add Course", path: "/courses/add" },
+    //   { name: "Courses List", path: "/courses/all/courses" },
+    // ],
+  },
+  
   {
     icon: <PageIcon />,
     name: "Forums",

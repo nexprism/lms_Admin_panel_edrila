@@ -136,9 +136,17 @@ const CourseList: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
             Courses
           </h1>
-          <span className="text-gray-500 text-sm dark:text-gray-400">
-            Total: {pagination.total}
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="text-gray-500 text-sm dark:text-gray-400">
+              Total: {pagination.total}
+            </span>
+            <button
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+              onClick={() => window.location.href = "/courses/add"}
+            >
+              Add Course
+            </button>
+          </div>
         </div>
 
         {/* Search & Filter */}
@@ -240,7 +248,8 @@ const CourseList: React.FC = () => {
               {filteredCourses.map((course, idx) => (
                 <tr
                   key={course._id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                  onClick={() => window.location.href = `/courses/edit/${course._id}`}
                 >
                   <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                     {(pagination.page - 1) * pagination.limit + idx + 1}
@@ -251,13 +260,11 @@ const CourseList: React.FC = () => {
                       alt={course.title}
                       className="w-14 h-10 rounded-sm object-cover"
                       onError={(e) => {
-                        e.currentTarget.onerror = null; // prevent infinite loop
+                        e.currentTarget.onerror = null;
                         e.currentTarget.src = "https://tse2.mm.bing.net/th/id/OIP.z2HmY-oQPSmmDwR-MYmW6QAAAA?pid=Api&P=0&h=180";
                       }}
                     />
-
                   </td>
-
                   <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                     {course.title}
                   </td>
@@ -280,16 +287,7 @@ const CourseList: React.FC = () => {
                   <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                     {new Date(course.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 text-right space-x-2">
-                    <button
-                      className="text-blue-500 hover:text-blue-700 transition-colors"
-                      onClick={() => {
-                        window.location.href = `/courses/edit/${course._id}`;
-                      }}
-                    >
-                      <Pencil className="h-5 w-5" />
-                    </button>
-                  </td>
+                  <td className="px-6 py-4 text-right space-x-2"></td>
                 </tr>
               ))}
               {filteredCourses.length === 0 && (
