@@ -17,7 +17,7 @@ import {
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
-import { Files, Tag, UserCircle2Icon } from "lucide-react";
+import { Files, Tag, UserCircle2Icon, Bell } from "lucide-react";
 
 type NavSubItem = {
   name: string;
@@ -143,6 +143,12 @@ const navItems: NavItem[] = [
   ],
 }
 ,
+
+{
+  icon: <Bell />,
+  name: "Notification Sender",
+  path:"/send-notification"
+},
 
   {
     icon: <TableIcon />,
