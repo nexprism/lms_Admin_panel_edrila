@@ -20,6 +20,7 @@ import {
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 interface Bundle {
   _id: string;
@@ -42,6 +43,7 @@ const VITE_IMAGE_URL = import.meta.env.VITE_BASE_URL;
 
 const BundleList: React.FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { loading, error, data } = useAppSelector(
     (state) => state.courseBundle
   );
@@ -148,9 +150,17 @@ const BundleList: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
             Course Bundles
           </h1>
-          <span className="text-gray-500 text-sm dark:text-gray-400">
-            Total: {pagination.total}
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="text-gray-500 text-sm dark:text-gray-400">
+              Total: {pagination.total}
+            </span>
+            <button
+              onClick={() => navigate("/bundles/create")}
+              className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600"
+            >
+              Add Bundle
+            </button>
+          </div>
         </div>
 
         {/* Search & Filter */}

@@ -40,12 +40,7 @@ const navItems: NavItem[] = [
     name: "Dashboard",
     path: "/",
   },
-  {
-    icon: <BoxCubeIcon />,
-    name: "Categories",
-    path: "/categories",
-    
-  },
+  
   {
     icon: <ListIcon />,
     name: "Courses",
@@ -54,19 +49,23 @@ const navItems: NavItem[] = [
     //   { name: "Courses List", path: "/courses/all/courses" },
     // ],
   },
-  
+ 
+  {
+    icon: <BoxCubeIcon />,
+    name: "Course Bundle",
+    path: "/bundles/all",
+  },
+  {
+    icon: <BoxCubeIcon />,
+    name: "Categories",
+    path: "/categories",
+    
+  },
+   
   {
     icon: <PageIcon />,
     name: "Forums",
     path: "/forum",
-  },
-  {
-    icon: <BoxCubeIcon />,
-    name: "Course Bundle",
-    subItems: [
-      { name: "All Bundles", path: "/bundles/all" },
-      { name: "Create Bundle", path: "/bundles/create" },
-    ],
   },
   {
     icon: <UserCircleIcon />,
@@ -74,31 +73,23 @@ const navItems: NavItem[] = [
     path: "/students/all",
     
   },
-  // {
-  //   icon: <UserCircleIcon />,
-  //   name: "Instructors",
-  //   subItems: [
-  //     { name: "All Instructors", path: "/instructors/all" },
-  //     { name: "Add Instructor", path: "/instructors/add" },
-  //   ],
-  // },
-  // {
-  //   icon: <TableIcon />,
-  //   name: "Quizzes",
-  //   subItems: [
-  //     { name: "All Quizzes", path: "/quiz/all" },
-  //     { name: "Add Quiz", path: "/assignments/add" },
-  //     { name: "Submissions", path: "/assignments/submissions" },
-  //   ],
-  // },
   {
     icon: <TableIcon />,
-    name: "Assignments",
-    subItems: [
-      // { name: "All Assignments", path: "/assignments/all" },
-      { name: "Submissions", path: "/assignments/submissions" },
-    ],
+    name: "Assignment Submissions",
+    path: "/assignments/submissions"
   },
+    {
+    icon: <UserCircle2Icon />,
+    name: "Student Queries",
+    path: "/queries/all"
+  },
+  {
+    icon: <TableIcon />,
+    name: "Support Requests",
+    path: "/requests"
+  },
+  
+  
   {
     icon: < Tag />,
     name: "coupons",
@@ -114,14 +105,9 @@ const navItems: NavItem[] = [
       { name: "Performance", path: "/files/projects" },
     ],
   },
-  {
-    icon: <UserCircle2Icon />,
-    name: "Queries",
-    subItems: [
-      { name: "All Queries", path: "/queries/all" },
-     
-    ],
-  },
+
+    
+
 
   //sales analytics
 {
@@ -137,15 +123,11 @@ const navItems: NavItem[] = [
 
 {
   icon: <Bell />,
-  name: "Notification Sender",
+  name: "Send Notifications",
   path:"/send-notification"
 },
 
-  {
-    icon: <TableIcon />,
-    name: "Helpdesk",
-    subItems: [{ name: "Help Requests", path: "/requests" }],
-  },
+
 
   {
     icon: <PieChartIcon />,
