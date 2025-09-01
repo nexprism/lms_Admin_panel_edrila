@@ -206,7 +206,7 @@ const CustomPopup = ({
   if (!popup.show) return null;
 
   return (
-    <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-[1000]">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
         <div className="flex items-center mb-4">
           {popup.type === "success" ? (
