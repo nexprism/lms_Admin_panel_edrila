@@ -47,6 +47,7 @@ import CreateCoupon from "./pages/coupons/CreateCoupon";
 import EditCoupon from "./pages/coupons/EditCoupon";
 import ForumThreadList from "./pages/Forum/ForumThreadList";
 import AppNotificationSender from "./pages/AppNotificationSender";
+import ForumDetails from "./pages/Forum/ForumDetails";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -194,6 +195,7 @@ export default function App() {
               />
 
               <Route path="/forum" element={<ForumThreadList />} />
+              <Route path="/forum/:threadId" element={<ForumDetails />} />
 
               {/* Support Tickets */}
               <Route

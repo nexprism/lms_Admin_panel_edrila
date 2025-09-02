@@ -16,6 +16,7 @@ export interface ForumThread {
   createdBy: { _id: string; fullName: string };
   createdAt: string;
   replies: ForumReply[];
+  Is_openSource?: boolean; // Added property
 }
 
 interface Pagination {
@@ -96,6 +97,30 @@ export const updateForumThreadStatus = createAsyncThunk(
     }
 );
 
+export const updateForumThreadOpenSource = createAsyncThunk(
+  "forum/updateOpenSource",
+  async (
+    { threadId, token, Is_openSource }: { threadId: string; token: string; Is_openSource: boolean },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axiosInstance.put(
+        `/forum/thread/${threadId}/open-source`,
+        { Is_openSource },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return { threadId, Is_openSource, ...response.data?.data };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 const forumSlice = createSlice({
   name: "forum",
   initialState,
@@ -148,10 +173,25 @@ const forumSlice = createSlice({
       .addCase(updateForumThreadStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(updateForumThreadOpenSource.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateForumThreadOpenSource.fulfilled, (state, action: PayloadAction<any>) => {
+        state.loading = false;
+        const { threadId, Is_openSource } = action.payload;
+        const thread = state.threads.find((t) => t._id === threadId);
+        if (thread) {
+          thread.Is_openSource = Is_openSource;
+        }
+      })
+      .addCase(updateForumThreadOpenSource.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });
 
 export const { setPage, setLimit, setStatusFilter } = forumSlice.actions;
 export default forumSlice.reducer;
-   

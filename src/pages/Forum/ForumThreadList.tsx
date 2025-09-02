@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
-import { fetchForumThreads, updateForumThreadStatus, setPage, setLimit, setStatusFilter } from "../../store/slices/forumSlice";
+import { fetchForumThreads, updateForumThreadStatus, setPage, setLimit, setStatusFilter, updateForumThreadOpenSource } from "../../store/slices/forumSlice";
 import { RootState } from "../../store";
-import { ChevronLeft, ChevronRight, Search, Filter, RotateCcw, Pencil, CheckCircle, XCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, Filter, RotateCcw, Pencil, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 
@@ -17,6 +17,8 @@ const ForumThreadList: React.FC = () => {
   const [modalStatus, setModalStatus] = useState("");
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
+  const [openSourceLoading, setOpenSourceLoading] = useState<string | null>(null);
+  const [openSourceError, setOpenSourceError] = useState<string | null>(null);
 
   // Fetch threads on page/limit/status change
   useEffect(() => {
@@ -63,6 +65,26 @@ const ForumThreadList: React.FC = () => {
       setModalError(err?.message || "Failed to update status");
     } finally {
       setModalLoading(false);
+    }
+  };
+
+  // Open Source toggle handler
+  const handleToggleOpenSource = async (thread: any) => {
+    if (!token) return;
+    setOpenSourceLoading(thread._id);
+    setOpenSourceError(null);
+    try {
+      await dispatch(
+        updateForumThreadOpenSource({
+          threadId: thread._id,
+          Is_openSource: !thread.Is_openSource,
+          token,
+        }) as any
+      ).unwrap();
+    } catch (err: any) {
+      setOpenSourceError(err?.message || "Failed to update open source status");
+    } finally {
+      setOpenSourceLoading(null);
     }
   };
 
@@ -180,13 +202,13 @@ const ForumThreadList: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Replies</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Created At</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
                 {filteredThreads.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={8} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                       No threads found.
                     </td>
                   </tr>
@@ -199,20 +221,63 @@ const ForumThreadList: React.FC = () => {
                       <td className="px-6 py-4 text-sm text-blue-600">{thread.replies?.length || 0}</td>
                       <td className="px-6 py-4 text-sm">{getStatusBadge(thread.isApproved)}</td>
                       <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{new Date(thread.createdAt).toLocaleString()}</td>
-                      <td className="px-6 py-4 text-right text-sm font-medium">
-                        <button
-                          className={`px-3 py-1 rounded ${thread.isApproved ? "bg-green-500 text-white" : "bg-red-500 text-white"} disabled:opacity-50`}
-                          onClick={() => handleToggleApproved(thread)}
-                          disabled={modalLoading}
-                        >
-                          {thread.isApproved ? "Set Rejected" : "Set Approved"}
-                        </button>
-                      </td>
+ 
+
+                     <td className="px-6 py-4 text-right text-sm font-medium flex gap-3">
+                         <button
+                       className={`p-2 rounded-md transition ${
+                         thread.Is_openSource
+                           ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                           : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                       } disabled:opacity-50`}
+                       onClick={() => handleToggleOpenSource(thread)}
+                       disabled={openSourceLoading === thread._id}
+                       title={thread.Is_openSource ? "Set as Not Open Source" : "Set as Open Source"}
+                     >
+                       {openSourceLoading === thread._id ? (
+                         <Loader2 className="w-5 h-5 animate-spin" />
+                       ) : thread.Is_openSource ? (
+                         <CheckCircle className="w-5 h-5" />
+                       ) : (
+                         <XCircle className="w-5 h-5" />
+                       )}
+                     </button>
+  <button
+    className={`flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium transition ${
+      thread.isApproved
+        ? "bg-red-100 text-red-700 hover:bg-red-200"
+        : "bg-green-100 text-green-700 hover:bg-green-200"
+    } disabled:opacity-50`}
+    onClick={() => handleToggleApproved(thread)}
+    disabled={modalLoading}
+  >
+    {modalLoading && selectedThread?._id === thread._id ? (
+      "..."
+    ) : thread.isApproved ? (
+      <>
+        <XCircle className="w-4 h-4" />
+        <span>Reject</span>
+      </>
+    ) : (
+      <>
+        <CheckCircle className="w-4 h-4" />
+        <span>Approve</span>
+      </>
+    )}
+  </button>
+ 
+</td>
+
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
+            {openSourceError && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 mt-4">
+                <p className="text-red-800 dark:text-red-200">{openSourceError}</p>
+              </div>
+            )}
           </div>
         )}
         {/* Pagination */}
@@ -257,4 +322,3 @@ const ForumThreadList: React.FC = () => {
 };
 
 export default ForumThreadList;
-        
