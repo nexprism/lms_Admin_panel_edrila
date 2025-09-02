@@ -5,11 +5,13 @@ import { RootState } from "../../store";
 import { ChevronLeft, ChevronRight, Search, Filter, RotateCcw, Pencil, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
+import { useNavigate } from "react-router-dom";
 
 const ForumThreadList: React.FC = () => {
   const dispatch = useAppDispatch();
   const { threads, loading, error, pagination, statusFilter } = useAppSelector((state: RootState) => state.forum);
   const token = useAppSelector((state: RootState) => state.auth.token);
+  const navigate = useNavigate();
 
   const [searchInput, setSearchInput] = useState("");
   const [showStatusModal, setShowStatusModal] = useState(false);
@@ -214,60 +216,63 @@ const ForumThreadList: React.FC = () => {
                   </tr>
                 ) : (
                   filteredThreads.map((thread, idx) => (
-                    <tr key={thread._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <tr
+                      key={thread._id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                      onClick={() => navigate(`/forum/${thread._id}`)}
+                    >
                       <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{(pagination.page - 1) * pagination.limit + idx + 1}</td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{thread.title}</td>
                       <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{thread.createdBy?.fullName}</td>
                       <td className="px-6 py-4 text-sm text-blue-600">{thread.replies?.length || 0}</td>
                       <td className="px-6 py-4 text-sm">{getStatusBadge(thread.isApproved)}</td>
                       <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{new Date(thread.createdAt).toLocaleString()}</td>
- 
-
-                     <td className="px-6 py-4 text-right text-sm font-medium flex gap-3">
-                         <button
-                       className={`p-2 rounded-md transition ${
-                         thread.Is_openSource
-                           ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                           : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                       } disabled:opacity-50`}
-                       onClick={() => handleToggleOpenSource(thread)}
-                       disabled={openSourceLoading === thread._id}
-                       title={thread.Is_openSource ? "Set as Not Open Source" : "Set as Open Source"}
-                     >
-                       {openSourceLoading === thread._id ? (
-                         <Loader2 className="w-5 h-5 animate-spin" />
-                       ) : thread.Is_openSource ? (
-                         <CheckCircle className="w-5 h-5" />
-                       ) : (
-                         <XCircle className="w-5 h-5" />
-                       )}
-                     </button>
-  <button
-    className={`flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium transition ${
-      thread.isApproved
-        ? "bg-red-100 text-red-700 hover:bg-red-200"
-        : "bg-green-100 text-green-700 hover:bg-green-200"
-    } disabled:opacity-50`}
-    onClick={() => handleToggleApproved(thread)}
-    disabled={modalLoading}
-  >
-    {modalLoading && selectedThread?._id === thread._id ? (
-      "..."
-    ) : thread.isApproved ? (
-      <>
-        <XCircle className="w-4 h-4" />
-        <span>Reject</span>
-      </>
-    ) : (
-      <>
-        <CheckCircle className="w-4 h-4" />
-        <span>Approve</span>
-      </>
-    )}
-  </button>
- 
-</td>
-
+                      <td
+                        className="px-6 py-4 text-right text-sm font-medium flex gap-3"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <button
+                          className={`p-2 rounded-md transition ${
+                            thread.Is_openSource
+                              ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          } disabled:opacity-50`}
+                          onClick={() => handleToggleOpenSource(thread)}
+                          disabled={openSourceLoading === thread._id}
+                          title={thread.Is_openSource ? "Set as Not Open Source" : "Set as Open Source"}
+                        >
+                          {openSourceLoading === thread._id ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : thread.Is_openSource ? (
+                            <CheckCircle className="w-5 h-5" />
+                          ) : (
+                            <XCircle className="w-5 h-5" />
+                          )}
+                        </button>
+                        <button
+                          className={`flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium transition ${
+                            thread.isApproved
+                              ? "bg-red-100 text-red-700 hover:bg-red-200"
+                              : "bg-green-100 text-green-700 hover:bg-green-200"
+                          } disabled:opacity-50`}
+                          onClick={() => handleToggleApproved(thread)}
+                          disabled={modalLoading}
+                        >
+                          {modalLoading && selectedThread?._id === thread._id ? (
+                            "..."
+                          ) : thread.isApproved ? (
+                            <>
+                              <XCircle className="w-4 h-4" />
+                              <span>Reject</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-4 h-4" />
+                              <span>Approve</span>
+                            </>
+                          )}
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}
