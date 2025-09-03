@@ -395,6 +395,7 @@ const EditCourse = () => {
       setDemoVideoUrl(course.demoVideo || "");
 
       const courseModules = course.modules || [];
+      // Map modules and lessons, including textLessons and files for each lesson
       const processedModules = courseModules.map((module) => ({
         _id: module._id || undefined,
         title: module.title || "",
@@ -407,6 +408,12 @@ const EditCourse = () => {
           videoUrl: lesson.videoUrl || "",
           duration: lesson.duration || "",
           order: lesson.order || 0,
+          // Add textLessons and files if present
+          quiz: lesson.quiz || [ ],
+          videoLessons: lesson.videoLessons || [],
+          assignment: lesson?.assignment || [],
+          textLessons: lesson.textLessons || [],
+          files: lesson.files || [],
         })),
         order: module.order || 0,
       }));
@@ -1169,6 +1176,7 @@ const EditCourse = () => {
               {activeTab === "modules" && (
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Course Modules</h3>
+                  {console?.log("modules 0987",modules)}
                   <ModuleSection
                     modules={modules}
                     onModulesChange={handleModulesChange}

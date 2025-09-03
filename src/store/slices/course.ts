@@ -85,7 +85,7 @@ export const fetchCourseById = createAsyncThunk(
           },
         }
       );
-      console.log("Fetched course by ID:", response.data?.course);
+      console.log("Fetched course by ID:", response.data?.data?.course);
       return response.data?.data?.course;
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message);
