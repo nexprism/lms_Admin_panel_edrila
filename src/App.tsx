@@ -47,6 +47,7 @@ import CreateCoupon from "./pages/coupons/CreateCoupon";
 import EditCoupon from "./pages/coupons/EditCoupon";
 import ForumThreadList from "./pages/Forum/ForumThreadList";
 import AppNotificationSender from "./pages/AppNotificationSender";
+import DeviceApprovals from "./pages/DeviceApprovals";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -266,6 +267,7 @@ export default function App() {
               <Route path="/images" element={<Images />} />
               <Route path="/videos" element={<Videos />} />
               <Route path="/send-notification" element={<AppNotificationSender />} />
+              <Route path="/device-approvals" element={<DeviceApprovals />} />
               {/* Charts */}
               <Route path="/line-chart" element={<LineChart />} />
               <Route path="/bar-chart" element={<BarChart />} />
