@@ -457,7 +457,7 @@ const Quiz = ({
     return (
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 max-h-[700px]">
         <div className="bg-white  dark:bg-white/[0.03] rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 text-white">
+          <div className="bg-blue-500 p-4 sm:p-6 text-white">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex items-center justify-center">
                 <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-spin" />
@@ -486,10 +486,10 @@ const Quiz = ({
 
   return (
     <>
-      <div className="w-full max-w-7xl mx-auto max-h-[700px]">
+      <div className="w-full max-w-7xl mx-auto max-h-[600px]">
         {/* Enhanced Header - Responsive */}
         <div className="bg-white  dark:bg-[#182131] rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 text-white">
+          <div className="bg-blue-500 p-4 sm:p-6 text-white">
             <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex items-center justify-center">
@@ -735,7 +735,7 @@ const Quiz = ({
                         e.stopPropagation();
                         setShowSectionBuilder(true);
                       }}
-                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-200"
+                      className="bg-blue-500 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-200"
                     >
                       <FolderPlus className="w-4 h-4" />
                       Add First Section
@@ -812,7 +812,7 @@ const Quiz = ({
                     !quizData.quizTitle.trim() ||
                     getTotalQuestions() === 0
                       ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                      : "bg-blue-500 hover:from-indigo-700 hover:to-purple-700"
                   }`}
                 >
                   {loading ? (

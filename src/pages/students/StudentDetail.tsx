@@ -36,6 +36,7 @@ import {
   Bookmark,
   Ban,
   ShieldCheck,
+  Building2,
 } from "lucide-react";
 import EnrollStudentPopup from "../../components/students/EnrollStudentPopup";
 import StudentAnalyticsTab from "./StudentAnalyticsTab";
@@ -487,8 +488,9 @@ function StudentDetail() {
               /> */}
             </div>
 
-            {/* Quick Overview Cards */}
+            {/* Company Information Box (dynamic) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              
               {/* Recent Activity */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <div className="flex sm:items-center justify-between flex-col items-start sm:flex-row gap-4 mb-6">
@@ -519,9 +521,7 @@ function StudentDetail() {
                   )}
                 </div>
               </div>
-
-              {/* Contact & Account Info */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
                   <User className="mr-2 h-5 w-5 text-green-500" />
                   Contact Information
@@ -550,6 +550,61 @@ function StudentDetail() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Quick Overview Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Contact & Account Info */}
+             
+
+                 <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
+      <h3 className="text-xl font-semibold text-gray-900 flex items-center mb-6">
+        <Users className="mr-3 h-6 w-6 text-indigo-600" />
+        Company Information
+      </h3>
+      
+      <div className="space-y-4">
+        {/* Company Name */}
+        <div className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+          <Building2 className="mr-3 h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <span className="font-medium text-gray-700 block text-sm mb-1">
+              Company Name
+            </span>
+            <span className="text-gray-900 font-semibold">
+              {data.company?.name || (
+                <span className="text-gray-400 italic">Not provided</span>
+              )}
+            </span>
+          </div>
+        </div>
+
+        {/* GST Number */}
+        <div className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+          <FileText className="mr-3 h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <span className="font-medium text-gray-700 block text-sm mb-1">
+              GST Number
+            </span>
+            <span className="text-gray-900 font-mono text-sm">
+              {data.company?.gstNumber || (
+                <span className="text-gray-400 italic font-sans">Not provided</span>
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Optional: Add status indicator */}
+      {data.company?.name && data.company?.gstNumber && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center text-sm text-green-600">
+            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+            Company information complete
+          </div>
+        </div>
+      )}
+    </div>
             </div>
           </div>
         )}

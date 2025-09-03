@@ -51,7 +51,7 @@ const SuccessPopup = ({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-[100]">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
         <div className="text-center">
           <div

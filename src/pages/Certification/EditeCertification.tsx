@@ -258,15 +258,30 @@ const EditCreateCertificateTemplate = () => {
       '<div class="certificate-template-container"></div>'
     );
 
-    if (templateInfo.backgroundImage) {
+    if (typeof templateInfo.backgroundImage !== "string") {
       formData.append("image", templateInfo.backgroundImage);
     }
 
     // Add elements with positions
     Object.entries(elements).forEach(([key, element]) => {
       Object.entries(element).forEach(([field, value]) => {
-        if (field === "image" && value instanceof File) {
-          formData.append(`elements[${key}][${field}]`, value);
+        // Only append image if it's a File for stamp and platform_signature
+        if (
+          field === "image" &&
+          (key === "stamp" || key === "platform_signature")
+        ) {
+          if (value instanceof File) {
+            formData.append(`elements[${key}][${field}]`, value);
+          }
+          // If not a File (i.e., string/URL), skip appending
+        } else if (
+          field === "image" &&
+          !(key === "stamp" || key === "platform_signature")
+        ) {
+          // For other elements, keep previous logic (if any)
+          if (value instanceof File) {
+            formData.append(`elements[${key}][${field}]`, value);
+          }
         } else if (field === "position") {
           formData.append(`elements[${key}][position_x]`, value.x?.toString());
           formData.append(`elements[${key}][position_y]`, value.y?.toString());
@@ -279,8 +294,8 @@ const EditCreateCertificateTemplate = () => {
     try {
       setLoading(true);
 
-      const response = await axiosInstance.post(
-        "/certificate-templates",
+      const response = await axiosInstance.put(
+        "/certificate-templates/" + certificateId,
         formData,
         {
           headers: {
@@ -618,6 +633,8 @@ const EditCreateCertificateTemplate = () => {
     getData();
   }, []);
 
+    
+
   const renderTextElement = (elementKey, element) => {
     if (!element.enable) return null;
 
@@ -743,7 +760,7 @@ const EditCreateCertificateTemplate = () => {
       >
         <Move className="w-4 h-4 text-blue-400 absolute -top-1 -right-1 opacity-0 group-hover:opacity-100" />
         <img
-          src={element.image || getUrlFromFile(element.image)}
+          src={typeof element.image === "string" ? element.image : getUrlFromFile(element.image)}
           alt={elementKey}
           style={{
             width: `${element.image_size}px`,
@@ -763,7 +780,7 @@ const EditCreateCertificateTemplate = () => {
             <div className="p-2 bg-blue-100 rounded-lg">
               <BookOpen className="w-8 h-8 text-blue-600" />
             </div>
-            Create Certificate Template
+            Edit Certificate Template
           </h1>
           <p className="text-gray-600 mt-2">
             <span className="inline-flex items-center gap-1 text-sm bg-blue-100 dark:text-white/70 dark:bg-white/[0.056] px-2 py-1 rounded">
@@ -1867,7 +1884,7 @@ const EditCreateCertificateTemplate = () => {
                 <div className="bg-white dark:bg-white/[0.03] rounded-lg shadow-sm p-6">
                   <button className="w-full opacity-75 bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2">
                     <Upload className="w-5 h-5" />
-                    Creating ...
+                    Update ...
                   </button>
                 </div>
               ) : (
@@ -1877,7 +1894,7 @@ const EditCreateCertificateTemplate = () => {
                     className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2"
                   >
                     <Upload className="w-5 h-5" />
-                    Create Template
+                    Update Template
                   </button>
                 </div>
               )}
