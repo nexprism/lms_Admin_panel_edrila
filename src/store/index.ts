@@ -26,6 +26,7 @@ import queryReducer from "./slices/query";
 import couponsReducer from "./slices/couponsSlice"; 
 import thread from "./slices/forumSlice"
 import notification from "./slices/notification";
+import deviceApprovalsReducer from "./slices/deviceApprovals";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -54,6 +55,7 @@ export const store = configureStore({
     coupons: couponsReducer,
     forum: thread,
     notification: notification,
+    deviceApprovals: deviceApprovalsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

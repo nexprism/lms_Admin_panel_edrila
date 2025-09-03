@@ -47,6 +47,7 @@ import CreateCoupon from "./pages/coupons/CreateCoupon";
 import EditCoupon from "./pages/coupons/EditCoupon";
 import ForumThreadList from "./pages/Forum/ForumThreadList";
 import AppNotificationSender from "./pages/AppNotificationSender";
+import DeviceApprovals from "./pages/DeviceApprovals";
 import ForumDetails from "./pages/Forum/ForumDetails";
 
 // Lazy load pages
@@ -268,6 +269,7 @@ export default function App() {
               <Route path="/images" element={<Images />} />
               <Route path="/videos" element={<Videos />} />
               <Route path="/send-notification" element={<AppNotificationSender />} />
+              <Route path="/device-approvals" element={<DeviceApprovals />} />
               {/* Charts */}
               <Route path="/line-chart" element={<LineChart />} />
               <Route path="/bar-chart" element={<BarChart />} />

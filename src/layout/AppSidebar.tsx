@@ -88,13 +88,15 @@ const navItems: NavItem[] = [
     name: "Support Requests",
     path: "/requests"
   },
-  
-  
   {
-    icon: < Tag />,
+    icon: <Tag />,
     name: "coupons",
     path: "/coupons/all"
-    
+  },
+  {
+    icon: <TableIcon />,
+    name: "Device Approvals",
+    path: "/device-approvals"
   },
   {
     icon: <Files />,
