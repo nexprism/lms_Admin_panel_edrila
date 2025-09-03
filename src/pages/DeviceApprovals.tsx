@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchDeviceApprovals,
@@ -10,16 +10,79 @@ export default function DeviceApprovals() {
   const dispatch = useDispatch();
   const { requests, loading, error } = useSelector((state: any) => state.deviceApprovals);
 
+  // Modal state for rejection
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectId, setRejectId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+
   useEffect(() => {
     dispatch(fetchDeviceApprovals() as any);
   }, [dispatch]);
 
   const handleAction = (id: string, status: "approved" | "rejected") => {
-    dispatch(updateDeviceApproval({ id, status }) as any);
+    if (status === "rejected") {
+      setRejectId(id);
+      setRejectReason("");
+      setShowRejectModal(true);
+    } else {
+      dispatch(updateDeviceApproval({ id, status }) as any);
+    }
+  };
+
+  const handleRejectSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rejectId || !rejectReason.trim()) return;
+    dispatch(updateDeviceApproval({ id: rejectId, status: "rejected", rejectionReason: rejectReason }) as any);
+    setShowRejectModal(false);
+    setRejectId(null);
+    setRejectReason("");
+  };
+
+  const handleRejectCancel = () => {
+    setShowRejectModal(false);
+    setRejectId(null);
+    setRejectReason("");
   };
 
   return (
     <div>
+      {/* Reject Modal */}
+      {showRejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Reject Device Request</h2>
+            <form onSubmit={handleRejectSubmit}>
+              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                Reason for rejection
+              </label>
+              <textarea
+                className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 mb-4 dark:bg-gray-800 dark:text-white"
+                value={rejectReason}
+                onChange={e => setRejectReason(e.target.value)}
+                rows={3}
+                required
+                autoFocus
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                  onClick={handleRejectCancel}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600"
+                  disabled={!rejectReason.trim()}
+                >
+                  Reject
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">Device Approval Requests</h1>

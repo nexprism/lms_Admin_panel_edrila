@@ -37,11 +37,18 @@ export const fetchDeviceApprovals = createAsyncThunk(
 export const updateDeviceApproval = createAsyncThunk(
   "deviceApprovals/updateStatus",
   async (
-    { id, status }: { id: string; status: "approved" | "rejected" },
+    { id, status, rejectionReason }: { id: string; status: "approved" | "rejected"; rejectionReason?: string },
     { rejectWithValue }
   ) => {
     try {
-      const response = await axiosInstance.put(`/device-approvals/${id}`, { status });
+      const payload: any = {
+        deviceApprovalId: id,
+        status: status === "approved" ? "approve" : "reject",
+      };
+      if (status === "rejected" && rejectionReason) {
+        payload.rejectionReason = rejectionReason;
+      }
+      const response = await axiosInstance.post("/device-approvals/manage", payload);
       return response.data?.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || err.message);
