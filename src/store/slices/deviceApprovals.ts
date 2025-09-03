@@ -3,31 +3,66 @@ import axiosInstance from "../../services/axiosConfig";
 
 export interface DeviceApproval {
   _id: string;
-  user: { _id: string; fullName: string; email: string };
-  deviceInfo: string;
+  userId?: { _id: string; fullName: string; email: string };
+  user?: { _id: string; fullName: string; email: string };
+  deviceId: string;
+  deviceInfo: any;
   status: "pending" | "approved" | "rejected";
+  isFirstDevice: boolean;
+  isActive: boolean;
   requestedAt: string;
+  rejectionReason?: string;
+  approvedBy?: string;
+  rejectedBy?: string;
+  processedAt?: string;
+}
+
+interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 interface DeviceApprovalsState {
   requests: DeviceApproval[];
   loading: boolean;
   error: string | null;
+  pagination: Pagination;
 }
 
 const initialState: DeviceApprovalsState = {
   requests: [],
   loading: false,
   error: null,
+  pagination: {
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+  },
 };
 
 export const fetchDeviceApprovals = createAsyncThunk(
   "deviceApprovals/fetchAll",
-  async (_, { rejectWithValue }) => {
+  async (
+    { page = 1, limit = 10 }: { page?: number; limit?: number } = {},
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await axiosInstance.get("/device-approvals");
-      console?.log("data", response.data);
-      return response.data?.data?.deviceApprovals || [];
+      const response = await axiosInstance.get("/device-approvals", {
+        params: { page, limit },
+      });
+      const data = response.data?.data;
+      return {
+        requests: data?.deviceApprovals || [],
+        pagination: {
+          total: data?.total || 0,
+          page: data?.page || 1,
+          limit: data?.limit || 10,
+          totalPages: data?.totalPages || 1,
+        },
+      };
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
@@ -68,7 +103,8 @@ const deviceApprovalsSlice = createSlice({
       })
       .addCase(fetchDeviceApprovals.fulfilled, (state, action) => {
         state.loading = false;
-        state.requests = action.payload;
+        state.requests = action.payload.requests;
+        state.pagination = action.payload.pagination;
       })
       .addCase(fetchDeviceApprovals.rejected, (state, action) => {
         state.loading = false;
