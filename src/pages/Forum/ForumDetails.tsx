@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { RootState } from "../../store";
 
+const BASE_URL = "http://localhost:5000";
+
 const ForumDetails: React.FC = () => {
   const { threadId } = useParams<{ threadId: string }>();
   const dispatch = useDispatch();
@@ -82,17 +84,25 @@ const ForumDetails: React.FC = () => {
           </div>
           <div className="mt-1 text-gray-700 prose prose-sm max-w-none">{reply.content}</div>
 
+          {/* Reply Attachments */}
           {reply.attachments?.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
-              {reply.attachments.map((att: any, idx: number) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs"
-                >
-                  <Paperclip className="w-3 h-3 mr-1" />
-                  {att.originalName || "Attachment"}
-                </span>
-              ))}
+              {reply.attachments.map((att: any, idx: number) => {
+                const attachmentUrl = `${BASE_URL}/${att.originalName}`;
+                console.log("Reply Attachment URL:", attachmentUrl);
+                return (
+                  <a
+                    key={idx}
+                    href={attachmentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs hover:bg-blue-100"
+                  >
+                    <Paperclip className="w-3 h-3 mr-1" />
+                    {att.originalName || "Attachment"}
+                  </a>
+                );
+              })}
             </div>
           )}
         </div>
@@ -217,6 +227,8 @@ const ForumDetails: React.FC = () => {
             <div className="prose max-w-none text-gray-800">
               <p>{thread.content}</p>
             </div>
+
+            {/* Thread Attachments */}
             {thread.attachments?.length > 0 && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <h4 className="font-medium text-gray-900 mb-2 flex items-center">
@@ -224,12 +236,22 @@ const ForumDetails: React.FC = () => {
                   Attachments
                 </h4>
                 <div className="space-y-2">
-                  {thread.attachments.map((att: any, idx: number) => (
-                    <div key={idx} className="flex items-center text-sm text-blue-600 hover:text-blue-800">
-                      <Paperclip className="w-4 h-4 mr-2" />
-                      {att.originalName}
-                    </div>
-                  ))}
+                  {thread.attachments.map((att: any, idx: number) => {
+                    const attachmentUrl = `${BASE_URL}/${att.type}`;
+                    console.log("Thread Attachment URL:", attachmentUrl);
+                    return (
+                      <a
+                        key={idx}
+                        href={attachmentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        <Paperclip className="w-4 h-4 mr-2" />
+                        {att.originalName}
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             )}
