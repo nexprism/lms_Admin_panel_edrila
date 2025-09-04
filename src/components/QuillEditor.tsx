@@ -41,8 +41,6 @@ const QuillEditor = ({
 
     // Import Quill dynamically (in real app, you'd import normally)
     const initializeQuill = () => {
-      // Since we can't actually import Quill in this environment,
-      // we'll simulate it with a rich text editor
       const editor = editorRef.current;
 
       // Make it contentEditable
@@ -96,26 +94,52 @@ const QuillEditor = ({
 
   const handleHeading = (level) => {
     const selection = window.getSelection();
-    if (selection.rangeCount > 0) {
+    if (selection.rangeCount > 0 && editorRef.current.contains(selection.anchorNode)) {
       const range = selection.getRangeAt(0);
-      const selectedText = range.toString() || 'Heading ' + level;
       
-      // Create heading element
-      const heading = document.createElement('h' + level);
-      heading.textContent = selectedText;
-      
-      if (range.toString()) {
-        range.deleteContents();
-        range.insertNode(heading);
-      } else {
-        // Insert at cursor position
-        range.insertNode(heading);
-        range.setStartAfter(heading);
-        range.collapse(true);
+      // Get the current element containing the selection
+      let currentElement = range.commonAncestorContainer;
+      if (currentElement.nodeType === Node.TEXT_NODE) {
+        currentElement = currentElement.parentElement;
       }
       
-      selection.removeAllRanges();
-      selection.addRange(range);
+      // Ensure we're within the editor
+      while (currentElement && currentElement !== editorRef.current && !['H1', 'H2', 'H3', 'P', 'DIV'].includes(currentElement.tagName)) {
+        currentElement = currentElement.parentElement;
+      }
+      
+      // Check if we're already in a heading or paragraph of the same level
+      const isCurrentHeading = currentElement && (currentElement.tagName === `H${level}` || (level === 0 && currentElement.tagName === 'P')) && currentElement.parentElement === editorRef.current;
+      
+      if (isCurrentHeading) {
+        // Convert to paragraph if heading, or do nothing if already P
+        const p = document.createElement('p');
+        p.innerHTML = currentElement.innerHTML;
+        currentElement.parentNode.replaceChild(p, currentElement);
+        
+        // Update cursor position
+        const newRange = document.createRange();
+        newRange.selectNodeContents(p);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      } else {
+        // Apply heading or paragraph within the editor
+        const newElement = level === 0 ? document.createElement('p') : document.createElement('h' + level);
+        if (currentElement && ['H1', 'H2', 'H3', 'P', 'DIV'].includes(currentElement.tagName) && currentElement.parentElement === editorRef.current) {
+          newElement.innerHTML = currentElement.innerHTML;
+          currentElement.parentNode.replaceChild(newElement, currentElement);
+        } else {
+          const selectedText = range.toString() || (level === 0 ? 'Paragraph' : 'Heading ' + level);
+          newElement.textContent = selectedText;
+          if (range.toString()) range.deleteContents();
+          range.insertNode(newElement);
+          range.setStartAfter(newElement);
+          range.collapse(true);
+        }
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
       
       if (editorRef.current) {
         onChange(editorRef.current.innerHTML);
@@ -157,12 +181,10 @@ const QuillEditor = ({
       
       if (range.toString()) {
         range.deleteContents();
-        range.insertNode(blockquote);
-      } else {
-        range.insertNode(blockquote);
-        range.setStartAfter(blockquote);
-        range.collapse(true);
       }
+      range.insertNode(blockquote);
+      range.setStartAfter(blockquote);
+      range.collapse(true);
       
       selection.removeAllRanges();
       selection.addRange(range);
@@ -194,12 +216,10 @@ const QuillEditor = ({
       
       if (range.toString()) {
         range.deleteContents();
-        range.insertNode(pre);
-      } else {
-        range.insertNode(pre);
-        range.setStartAfter(pre);
-        range.collapse(true);
       }
+      range.insertNode(pre);
+      range.setStartAfter(pre);
+      range.collapse(true);
       
       selection.removeAllRanges();
       selection.addRange(range);
@@ -293,6 +313,13 @@ const QuillEditor = ({
         command: "custom",
         action: () => handleHeading(3),
         title: "Heading 3",
+      },
+      {
+        // Custom icon for Paragraph (using a "P" character as icon)
+        icon: (props) => <span {...props} style={{ fontWeight: 500, fontSize: "14px" }}>P</span>,
+        command: "custom",
+        action: () => handleHeading(0), // Use 0 to represent paragraph
+        title: "Paragraph",
       },
       { divider: true },
       { icon: AlignLeft, command: "justifyLeft", title: "Align Left" },
@@ -495,7 +522,6 @@ const QuillEditor = ({
             className="p-6 outline-none prose max-w-none bg-white dark:bg-white/[0.03] dark:text-white/90 text-black dark:placeholder:text-white/60 placeholder:text-black/80 overflow-y-auto focus:ring-2 focus:ring-blue-500 focus:ring-inset"
             style={{ 
               height: editorHeight,
-              // Add styles to ensure proper rendering of elements
             }}
             suppressContentEditableWarning={true}
             data-placeholder={placeholder}
