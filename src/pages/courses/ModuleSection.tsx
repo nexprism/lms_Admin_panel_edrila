@@ -378,7 +378,7 @@ const LessonEditor = ({
     switch (lesson.type) {
       case "quiz":
         // If lesson.quiz exists, use its _id, else try to find from courseData
-        if (lesson.quiz?._id) return lesson.quiz._id;
+        if (lesson.quiz?._id) return lesson.quiz?._id;
         // Try to find quiz by lesson._id in courseData
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
@@ -394,7 +394,7 @@ const LessonEditor = ({
         return lesson.quizId || null;
       case "assignment":
         console.log("Assignment lesson data:", lesson);
-        if (lesson.assignment?._id) return lesson.assignment._id;
+        if (lesson.assignment?._id) return lesson.assignment?._id;
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
@@ -410,7 +410,7 @@ const LessonEditor = ({
       case "text":
         console.log("lesson.textContent", lesson);
         console.log("modeLessons", courseData?.modules);
-        if (lesson.textLessons?._id) return lesson.textLessons._id;
+        if (lesson.textLessons?.[0]?._id) return lesson.textLessons[0]._id;
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
@@ -435,7 +435,7 @@ const LessonEditor = ({
         }
         return lesson.textLessons || lesson.textLessons || null;
       case "video":
-        if (lesson.files?._id) return lesson.files._id;
+        if (lesson.files?.[0]?._id) return lesson.files?.[0]?._id;
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
@@ -451,11 +451,11 @@ const LessonEditor = ({
           }
           return null;
         }
-        return lesson._id || lesson.files || null;
+        return lesson.files?.[0]?._id || null;
       case "video-lesson":
         console.log("lesson.videoLesson", lesson.videoLesson);
         console.log("courseData.modules", courseData?.modules);
-        if (lesson.videoLesson?._id) return lesson.videoLesson._id;
+        if (lesson.videoLessons?.[0]?._id) return lesson.videoLessons?.[0]?._id;
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
@@ -725,7 +725,7 @@ const LessonEditor = ({
 
         // If we don't have contentId, try to find it from lesson data
         if (!textLessonId) {
-          textLessonId = lesson.textLessons?._id || lesson.textLessonId;
+          textLessonId = lesson.textLessons?.[0]?._id || lesson.textLessonId;
 
           // Search in courseData modules if still not found
           if (!textLessonId && courseData?.modules) {
@@ -762,7 +762,7 @@ const LessonEditor = ({
       }
       case "video-lesson": {
         let videoLessonData = lesson.videoLessons;
-        let videoLessonId = lesson.videoLessons?._id || lesson.videoLessonId;
+        let videoLessonId = lesson.videoLessons?.[0]?._id || lesson.videoLessonId;
         if (!videoLessonData && courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
@@ -789,17 +789,17 @@ const LessonEditor = ({
       }
       case "video":
       default: {
-        let videoData = lesson.video;
+        let videoData = lesson.files;
         console.log("lesson.video", lesson.video);
         console.log("courseData.modules", courseData?.modules);
-        let fileId = lesson.video?._id || lesson.fileId;
+        let fileId = lesson.files?.[0]?._id || lesson.fileId;
         if (!videoData && courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
               for (const l of mod.lessons) {
-                if (l._id === lesson._id && l.video) {
-                  videoData = l.video;
-                  fileId = l.video._id;
+                if (l._id === lesson._id && l.files) {
+                  videoData = l.files;
+                  fileId = l.files._id;
                 }
               }
             }

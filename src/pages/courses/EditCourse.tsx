@@ -367,8 +367,11 @@ const EditCourse = () => {
           typeof course.price === "object" && course.price?.$numberDecimal
             ? course.price.$numberDecimal
             : course.price || "",
+        salePrice:
+          typeof course.salePrice === "object" && course.salePrice?.$numberDecimal
+            ? course.salePrice.$numberDecimal
+            : course.salePrice || "",
         currency: course.currency || "INR",
-        salePrice: course.salePrice || "",
         duration: course.duration || "",
         instructorId: course.instructorId || course.instructor?._id || "",
         isPublished: course.isPublished || false,
@@ -395,6 +398,7 @@ const EditCourse = () => {
       setDemoVideoUrl(course.demoVideo || "");
 
       const courseModules = course.modules || [];
+      // Map modules and lessons, including textLessons and files for each lesson
       const processedModules = courseModules.map((module) => ({
         _id: module._id || undefined,
         title: module.title || "",
@@ -407,6 +411,12 @@ const EditCourse = () => {
           videoUrl: lesson.videoUrl || "",
           duration: lesson.duration || "",
           order: lesson.order || 0,
+          // Add textLessons and files if present
+          quiz: lesson.quiz || [ ],
+          videoLessons: lesson.videoLessons || [],
+          assignment: lesson?.assignment || [],
+          textLessons: lesson.textLessons || [],
+          files: lesson.files || [],
         })),
         order: module.order || 0,
       }));
@@ -525,6 +535,9 @@ const EditCourse = () => {
       await dispatch(
         updateCourse({ id: courseId, data: submitFormData })
       ).unwrap();
+      // Refetch course data after update to get latest price/salePrice
+      const token = localStorage.getItem("token") || "";
+      dispatch(fetchCourseById({ courseId, token }));
       setPopup({
         isVisible: true,
         message: isDraft
@@ -747,9 +760,7 @@ const EditCourse = () => {
                         <option className="dark:text-black" value="advanced">
                           Advanced
                         </option>
-                        <option className="dark:text-black" value="all">
-                          All Levels
-                        </option>
+                      
                       </select>
                     </div>
                     <div>
@@ -1169,6 +1180,7 @@ const EditCourse = () => {
               {activeTab === "modules" && (
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Course Modules</h3>
+                  {console?.log("modules 0987",modules)}
                   <ModuleSection
                     modules={modules}
                     onModulesChange={handleModulesChange}
