@@ -760,9 +760,7 @@ const EditCourse = () => {
                         <option className="dark:text-black" value="advanced">
                           Advanced
                         </option>
-                        <option className="dark:text-black" value="all">
-                          All Levels
-                        </option>
+                      
                       </select>
                     </div>
                     <div>
