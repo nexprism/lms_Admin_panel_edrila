@@ -367,8 +367,11 @@ const EditCourse = () => {
           typeof course.price === "object" && course.price?.$numberDecimal
             ? course.price.$numberDecimal
             : course.price || "",
+        salePrice:
+          typeof course.salePrice === "object" && course.salePrice?.$numberDecimal
+            ? course.salePrice.$numberDecimal
+            : course.salePrice || "",
         currency: course.currency || "INR",
-        salePrice: course.salePrice || "",
         duration: course.duration || "",
         instructorId: course.instructorId || course.instructor?._id || "",
         isPublished: course.isPublished || false,
