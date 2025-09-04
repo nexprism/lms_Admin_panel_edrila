@@ -18,62 +18,46 @@ export const uploadVideo = createAsyncThunk(
   "video/uploadVideo",
   async (
     {
-      file,
+      filePath,
       lessonId,
       sourcePlatform,
       title,
       description,
-      youtubeUrl = "",
+      quality = "auto",
       accessToken,
       refreshToken,
     }: {
-      file: File;
+      filePath: string;
       lessonId: string;
       sourcePlatform: string;
       title: string;
       description: string;
-      youtubeUrl?: string;
+      quality?: string;
       accessToken: string;
       refreshToken: string;
     },
     { rejectWithValue, signal }
   ) => {
     try {
-      const formData = new FormData();
-      if (file) {
-        formData.append("video", file);
-      }
-      formData.append("lessonId", lessonId);
-      formData.append("sourcePlatform", sourcePlatform);
-      formData.append("title", title);
-      formData.append("description", description);
-      if (youtubeUrl) {
-        formData.append("embedUrl", youtubeUrl);
-      }
+      const payload = {
+        filePath,
+        lessonId,
+        sourcePlatform,
+        title,
+        description,
+        quality,
+      };
 
-      const response = await axiosInstance.post("/video/", formData, {
+      const response = await axiosInstance.post("/video/", payload, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
-        // Increase timeout for video uploads (10 minutes)
-        timeout: 600000, // 10 minutes in milliseconds
-
-        // Handle upload progress
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total || 1)
-          );
-          console.log(`Upload Progress: ${percentCompleted}%`);
-        },
-
-        // Pass the abort signal from Redux Toolkit
+        timeout: 600000,
         signal: signal,
       });
-      window.location.reload();
 
       return response.data;
     } catch (error: any) {
-      // Handle different types of errors
       if (error.code === "ECONNABORTED") {
         return rejectWithValue("Upload timeout - please try again");
       }
@@ -102,6 +86,7 @@ export const fetchVideo = createAsyncThunk(
         headers: {
           "Content-Type": "application/json",
         },
+           timeout: 3600000,
       });
       return response.data;
     } catch (error: any) {
@@ -146,6 +131,7 @@ export const updateVideo = createAsyncThunk(
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 3600000,
       });
 console.log("Video updated successfully:", response.data);
       return response.data;

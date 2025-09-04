@@ -220,43 +220,63 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
   });
 
   // Mock upload progress simulation
-  const simulateUpload = (fileName: string) => {
-    setUploadProgress({
-      isVisible: true,
-      progress: 0,
-      fileName,
-      stage: "Preparing upload...",
-    });
+ const uploadInChunks = async (file: File) => {
+  const CHUNK_SIZE = 100 * 1024 * 1024; // 100MB
+  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+  const fileId = `${file.name}-${Date.now()}`;
 
-    let progress = 0;
-    const stages = [
-      "Preparing upload...",
-      "Uploading to VdoCipher...",
-      "Processing video...",
-      "Generating thumbnails...",
-      "Finalizing...",
-    ];
+  for (let i = 0; i < totalChunks; i++) {
+    const start = i * CHUNK_SIZE;
+    const end = Math.min(file.size, start + CHUNK_SIZE);
+    const chunk = file.slice(start, end);
 
-    const interval = setInterval(() => {
-      progress += Math.random() * 15 + 5;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        setTimeout(() => {
-          setUploadProgress(prev => ({ ...prev, isVisible: false }));
-          showSuccessMessage();
-        }, 1000);
-      }
+    const formData = new FormData();
+    formData.append("chunk", chunk);
 
-      const stageIndex = Math.floor((progress / 100) * stages.length);
+   await axiosInstance.post("/chunk/upload-chunk", formData, {
+    headers: {
+      "content-type": "multipart/form-data",
+      "fileid": fileId,
+      "chunkindex": i.toString(),
+      "totalchunks": totalChunks.toString(),
+    },
+    onUploadProgress: (e) => {
+      const progress = Math.round(((i + e.loaded / e.total!) / totalChunks) * 100);
       setUploadProgress({
         isVisible: true,
-        progress: Math.min(progress, 100),
-        fileName,
-        stage: stages[Math.min(stageIndex, stages.length - 1)],
+        progress,
+        fileName: file.name,
+        stage: `Uploading chunk ${i + 1}/${totalChunks} (est. ${Math.ceil((totalChunks - i) * 2)} min left)...`,
       });
-    }, 500);
-  };
+        },
+        timeout: 3600000, // Increased timeout to 60 seconds for large chunks
+  });
+
+  }
+
+  // Merge chunks
+  const { data } = await axiosInstance.post("/chunk/merge-chunks", {
+    fileId,
+    fileName: file.name,
+    totalChunks,
+  }, {
+    timeout: 3600000, // 1 hour timeout for merging large files
+  });
+
+  setUploadProgress({
+    isVisible: false,
+    progress: 100,
+    fileName: file.name,
+    stage: "Done",
+  });
+
+  showSuccessMessage();
+  console?.log("data",data)
+
+  return data.filePath; // <--- Return merged file path
+};
+
+
 
   const showSuccessMessage = () => {
     setPopup({
@@ -409,9 +429,26 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
       let response;
       
       // Show upload progress for VdoCipher videos
-      if (form.sourcePlatform === "videocypher" && form.file) {
-        simulateUpload(form.file.name);
-      }
+   if (form.sourcePlatform == "videocypher" && form.file) {
+    console.log("Starting chunked upload for file:", form.file.name);
+  // Get merged file path
+  const finalPath = await uploadInChunks(form.file);
+  console?.log("finalPath",finalPath)
+
+  // response = await dispatch(
+  //   uploadVideo({
+  //     lessonId,
+  //     sourcePlatform: form.sourcePlatform,
+  //     title: form.title,
+  //     description: form.description,
+  //     filePath: finalPath, // <--- send path, not raw file
+  //     quality: form.quality || "auto",
+  //     accessToken: "",
+  //     refreshToken: "",
+  //   }) as any
+  // );
+}
+
       
       if (isEditMode && (fileId || videoId)) {
         // For VdoCipher updates, we need to use the correct ID
@@ -426,6 +463,9 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
             return;
           }
         }
+
+          
+
         
         response = await dispatch(
           updateVideo({
@@ -434,6 +474,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
             lessonId,
             sourcePlatform: form.sourcePlatform,
             title: form.title,
+           
             description: form.description,
             youtubeUrl: form.sourcePlatform === "youtube" ? form.youtubeUrl : undefined,
             // Include VdoCipher specific fields if updating VdoCipher video
@@ -447,6 +488,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
           }) as any
         );
       } else {
+        const finalPath = await uploadInChunks(form.file);
         response = await dispatch(
           uploadVideo({
             file: form.sourcePlatform === "youtube" ? null : form.file!,
@@ -454,6 +496,7 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
             sourcePlatform: form.sourcePlatform,
             title: form.title,
             description: form.description,
+              filePath: finalPath,
             youtubeUrl: form.sourcePlatform === "youtube" ? form.youtubeUrl : undefined,
             // Include VdoCipher specific fields if uploading to VdoCipher
             ...(form.sourcePlatform === "videocypher" && {
@@ -489,8 +532,18 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
           });
         }
       } else {
+        if(form.sourcePlatform === "videocypher"){
+          // For VdoCipher, the success message is shown by showSuccessMessage after upload simulation
+          if (response.payload?.success) {
+            showSuccessMessage();
+            // Close after a short delay to show success message
+            setTimeout(() => {
+              handleClose();
+            }, 1500);
+          }
+        }
         // For VdoCipher, the success message is shown by showSuccessMessage after upload simulation
-        if (!response.payload?.success) {
+        else if (!response.payload?.success) {
           setUploadProgress(prev => ({ ...prev, isVisible: false }));
           setPopup({
             isVisible: true,
