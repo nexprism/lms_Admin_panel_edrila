@@ -85,8 +85,6 @@ const validateForm = (
       errors.salePrice = "Sale price must be a non-negative number";
     } else if (formData.salePrice > 100000) {
       errors.salePrice = "Sale price cannot exceed 100,000";
-    } else if (formData.price && formData.salePrice >= formData.price) {
-      errors.salePrice = "Sale price must be less than the regular price";
     }
   }
 
