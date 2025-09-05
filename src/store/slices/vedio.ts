@@ -24,6 +24,9 @@ export const uploadVideo = createAsyncThunk(
       title,
       description,
       quality = "auto",
+      uploadMethod,
+      videoId,
+      youtubeUrl,
       accessToken,
       refreshToken,
     }: {
@@ -33,6 +36,9 @@ export const uploadVideo = createAsyncThunk(
       title: string;
       description: string;
       quality?: string;
+      uploadMethod?: string;
+      videoId?: string;
+      youtubeUrl?: string;
       accessToken: string;
       refreshToken: string;
     },
@@ -46,6 +52,9 @@ export const uploadVideo = createAsyncThunk(
         title,
         description,
         quality,
+        ...(uploadMethod && { uploadMethod }),
+        ...(videoId && { videoId }),
+        ...(youtubeUrl && { youtubeUrl }),
       };
 
       const response = await axiosInstance.post("/video/", payload, {
@@ -105,15 +114,29 @@ export const updateVideo = createAsyncThunk(
       sourcePlatform,
       title,
       description,
+      uploadMethod,
+      filePath,
+      youtubeUrl,
+      quality,
+      thumbnail,
+      replaceVideo,
+      vdocipherVideoId,
       accessToken,
       refreshToken,
     }: {
       videoId: string;
-      file: File;
+      file?: File;
       lessonId: string;
       sourcePlatform: string;
       title: string;
       description: string;
+      uploadMethod?: string;
+      filePath?: string;
+      youtubeUrl?: string;
+      quality?: string;
+      thumbnail?: string;
+      replaceVideo?: boolean;
+      vdocipherVideoId?: string;
       accessToken: string;
       refreshToken: string;
     },
@@ -121,11 +144,25 @@ export const updateVideo = createAsyncThunk(
   ) => {
     try {
       const formData = new FormData();
-      formData.append("video", file);
+      
+      // Only append file if it exists
+      if (file) {
+        formData.append("video", file);
+      }
+      
       formData.append("lessonId", lessonId);
       formData.append("sourcePlatform", sourcePlatform);
       formData.append("title", title);
       formData.append("description", description);
+      
+      // Append optional fields if they exist
+      if (uploadMethod) formData.append("uploadMethod", uploadMethod);
+      if (filePath) formData.append("filePath", filePath);
+      if (youtubeUrl) formData.append("youtubeUrl", youtubeUrl);
+      if (quality) formData.append("quality", quality);
+      if (thumbnail) formData.append("thumbnail", thumbnail);
+      if (replaceVideo !== undefined) formData.append("replaceVideo", String(replaceVideo));
+      if (vdocipherVideoId) formData.append("videoId", vdocipherVideoId);
 
       const response = await axiosInstance.put(`/video/${videoId}`, formData, {
         headers: {
