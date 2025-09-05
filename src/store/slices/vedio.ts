@@ -170,7 +170,6 @@ export const updateVideo = createAsyncThunk(
         },
         timeout: 3600000,
       });
-console.log("Video updated successfully:", response.data);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message);

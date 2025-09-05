@@ -19,7 +19,6 @@ export const createCourse = createAsyncThunk(
     try {
       // Ensure the formData is properly formatted
 
-      console.log("Creating course with data:", formData);
       formData.append("instructerId", "684088dfef718469d2bbcb62");
       const response = await axiosInstance.post("/courses/", formData, {
         headers: {
@@ -56,7 +55,6 @@ export const fetchCourses = createAsyncThunk<
         },
       });
       const data = response.data?.data;
-      console.log("Fetched vfgbhcourses:", data);
       return {
         courses: data?.data || [],
         total: data?.total || 0,
@@ -85,7 +83,7 @@ export const fetchCourseById = createAsyncThunk(
           },
         }
       );
-      console.log("Fetched course by ID:", response.data?.data?.course);
+      
       return response.data?.data?.course;
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message);
@@ -97,7 +95,6 @@ export const updateCourse = createAsyncThunk(
   "course/updateCourse",
   async ({ id, data }: { id: string; data: FormData }, { rejectWithValue }) => {
     try {
-      console.log("Updating course with ID:", id, "and data:", data);
       // Remove any existing 'instructorId' entries before appending the correct one
       data.delete("instructorId");
       data.append("instructorId", "684088dfef718469d2bbcb62");

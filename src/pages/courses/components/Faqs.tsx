@@ -69,7 +69,7 @@ function Faqs({ courseId }) {
           type: "success",
           isVisible: true,
         });
-        console.log("response", response.data);
+        // console.log("response", response.data);
         setShowPopup(false);
         setSelectedFaq(null);
         setFaqData({
@@ -246,7 +246,7 @@ function Faqs({ courseId }) {
         <div className="space-y-4">
           {allFaqs.length > 0 ? (
             allFaqs.map((faq, index) => (
-              <div className="px-4 py-3 flex border-2 gap-4 border-black/10 rounded-lg">
+              <div key={faq?._id || index} className="px-4 py-3 flex border-2 gap-4 border-black/10 rounded-lg">
                 <h2 className="text-lg font-semibold mb-2">{index + 1}.</h2>
                 <div className="flex-1">
                   <h2 className="text-lg font-semibold mb-2 dark:text-white/90">

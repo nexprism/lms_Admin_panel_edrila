@@ -24,7 +24,6 @@ export const createCertificate = createAsyncThunk(
       window.location.reload();
       return response.data;
     } catch (err: any) {
-      console.log("Error creating certificate:", err?.message);
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
@@ -48,7 +47,6 @@ export const fetchCertificates = createAsyncThunk(
       );
       return response.data.data;
     } catch (err: any) {
-      console.log("Error fetching certificates:", err?.message);
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
@@ -62,7 +60,6 @@ export const fetchCertificateById = createAsyncThunk(
       const response = await axiosInstance.get(`/certificate-templates/${id}`);
       return response.data;
     } catch (err: any) {
-      console.log("Error fetching certificate by id:", err?.message);
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
@@ -82,7 +79,6 @@ export const updateCertificate = createAsyncThunk(
       window.location.reload();
       return response.data;
     } catch (err: any) {
-      console.log("Error updating certificate:", err?.message);
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
@@ -96,7 +92,6 @@ export const deleteCertificate = createAsyncThunk(
       const response = await axiosInstance.delete(`/certificate/${id}`);
       return response.data;
     } catch (err: any) {
-      console.log("Error deleting certificate:", err?.message);
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }

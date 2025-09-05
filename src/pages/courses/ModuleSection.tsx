@@ -157,10 +157,6 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
 
       const result = await dispatch(createModule(payload)).unwrap();
 
-      // Debug logging to see what we get back
-      console.log("Module creation result:", result);
-      console.log("Result.data:", result.data);
-
       // Immediate UI update - this will update the UI instantly
       onModuleCreated(result.data || result);
 
@@ -180,7 +176,6 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
         isPublished: false,
       });
     } catch (error) {
-      console.error("Error creating module:", error);
       setPopup({
         message: "Failed to create module. Please try again.",
         type: "error",

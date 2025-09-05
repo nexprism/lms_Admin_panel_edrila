@@ -151,7 +151,6 @@ export const fetchStudentById = createAsyncThunk<Student, string>(
         `${API_BASE_URL}/students/${id}`
       );
       const student = response.data?.data?.student;
-      console.log("Fetched student details:", student);
       return student;
     } catch (error: any) {
       console.error("Error fetching student:", error);

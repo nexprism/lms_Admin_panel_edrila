@@ -64,7 +64,7 @@ const CreateCoupon: React.FC = () => {
       });
       setLoading(false);
 
-      setTimeout(() => navigate("/coupons"), 1500);
+      setTimeout(() => navigate("/coupons/all"), 1500);
     } catch (error: any) {
       setPopup({
         show: true,

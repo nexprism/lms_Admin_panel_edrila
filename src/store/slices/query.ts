@@ -56,7 +56,6 @@ export const getAllQueries = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("Fetched queries:", response.data);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message);

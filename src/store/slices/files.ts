@@ -41,7 +41,6 @@ export const uploadFile = createAsyncThunk(
       formData.append("lessonId", payload.lessonId);
       formData.append("courseId", payload.courseId);
 
-      console.log("Uploading file with payload:", payload);
 
       const response = await axiosInstance.post(
         "/files",
@@ -56,7 +55,6 @@ export const uploadFile = createAsyncThunk(
 
       return response.data;
     } catch (error: any) {
-      console.log("File upload error:", error);
       return rejectWithValue(
         error.response?.data?.message || "File upload failed"
       );
@@ -69,10 +67,8 @@ export const fetchFiles = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get("/files");
-      console.log("Fetched files:", response.data?.data);
       return response.data?.data;
     } catch (error: any) {
-      console.log("File fetch error:", error);
       return rejectWithValue(
         error.response?.data?.message || "File fetch failed"
       );
@@ -87,7 +83,6 @@ export const fetchFileById = createAsyncThunk(
       const response = await axiosInstance.get(`/files/${fileId}`);
       return response.data?.data;
     } catch (error: any) {
-      console.log("Fetch file by ID error:", error);
       return rejectWithValue(
         error.response?.data?.message || "Fetch file by ID failed"
       );
