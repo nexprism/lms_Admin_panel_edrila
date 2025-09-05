@@ -50,6 +50,7 @@ type FormErrors = {
   tags?: string;
   thumbnailFile?: string;
   demoVideoUrl?: string;
+  salePrice?: any;
 };
 
 const validateForm = (
@@ -76,6 +77,17 @@ const validateForm = (
     }
   } else {
     errors.price = "Price is required";
+  }
+
+  // Validate salePrice only if it's provided
+  if (formData.salePrice && formData.salePrice.trim() !== "") {
+    if (isNaN(formData.salePrice) || formData.salePrice < 0) {
+      errors.salePrice = "Sale price must be a non-negative number";
+    } else if (formData.salePrice > 100000) {
+      errors.salePrice = "Sale price cannot exceed 100,000";
+    } else if (formData.price && formData.salePrice >= formData.price) {
+      errors.salePrice = "Sale price must be less than the regular price";
+    }
   }
 
   if (formData.seoMetaDescription.length > 160) {
@@ -344,14 +356,14 @@ const AddCourse = () => {
   const { loading, error, data } = useSelector((state) => state.course);
   const navigate = useNavigate();
 
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [customTag, setCustomTag] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [coverImageFile, setCoverImageFile] = useState(null);
   const [demoVideoUrl, setDemoVideoUrl] = useState("");
   const [description, setDescription] = useState("");
   const [seoContent, setSeoContent] = useState("");
-  const [formErrors, setFormErrors] = useState({});
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [popup, setPopup] = useState({
     isVisible: false,
     message: "",
@@ -476,7 +488,12 @@ const AddCourse = () => {
 
     const submitFormData = new FormData();
     Object.keys(formData).forEach((key) => {
-      submitFormData.append(key, String(formData[key]));
+      const value = formData[key];
+      // Handle empty salePrice - don't append if it's empty
+      if (key === 'salePrice' && (!value || value === '')) {
+        return; // Skip appending empty salePrice
+      }
+      submitFormData.append(key, String(value));
     });
     submitFormData.append("description", description);
     submitFormData.append("seoContent", seoContent);
@@ -488,7 +505,7 @@ const AddCourse = () => {
     if (coverImageFile) submitFormData.append("coverImage", coverImageFile);
 
     try {
-      await dispatch(createCourse(submitFormData)).unwrap();
+      await dispatch(createCourse(submitFormData) as any).unwrap();
 
       if (!isDraft) {
         setSuccessPopup(true);
@@ -530,10 +547,25 @@ const AddCourse = () => {
       setThumbnailFile(null);
       setCoverImageFile(null);
       setDemoVideoUrl("");
-    } catch (error) {
+    } catch (error: any) {
+      // Extract the actual error message from the server response
+      let errorMessage = "Failed to create course. Please try again.";
+      
+      if (error) {
+        if (typeof error === 'string') {
+          errorMessage = error;
+        } else if (error.message) {
+          errorMessage = error.message;
+        } else if (error.err) {
+          errorMessage = error.err;
+        } else if (error.data && error.data.message) {
+          errorMessage = error.data.message;
+        }
+      }
+      
       setPopup({
         isVisible: true,
-        message: error.message || "Failed to create course. Please try again.",
+        message: errorMessage,
         type: "error",
       });
     }
@@ -953,9 +985,16 @@ const AddCourse = () => {
                      }}
                      step="0.01"
                      min="0"
-                     className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-300 dark:border-gray-600`}
+                     className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                       formErrors.salePrice
+                         ? "border-red-400"
+                         : "border-gray-300 dark:border-gray-600"
+                     }`}
                      placeholder="Course sale price"
                    />
+                   {formErrors.salePrice && (
+                     <p className="mt-1 text-xs text-red-600">{formErrors.salePrice}</p>
+                   )}
                  </div>
 
                   <div>
