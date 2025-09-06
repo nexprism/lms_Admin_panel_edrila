@@ -437,7 +437,7 @@ const QueryList: React.FC = () => {
 
       {/* Status Update Modal */}
 {modalOpen && selectedQuery && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-sm">
+  <div className="fixed inset-0 z-[1000001] flex items-center justify-center bg-white/30 backdrop-blur-sm">
     <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
       {/* Close Icon */}
       <button
