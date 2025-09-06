@@ -49,6 +49,9 @@ import ForumThreadList from "./pages/Forum/ForumThreadList";
 import AppNotificationSender from "./pages/AppNotificationSender";
 import DeviceApprovals from "./pages/DeviceApprovals";
 import ForumDetails from "./pages/Forum/ForumDetails";
+import AddEvent from "./pages/Events/AddEvent";
+import EventList from "./pages/Events/EventList";
+import EditEvent from "./pages/Events/EditEvent";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -158,6 +161,9 @@ export default function App() {
               <Route path="/filters/add" element={<AddFilter />} />
               <Route path="/filters/all" element={<FilterList />} />
 
+              <Route path="/event/add" element={<AddEvent />} />
+              <Route path="/events" element={<EventList />} />
+<Route path="/events/edit/:id" element={<EditEvent />} />
               {/* Courses */}
               <Route path="/courses/add" element={<AddCourse />} />
               <Route path="/courses/all/courses" element={<CourseList />} />
