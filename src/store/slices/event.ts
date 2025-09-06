@@ -160,6 +160,11 @@ export const deleteEvent = createAsyncThunk(
     async (eventId: string, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.delete(`/events/${eventId}`);
+            console.log('Delete response:', response.data);
+           if (response.data.success) {
+               window.location.href = '/events';
+           }
+
             return { eventId, ...response.data };
         } catch (error: unknown) {
             if (axios.isAxiosError(error) && error.response?.data?.message) {
