@@ -18,20 +18,26 @@ export const uploadVideo = createAsyncThunk(
   "video/uploadVideo",
   async (
     {
-      file,
+      filePath,
       lessonId,
       sourcePlatform,
       title,
       description,
-      youtubeUrl = "",
+      quality = "auto",
+      uploadMethod,
+      videoId,
+      youtubeUrl,
       accessToken,
       refreshToken,
     }: {
-      file: File;
+      filePath: string;
       lessonId: string;
       sourcePlatform: string;
       title: string;
       description: string;
+      quality?: string;
+      uploadMethod?: string;
+      videoId?: string;
       youtubeUrl?: string;
       accessToken: string;
       refreshToken: string;
@@ -39,41 +45,28 @@ export const uploadVideo = createAsyncThunk(
     { rejectWithValue, signal }
   ) => {
     try {
-      const formData = new FormData();
-      if (file) {
-        formData.append("video", file);
-      }
-      formData.append("lessonId", lessonId);
-      formData.append("sourcePlatform", sourcePlatform);
-      formData.append("title", title);
-      formData.append("description", description);
-      if (youtubeUrl) {
-        formData.append("embedUrl", youtubeUrl);
-      }
+      const payload = {
+        filePath,
+        lessonId,
+        sourcePlatform,
+        title,
+        description,
+        quality,
+        ...(uploadMethod && { uploadMethod }),
+        ...(videoId && { videoId }),
+        ...(youtubeUrl && { youtubeUrl }),
+      };
 
-      const response = await axiosInstance.post("/video/", formData, {
+      const response = await axiosInstance.post("/video/", payload, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
-        // Increase timeout for video uploads (10 minutes)
-        timeout: 600000, // 10 minutes in milliseconds
-
-        // Handle upload progress
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total || 1)
-          );
-          console.log(`Upload Progress: ${percentCompleted}%`);
-        },
-
-        // Pass the abort signal from Redux Toolkit
+        timeout: 600000,
         signal: signal,
       });
-      window.location.reload();
 
       return response.data;
     } catch (error: any) {
-      // Handle different types of errors
       if (error.code === "ECONNABORTED") {
         return rejectWithValue("Upload timeout - please try again");
       }
@@ -102,6 +95,7 @@ export const fetchVideo = createAsyncThunk(
         headers: {
           "Content-Type": "application/json",
         },
+           timeout: 3600000,
       });
       return response.data;
     } catch (error: any) {
@@ -120,15 +114,29 @@ export const updateVideo = createAsyncThunk(
       sourcePlatform,
       title,
       description,
+      uploadMethod,
+      filePath,
+      youtubeUrl,
+      quality,
+      thumbnail,
+      replaceVideo,
+      vdocipherVideoId,
       accessToken,
       refreshToken,
     }: {
       videoId: string;
-      file: File;
+      file?: File;
       lessonId: string;
       sourcePlatform: string;
       title: string;
       description: string;
+      uploadMethod?: string;
+      filePath?: string;
+      youtubeUrl?: string;
+      quality?: string;
+      thumbnail?: string;
+      replaceVideo?: boolean;
+      vdocipherVideoId?: string;
       accessToken: string;
       refreshToken: string;
     },
@@ -136,18 +144,32 @@ export const updateVideo = createAsyncThunk(
   ) => {
     try {
       const formData = new FormData();
-      formData.append("video", file);
+      
+      // Only append file if it exists
+      if (file) {
+        formData.append("video", file);
+      }
+      
       formData.append("lessonId", lessonId);
       formData.append("sourcePlatform", sourcePlatform);
       formData.append("title", title);
       formData.append("description", description);
+      
+      // Append optional fields if they exist
+      if (uploadMethod) formData.append("uploadMethod", uploadMethod);
+      if (filePath) formData.append("filePath", filePath);
+      if (youtubeUrl) formData.append("youtubeUrl", youtubeUrl);
+      if (quality) formData.append("quality", quality);
+      if (thumbnail) formData.append("thumbnail", thumbnail);
+      if (replaceVideo !== undefined) formData.append("replaceVideo", String(replaceVideo));
+      if (vdocipherVideoId) formData.append("videoId", vdocipherVideoId);
 
       const response = await axiosInstance.put(`/video/${videoId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 3600000,
       });
-console.log("Video updated successfully:", response.data);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message);

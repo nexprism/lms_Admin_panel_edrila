@@ -747,20 +747,13 @@ const EditCourse = () => {
                       </label>
                       <select
                         name="level"
-                        value={formData.level}
+                        value={typeof formData.level == "string" && formData.level ? formData.level : "beginner"}
                         onChange={handleInputChange}
                         className="w-full border dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        <option className="dark:text-black" value="beginner">
-                          Beginner
-                        </option>
-                        <option className="dark:text-black" value="intermediate">
-                          Intermediate
-                        </option>
-                        <option className="dark:text-black" value="advanced">
-                          Advanced
-                        </option>
-                      
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
                       </select>
                     </div>
                     <div>
@@ -814,7 +807,7 @@ const EditCourse = () => {
                           onChange={handleInputChange}
                           min="1"
                           className="w-full border dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholderNUMBER OF DAYS
+                          placeholder="Enter number of days"
                         />
                       </div>
                     )}

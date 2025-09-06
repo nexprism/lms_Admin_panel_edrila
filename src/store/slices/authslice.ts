@@ -73,8 +73,6 @@ export const signup = createAsyncThunk<
   { rejectValue: string }
 >("auth/signup", async (userData, { rejectWithValue }) => {
   try {
-    console.log("Trying to sign up with data:", userData);
-    console.log("API Base URL:", API_BASE_URL);
     const response = await axios.post<ApiResponse<AuthResponse>>(
       `${API_BASE_URL}/signup`,
       {
@@ -90,11 +88,9 @@ export const signup = createAsyncThunk<
         },
       }
     );
-    console.log("Signup response:", response);
 
     const data = response.data;
 
-    console.log("Signup data:", data);
     // Store tokens in localStorage
     if (data.data?.accessToken) {
       localStorage.setItem("token", data.data.accessToken);
@@ -113,7 +109,6 @@ export const signup = createAsyncThunk<
       refreshToken: data.data.refreshToken,
     };
   } catch (error: any) {
-    console.log("tring signup", error.message);
     return rejectWithValue(handleApiError(error));
   }
 });

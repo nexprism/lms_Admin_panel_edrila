@@ -155,7 +155,6 @@ export const fetchForumThreadById = createAsyncThunk(
       const response = await axiosInstance.get(`/forum/admin/thread/${threadId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Fetched thread:", response.data?.data);
       return response.data?.data || {};
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || error.message);
@@ -173,7 +172,6 @@ export const fetchThreadReplies = createAsyncThunk(
       const response = await axiosInstance.get(`/forum/thread/${threadId}/replies`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Fetched replies:", response.data?.data);
       // ensure always array
       return Array.isArray(response.data?.data) ? response.data.data : [];
     } catch (error: any) {

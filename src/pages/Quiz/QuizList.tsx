@@ -131,7 +131,6 @@ const QuizList: React.FC = () => {
     loading,
     error,
   } = useAppSelector((state) => state.quiz);
-  console.log("Quizzes:", quizzes);
 
   const [searchInput, setSearchInput] = useState("");
   const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>([]);
@@ -150,7 +149,6 @@ const QuizList: React.FC = () => {
 
   useEffect(() => {
     if (Array.isArray(quizzes?.data)) {
-      console.log("Fetched quizzes:", quizzes.data);
       let filtered = quizzes?.data;
       if (searchInput) {
         filtered = filtered.filter((q: Quiz) => {
@@ -163,7 +161,6 @@ const QuizList: React.FC = () => {
           );
         });
       }
-      console.log("Filtered quizzes:", filtered);
       setFilteredQuizzes(filtered);
     }
   }, [quizzes, searchInput]);

@@ -22,7 +22,7 @@ const Home: React.FC = () => {
   const { overview, loading, error } = useAppSelector(
     (state) => state.dashboard
   );
-  console.log("Dashboard Overview:", overview);
+
 
   const navigate = useNavigate();
   useEffect(() => {

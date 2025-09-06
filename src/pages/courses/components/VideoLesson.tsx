@@ -200,9 +200,11 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
     embedUrl: "",
     originalUrl: "",
     youtubeUrl: "",
-    thumbnail: "", // Added for VdoCipher
-    quality: "auto", // Added for VdoCipher
-    status: "", // Added for VdoCipher
+    vdocipherVideoId: "", // Added for existing VdoCipher videos
+    uploadMethod: "file", // Added to track upload method: "file" or "videoId"
+    thumbnail: "",
+    quality: "auto",
+    status: "",
   });
   
   const [isEditMode, setIsEditMode] = useState(false);
@@ -220,42 +222,59 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
   });
 
   // Mock upload progress simulation
-  const simulateUpload = (fileName: string) => {
-    setUploadProgress({
-      isVisible: true,
-      progress: 0,
-      fileName,
-      stage: "Preparing upload...",
+  const uploadInChunks = async (file: File) => {
+    const CHUNK_SIZE = 100 * 1024 * 1024; // 100MB
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const fileId = `${file.name}-${Date.now()}`;
+
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(file.size, start + CHUNK_SIZE);
+      const chunk = file.slice(start, end);
+
+      const formData = new FormData();
+      formData.append("chunk", chunk);
+
+      await axiosInstance.post("/chunk/upload-chunk", formData, {
+        headers: {
+          "content-type": "multipart/form-data",
+          "fileid": fileId,
+          "chunkindex": i.toString(),
+          "totalchunks": totalChunks.toString(),
+        },
+        onUploadProgress: (e) => {
+          const progress = Math.round(((i + e.loaded / e.total!) / totalChunks) * 100);
+          setUploadProgress({
+            isVisible: true,
+            progress,
+            fileName: file.name,
+            stage: `Uploading chunk ${i + 1}/${totalChunks} (est. ${Math.ceil((totalChunks - i) * 2)} min left)...`,
+          });
+        },
+        timeout: 3600000, // Increased timeout to 60 seconds for large chunks
+      });
+    }
+
+    // Merge chunks
+    const { data } = await axiosInstance.post("/chunk/merge-chunks", {
+      fileId,
+      fileName: file.name,
+      totalChunks,
+    }, {
+      timeout: 3600000, // 1 hour timeout for merging large files
     });
 
-    let progress = 0;
-    const stages = [
-      "Preparing upload...",
-      "Uploading to VdoCipher...",
-      "Processing video...",
-      "Generating thumbnails...",
-      "Finalizing...",
-    ];
+    setUploadProgress({
+      isVisible: false,
+      progress: 100,
+      fileName: file.name,
+      stage: "Done",
+    });
 
-    const interval = setInterval(() => {
-      progress += Math.random() * 15 + 5;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        setTimeout(() => {
-          setUploadProgress(prev => ({ ...prev, isVisible: false }));
-          showSuccessMessage();
-        }, 1000);
-      }
+    showSuccessMessage();
+    console?.log("data", data)
 
-      const stageIndex = Math.floor((progress / 100) * stages.length);
-      setUploadProgress({
-        isVisible: true,
-        progress: Math.min(progress, 100),
-        fileName,
-        stage: stages[Math.min(stageIndex, stages.length - 1)],
-      });
-    }, 500);
+    return data.filePath; // <--- Return merged file path
   };
 
   const showSuccessMessage = () => {
@@ -283,6 +302,8 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
         embedUrl: videoData.secureUrl || "", // Use secureUrl for embed
         originalUrl: videoData.secureUrl || "",
         youtubeUrl: videoData.youtubeUrl || "",
+        vdocipherVideoId: videoData.videoId || "", // Set for existing video ID mode
+        uploadMethod: videoData.uploadMethod === "existing_video_id" ? "videoId" : "file",
         thumbnail: videoData.thumbnail || "",
         quality: videoData.quality || "auto",
         status: videoData.status || "",
@@ -317,6 +338,8 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
         embedUrl: data.embedUrl || data.secureUrl || "",
         originalUrl: data.originalUrl || data.secureUrl || "",
         youtubeUrl: data.youtubeUrl || "",
+        vdocipherVideoId: data.videoId || "",
+        uploadMethod: data.uploadMethod === "existing_video_id" ? "videoId" : "file",
         thumbnail: data.thumbnail || "",
         quality: data.quality || "auto",
         status: data.status || "",
@@ -393,24 +416,106 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
         return;
       }
     } else if (form.sourcePlatform === "videocypher") {
-      // For new uploads, file is required
-      if (!isEditMode && !form.file) {
-        setPopup({
-          isVisible: true,
-          message: "Please select a video file to upload.",
-          type: "error",
-        });
-        return;
+      if (form.uploadMethod === "file") {
+        // For new uploads, file is required
+        if (!isEditMode && !form.file) {
+          setPopup({
+            isVisible: true,
+            message: "Please select a video file to upload.",
+            type: "error",
+          });
+          return;
+        }
+      } else if (form.uploadMethod === "videoId") {
+        // For existing video ID, validate the ID
+        if (!form.vdocipherVideoId.trim()) {
+          setPopup({
+            isVisible: true,
+            message: "Please enter a VdoCipher Video ID.",
+            type: "error",
+          });
+          return;
+        }
+        // Basic validation for video ID format (alphanumeric)
+        const videoIdPattern = /^[a-zA-Z0-9]+$/;
+        if (!videoIdPattern.test(form.vdocipherVideoId.trim())) {
+          setPopup({
+            isVisible: true,
+            message: "Please enter a valid VdoCipher Video ID (alphanumeric characters only).",
+            type: "error",
+          });
+          return;
+        }
       }
-      // For updates, file is optional (only if user wants to replace video)
     }
 
     try {
       let response;
       
-      // Show upload progress for VdoCipher videos
-      if (form.sourcePlatform === "videocypher" && form.file) {
-        simulateUpload(form.file.name);
+      // Handle VdoCipher video ID linking (no file upload needed)
+      if (form.sourcePlatform == "videocypher" && form.uploadMethod == "videoId") {
+        const videoData = {
+          lessonId,
+          sourcePlatform: form.sourcePlatform,
+          title: form.title,
+          description: form.description,
+          videoId: form.vdocipherVideoId.trim(),
+          uploadMethod: "existing_video_id",
+          quality: form.quality || "auto",
+        };
+
+        if (isEditMode && (fileId || videoId)) {
+          response = await dispatch(
+            updateVideo({
+              videoId: (fileId || videoId)!,
+              lessonId: videoData.lessonId,
+              sourcePlatform: videoData.sourcePlatform,
+              title: videoData.title,
+              description: videoData.description,
+              uploadMethod: videoData.uploadMethod,
+              quality: videoData.quality,
+              vdocipherVideoId: videoData.videoId,
+              filePath: "", // No file path needed for video ID linking
+              accessToken: "",
+              refreshToken: "",
+            }) as any
+          );
+        } else {
+          response = await dispatch(
+            uploadVideo({
+              lessonId: videoData.lessonId,
+              sourcePlatform: videoData.sourcePlatform,
+              title: videoData.title,
+              description: videoData.description,
+              uploadMethod: videoData.uploadMethod,
+              quality: videoData.quality,
+              videoId: videoData.videoId,
+              filePath: "", // No file path needed for video ID linking
+              accessToken: "",
+              refreshToken: "",
+            }) as any
+          );
+        }
+
+        if (response.payload?.success) {
+          setPopup({
+            isVisible: true,
+            message: "VdoCipher video linked successfully! 🎬 Your existing video is now available for streaming.",
+            type: "success",
+          });
+          setTimeout(() => {
+            handleClose();
+          }, 1500);
+        } else {
+          setPopup({
+            isVisible: true,
+            message: `Failed to link VdoCipher video: ${
+              response.payload?.message || "Please verify the Video ID is correct and the video is in ready state."
+            }`,
+            type: "error",
+          });
+        }
+        return;
       }
       
       if (isEditMode && (fileId || videoId)) {
@@ -426,38 +531,64 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
             return;
           }
         }
+
+        let finalPath = "";
         
+        // Only upload chunks for VdoCipher file uploads in edit mode
+        if (form.sourcePlatform === "videocypher" && form.uploadMethod === "file" && form.file) {
+          console.log("Starting chunked upload for file:", form.file.name);
+          finalPath = await uploadInChunks(form.file);
+          console?.log("finalPath", finalPath);
+        }
+
         response = await dispatch(
           updateVideo({
             videoId: updateId!, // Use fileId for VdoCipher updates
-            file: form.sourcePlatform === "youtube" ? null : form.file!,
+            ...(form.file && { file: form.file }),
             lessonId,
             sourcePlatform: form.sourcePlatform,
             title: form.title,
             description: form.description,
+            uploadMethod: form.uploadMethod === "videoId" ? "existing_video_id" : "file",
+            filePath: finalPath,
             youtubeUrl: form.sourcePlatform === "youtube" ? form.youtubeUrl : undefined,
             // Include VdoCipher specific fields if updating VdoCipher video
             ...(form.sourcePlatform === "videocypher" && {
               quality: form.quality,
               thumbnail: form.thumbnail,
               replaceVideo: !!form.file, // Flag to indicate video replacement
+              ...(form.uploadMethod === "videoId" && {
+                vdocipherVideoId: form.vdocipherVideoId.trim(),
+              }),
             }),
             accessToken: "",
             refreshToken: "",
           }) as any
         );
       } else {
+        let finalPath = "";
+        
+        // Only upload chunks for VdoCipher file uploads
+        if (form.sourcePlatform === "videocypher" && form.uploadMethod === "file" && form.file) {
+          finalPath = await uploadInChunks(form.file);
+        }
+        
         response = await dispatch(
           uploadVideo({
-            file: form.sourcePlatform === "youtube" ? null : form.file!,
+            ...(form.file && { file: form.file }),
             lessonId,
             sourcePlatform: form.sourcePlatform,
             title: form.title,
             description: form.description,
+            filePath: finalPath,
+            uploadMethod: form.uploadMethod === "videoId" ? "existing_video_id" : "file",
             youtubeUrl: form.sourcePlatform === "youtube" ? form.youtubeUrl : undefined,
             // Include VdoCipher specific fields if uploading to VdoCipher
             ...(form.sourcePlatform === "videocypher" && {
               quality: form.quality || "auto",
+              ...(form.uploadMethod === "videoId" && {
+                videoId: form.vdocipherVideoId.trim(),
+              }),
             }),
             accessToken: "",
             refreshToken: "",
@@ -489,8 +620,18 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
           });
         }
       } else {
+        if (form.sourcePlatform === "videocypher") {
+          // For VdoCipher, the success message is shown by showSuccessMessage after upload simulation
+          if (response.payload?.success) {
+            showSuccessMessage();
+            // Close after a short delay to show success message
+            setTimeout(() => {
+              handleClose();
+            }, 1500);
+          }
+        }
         // For VdoCipher, the success message is shown by showSuccessMessage after upload simulation
-        if (!response.payload?.success) {
+        else if (!response.payload?.success) {
           setUploadProgress(prev => ({ ...prev, isVisible: false }));
           setPopup({
             isVisible: true,
@@ -605,62 +746,172 @@ const VideoLesson: React.FC<VideoLessonProps> = ({
       );
     } else if (form.sourcePlatform === "videocypher") {
       return (
-        <div className="space-y-3">
-          <label className="block text-sm font-semibold text-gray-700">
-            Video File {!isEditMode ? '*' : ''}
-          </label>
-          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
-            <input
-              type="file"
-              name="file"
-              accept="video/*"
-              onChange={handleChange}
-              className="hidden"
-              id="video-file"
-              required={!isEditMode}
-            />
-            <label htmlFor="video-file" className="cursor-pointer">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Video className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">
-                    {form.file ? form.file.name : "Click to select video file"}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    MP4, AVI, MOV up to 2GB
-                  </p>
-                </div>
-              </div>
+        <div className="space-y-4">
+          {/* Upload Method Tabs */}
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-700">
+              Upload Method *
             </label>
+            <div className="grid grid-cols-2 gap-3">
+              <div
+                className={`relative border-2 rounded-xl p-3 cursor-pointer transition-all ${
+                  form.uploadMethod === "file"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+                onClick={() => setForm(prev => ({ ...prev, uploadMethod: "file", vdocipherVideoId: "" }))}
+              >
+                <div className="flex items-center gap-2">
+                  <Upload className={`w-5 h-5 ${
+                    form.uploadMethod === "file" ? "text-blue-600" : "text-gray-400"
+                  }`} />
+                  <span className={`font-medium text-sm ${
+                    form.uploadMethod === "file" ? "text-blue-900" : "text-gray-700"
+                  }`}>
+                    Upload New File
+                  </span>
+                </div>
+                {form.uploadMethod === "file" && (
+                  <div className="absolute top-2 right-2">
+                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                  </div>
+                )}
+              </div>
+              
+              <div
+                className={`relative border-2 rounded-xl p-3 cursor-pointer transition-all ${
+                  form.uploadMethod === "videoId"
+                    ? "border-green-500 bg-green-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+                onClick={() => setForm(prev => ({ ...prev, uploadMethod: "videoId", file: null }))}
+              >
+                <div className="flex items-center gap-2">
+                  <MonitorPlay className={`w-5 h-5 ${
+                    form.uploadMethod === "videoId" ? "text-green-600" : "text-gray-400"
+                  }`} />
+                  <span className={`font-medium text-sm ${
+                    form.uploadMethod === "videoId" ? "text-green-900" : "text-gray-700"
+                  }`}>
+                    Use Existing Video
+                  </span>
+                </div>
+                {form.uploadMethod === "videoId" && (
+                  <div className="absolute top-2 right-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-          
-          {form.file && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 text-green-700">
-                <CheckCircle2 className="w-4 h-4" />
-                <span className="text-sm font-medium">Selected: {form.file.name}</span>
+
+          {/* File Upload Section */}
+          {form.uploadMethod === "file" && (
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-gray-700">
+                Video File {!isEditMode ? '*' : ''}
+              </label>
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
+                <input
+                  type="file"
+                  name="file"
+                  accept="video/*"
+                  onChange={handleChange}
+                  className="hidden"
+                  id="video-file"
+                  required={!isEditMode}
+                />
+                <label htmlFor="video-file" className="cursor-pointer">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Video className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">
+                        {form.file ? form.file.name : "Click to select video file"}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        MP4, AVI, MOV up to 2GB
+                      </p>
+                    </div>
+                  </div>
+                </label>
               </div>
+              
+              {form.file && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span className="text-sm font-medium">Selected: {form.file.name}</span>
+                  </div>
+                </div>
+              )}
+              
+              {isEditMode && !form.file && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-700">
+                    💡 Leave empty to keep current video, or select a new file to replace it
+                  </p>
+                </div>
+              )}
+              
+              {isEditMode && form.file && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-amber-800">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      This will replace the current video with: {form.file.name}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
-          
-          {isEditMode && !form.file && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-sm text-blue-700">
-                💡 Leave empty to keep current video, or select a new file to replace it
-              </p>
-            </div>
-          )}
-          
-          {isEditMode && form.file && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 text-amber-800">
-                <AlertCircle className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  This will replace the current video with: {form.file.name}
-                </span>
+
+          {/* Video ID Section */}
+          {form.uploadMethod === "videoId" && (
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-gray-700">
+                VdoCipher Video ID *
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="vdocipherVideoId"
+                  value={form.vdocipherVideoId}
+                  onChange={handleChange}
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 font-mono"
+                  placeholder="e.g., 1a2b3c4d5e6f7g8h9i0j"
+                  required
+                />
+                <MonitorPlay className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-500" />
               </div>
+              
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Info className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-green-900 text-sm">Using Existing VdoCipher Video</h4>
+                    <ul className="text-xs text-green-700 space-y-1">
+                      <li>• Video must already be uploaded and in "ready" state in VdoCipher</li>
+                      <li>• Enter the exact Video ID from your VdoCipher dashboard</li>
+                      <li>• This will link the video to your lesson without re-uploading</li>
+                      <li>• Make sure the video ID is correct to avoid playback issues</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {form.vdocipherVideoId && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span className="text-sm font-medium">Video ID: {form.vdocipherVideoId}</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

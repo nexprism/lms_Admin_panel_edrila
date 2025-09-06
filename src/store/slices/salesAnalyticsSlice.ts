@@ -28,7 +28,7 @@ export const fetchCourseSalesAnalytics = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("Course Sales Analytics Data:", response.data);
+    
       // Only return the array of courses
       return response.data.data;
     } catch (error: any) {
@@ -51,7 +51,6 @@ export const fetchUserSalesAnalytics = createAsyncThunk(
         },
         params: per ? { per } : {},
       });
-      console.log("User Sales Analytics Data:", response.data);
       return response.data.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message);
@@ -73,7 +72,6 @@ export const fetchBundleSalesAnalytics = createAsyncThunk(
         },
         params: bundle ? { bundle } : {},
       });
-      console.log("Bundle Sales Analytics Data:", response.data);
       return response.data.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message);

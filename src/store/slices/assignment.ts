@@ -26,7 +26,6 @@ export const createAssignment = createAsyncThunk(
 
       return response.data;
     } catch (err: any) {
-      console.log("Error creating assignment:", err?.message);
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
@@ -50,7 +49,7 @@ export const fetchAssignments = createAsyncThunk(
 
       return response.data;
     } catch (err: any) {
-      console.log("Error fetching assignments:", err?.message);
+     
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
@@ -72,7 +71,6 @@ export const updateAssignment = createAsyncThunk(
 
       return response.data;
     } catch (err: any) {
-      console.log("Error updating assignment:", err?.message);
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
@@ -89,7 +87,6 @@ export const fetchAssignmentById = createAsyncThunk(
       });
       return response.data;
     } catch (err: any) {
-      console.log("Error fetching assignment by id:", err?.message);
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
@@ -113,7 +110,6 @@ export const fetchAssignmentSubmissions = createAsyncThunk(
       
       return response.data;
     } catch (err: any) {
-      console.log("Error fetching assignment submissions:", err?.message);
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }

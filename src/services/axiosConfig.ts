@@ -5,7 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000/';
 
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 3600000, // 1 hour in milliseconds
   headers: {
     'Content-Type': 'application/json',
   }
@@ -15,7 +15,6 @@ const axiosInstance: AxiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config: import('axios').InternalAxiosRequestConfig): import('axios').InternalAxiosRequestConfig => {
     const token = localStorage.getItem('accessToken');
-    console.log('Request Interceptor: Adding Authorization header with token:', token);
     
     if (token && config.headers) {
       config.headers['Authorization'] = `Bearer ${token}`;
