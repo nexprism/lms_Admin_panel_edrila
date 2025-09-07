@@ -511,7 +511,7 @@ const DeleteRequestsList: React.FC = () => {
 
       {/* Status Edit Dialog */}
 {showConfirmDialog && (
-  <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-50">
+  <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-[100000010]">
     <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-lg">
       <h3 className="text-lg font-medium text-gray-900 mb-4">
         Update Request Status
