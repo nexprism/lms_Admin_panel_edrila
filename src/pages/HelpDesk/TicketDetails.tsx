@@ -1,8 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
-import { fetchSupportTicketById, updateSupportTicketStatus } from "../../store/slices/support";
+import { 
+    fetchSupportTicketById, 
+    updateSupportTicketStatus, 
+    addSupportTicketMessage,
+    deleteMessage
+} from "../../store/slices/support";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, FileText, Image, File } from "lucide-react";
+import { ArrowLeft, Download, FileText, Image, File, Trash2, Send, Paperclip } from "lucide-react";
+
+interface Message {
+    _id: string;
+    ticketId: string;
+    userId: { _id: string; fullName: string; email: string } | string;
+    message: string;
+    attachments: string[];
+    createdAt: string;
+}
 
 interface SupportTicket {
     _id: string;
@@ -13,6 +27,7 @@ interface SupportTicket {
     priority: string;
     status: string;
     attachments: string[];
+    messages?: Message[];
     createdAt: string;
     updatedAt: string;
 }
@@ -25,7 +40,11 @@ const TicketDetails: React.FC<{ isEditMode: boolean }> = ({ isEditMode }) => {
 
     const ticket = tickets.find((t) => t._id === ticketId);
     const [status, setStatus] = useState(ticket?.status || "open");
-
+    const [newMessage, setNewMessage] = useState("");
+    const [messageFiles, setMessageFiles] = useState<File[]>([]);
+    const [showConfirmDelete, setShowConfirmDelete] = useState<string | null>(null);
+    const [sendingMessage, setSendingMessage] = useState(false);
+    const [messageError, setMessageError] = useState<string | null>(null);
 
     const ImageUrl = import.meta.env.VITE_IMAGE_URL || "http://localhost:5000/uploads/";
 
@@ -89,6 +108,52 @@ const TicketDetails: React.FC<{ isEditMode: boolean }> = ({ isEditMode }) => {
         window.open(fileUrl, '_blank');
     };
 
+    const handleMessageSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (ticketId && (newMessage.trim() || messageFiles.length > 0)) {
+            try {
+                setMessageError(null);
+                setSendingMessage(true);
+                const result = await dispatch(addSupportTicketMessage({
+                    ticketId,
+                    message: newMessage,
+                    attachments: messageFiles.length > 0 ? messageFiles : undefined
+                }));
+                
+                if (addSupportTicketMessage.fulfilled.match(result)) {
+                    // Message sent successfully
+                    setNewMessage("");
+                    setMessageFiles([]);
+                } else {
+                    setMessageError("Failed to send message. Please try again.");
+                }
+            } catch (error) {
+                console.error("Failed to send message:", error);
+                setMessageError("An unexpected error occurred. Please try again.");
+            } finally {
+                setSendingMessage(false);
+            }
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const filesArray = Array.from(e.target.files);
+            setMessageFiles([...messageFiles, ...filesArray]);
+        }
+    };
+
+    const removeSelectedFile = (index: number) => {
+        setMessageFiles(messageFiles.filter((_, i) => i !== index));
+    };
+
+    const handleDeleteMessage = async (messageId: string) => {
+        if (ticketId) {
+            await dispatch(deleteMessage({ ticketId, messageId }));
+            setShowConfirmDelete(null);
+        }
+    };
+
     return (
         <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
             <button
@@ -116,19 +181,20 @@ const TicketDetails: React.FC<{ isEditMode: boolean }> = ({ isEditMode }) => {
                     <p className="text-gray-500 dark:text-gray-400">Ticket not found.</p>
                 </div>
             ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Subject
-                        </label>
-                        <input
-                            type="text"
-                            name="subject"
-                            value={ticket.subject}
-                            disabled
-                            className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:border-gray-700 dark:bg-gray-900 dark:text-white opacity-50"
-                        />
-                    </div>
+                <>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Subject
+                            </label>
+                            <input
+                                type="text"
+                                name="subject"
+                                value={ticket.subject}
+                                disabled
+                                className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:border-gray-700 dark:bg-gray-900 dark:text-white opacity-50"
+                            />
+                        </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Category
@@ -237,7 +303,191 @@ const TicketDetails: React.FC<{ isEditMode: boolean }> = ({ isEditMode }) => {
                             </button>
                         </div>
                     )}
-                </form>
+                    </form>
+                    
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-8">
+                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white/90 mb-4">
+                            Messages
+                        </h2>
+
+                    {/* Message List */}
+                        <div className="space-y-4 mb-6">
+                            {ticket.messages && ticket.messages.length > 0 ? (
+                                ticket.messages.map((msg) => (
+                                    <div key={msg._id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h3 className="font-medium text-gray-900 dark:text-white">
+                                                    {typeof msg.userId === 'object' ? msg.userId.fullName : 'User'}
+                                                </h3>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                    {new Date(msg.createdAt).toLocaleString()}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowConfirmDelete(msg._id)}
+                                                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                                
+                                                {/* Confirm Delete Dialog */}
+                                                {showConfirmDelete === msg._id && (
+                                                    <div className="absolute right-0 mt-2 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-700 rounded-md p-3 z-10">
+                                                        <p className="text-sm mb-2">Delete this message?</p>
+                                                        <div className="flex gap-2">
+                                                            <button 
+                                                                onClick={() => handleDeleteMessage(msg._id)} 
+                                                                className="px-2 py-1 bg-red-600 text-white text-xs rounded"
+                                                            >
+                                                                Yes
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => setShowConfirmDelete(null)} 
+                                                                className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-xs rounded"
+                                                            >
+                                                                No
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{msg.message}</p>
+                                        
+                                        {/* Message Attachments */}
+                                        {msg.attachments && msg.attachments.length > 0 && (
+                                            <div className="mt-3 space-y-2">
+                                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Attachments:</p>
+                                                <div className="space-y-2">
+                                                    {msg.attachments.map((attachment, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="flex items-center gap-3 p-2 border border-gray-200 rounded-md bg-white dark:border-gray-700 dark:bg-gray-700"
+                                                        >
+                                                            {getFileIcon(attachment)}
+                                                            <span className="flex-1 text-sm text-gray-700 dark:text-gray-300 truncate">
+                                                                {getFileName(attachment)}
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleFileView(attachment)}
+                                                                className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs"
+                                                            >
+                                                                View
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleFileDownload(attachment)}
+                                                                className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs"
+                                                            >
+                                                                Download
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-gray-500 dark:text-gray-400 italic">No messages yet.</p>
+                            )}
+                        </div>
+
+                        {/* Add Message Form */}
+                        <form onSubmit={handleMessageSubmit} className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <h3 className="font-medium text-gray-800 dark:text-white/90">Add Reply</h3>
+                            
+                            {/* Message Error Alert */}
+                            {messageError && (
+                                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
+                                    <p className="text-sm text-red-800 dark:text-red-200">{messageError}</p>
+                                </div>
+                            )}
+                            
+                            <div>
+                                <textarea
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-md p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                                    rows={4}
+                                    placeholder="Type your message here..."
+                                ></textarea>
+                            </div>
+                            
+                            {/* File Attachments */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Attachments
+                                </label>
+                                <div className="flex items-center justify-center w-full">
+                                    <label className="flex flex-col w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                            <Paperclip className="w-8 h-8 mb-3 text-gray-500 dark:text-gray-400" />
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">Click to upload files</p>
+                                        </div>
+                                        <input 
+                                            type="file" 
+                                            className="hidden" 
+                                            multiple 
+                                            onChange={handleFileChange} 
+                                        />
+                                    </label>
+                                </div>
+                                
+                                {/* Selected Files */}
+                                {messageFiles.length > 0 && (
+                                    <div className="mt-3 space-y-2">
+                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Selected files:</p>
+                                        <div className="space-y-2">
+                                            {messageFiles.map((file, index) => (
+                                                <div 
+                                                    key={index} 
+                                                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        {getFileIcon(file.name)}
+                                                        <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-xs">
+                                                            {file.name}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                            ({(file.size / 1024).toFixed(1)} KB)
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeSelectedFile(index)}
+                                                        className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div>
+                                <button
+                                    type="submit"
+                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                                    disabled={sendingMessage || (!newMessage.trim() && messageFiles.length === 0)}
+                                >
+                                    {sendingMessage ? (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <Send className="w-4 h-4" />
+                                    )}
+                                    {sendingMessage ? 'Sending...' : 'Send Message'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </>
             )}
         </div>
     );

@@ -123,6 +123,8 @@ export const createJob = createAsyncThunk(
                     },
                 }
             );
+
+            console.log("Create job response:", response.data);
             return response.data;
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
