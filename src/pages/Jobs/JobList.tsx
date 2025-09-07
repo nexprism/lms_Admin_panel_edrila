@@ -5,6 +5,24 @@ import { AppDispatch } from '../../store';
 import { fetchJobs, deleteJob, selectJobs, selectJobLoading, selectJobError, selectCurrentPage, selectTotalPages } from '../../store/slices/job';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
+import JobProposals from '../../components/jobs/JobProposals';
+
+interface ProposalUser {
+  _id: string;
+  fullName: string;
+  email: string;
+  profilePicture: string;
+}
+
+interface Proposal {
+  _id: string;
+  userId: ProposalUser;
+  coverLetter: string;
+  cv: string;
+  proposedAmount: number;
+  status: 'pending' | 'accepted' | 'rejected';
+  submittedAt: string;
+}
 
 interface Job {
   _id: string;
@@ -26,13 +44,14 @@ interface Job {
   location: {
     type: string;
     address: {
-      street: string;
+      street?: string;
     };
   };
   status: boolean;
   thumbnail?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
+  proposals?: Proposal[];
 }
 
 const JobList: React.FC = () => {
@@ -49,8 +68,10 @@ const JobList: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [showProposals, setShowProposals] = useState(false);
 
-    const IMAGE_BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000/';
+  const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000/';
 
 
   useEffect(() => {
@@ -73,7 +94,9 @@ const JobList: React.FC = () => {
       filtered = filtered.filter(job =>
         job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.location.address?.street?.toLowerCase().includes(searchTerm.toLowerCase())
+        (typeof job.location.address === 'object' && 
+         // Safely check for street property in address
+         (job.location.address as any)?.street?.toLowerCase()?.includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -86,8 +109,15 @@ const JobList: React.FC = () => {
       filtered = filtered.filter(job => job.category === categoryFilter);
     }
 
-    setFilteredJobs(filtered);
+    // Type assertion to fix type mismatch
+    setFilteredJobs(filtered as unknown as Job[]);
   }, [jobs, searchTerm, statusFilter, categoryFilter]);
+  
+  // Function to open proposals modal
+  const handleViewProposals = (job: Job) => {
+    setSelectedJob(job);
+    setShowProposals(true);
+  };
 
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-IN', {
@@ -325,13 +355,26 @@ const JobList: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex justify-between items-center">
+                <div className="flex flex-wrap gap-2 justify-between items-center">
                   <Link
                     to={`/jobs/edit/${job._id}`}
                     className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     Edit
                   </Link>
+                  
+                  <button 
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    onClick={() => handleViewProposals(job)}
+                  >
+                    Proposals 
+                    {job.proposals && job.proposals.length > 0 && (
+                      <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-blue-600 rounded-full">
+                        {job.proposals.length}
+                      </span>
+                    )}
+                  </button>
+                  
                   <button 
                     className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                     onClick={() => handleDelete(job._id)}
@@ -381,6 +424,17 @@ const JobList: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Job Proposals Modal */}
+      {selectedJob && (
+        <JobProposals
+          proposals={selectedJob.proposals || []}
+          isOpen={showProposals}
+          onClose={() => setShowProposals(false)}
+          jobTitle={selectedJob.title}
+          jobId={selectedJob._id}
+        />
+      )}
     </>
   );
 };

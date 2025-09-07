@@ -25,6 +25,23 @@ interface JobPayload {
     thumbnail?: File;
 }
 
+interface ProposalUser {
+    _id: string;
+    fullName: string;
+    email: string;
+    profilePicture: string;
+}
+
+interface Proposal {
+    _id: string;
+    userId: ProposalUser;
+    coverLetter: string;
+    cv: string;
+    proposedAmount: number;
+    status: 'pending' | 'accepted' | 'rejected';
+    submittedAt: string;
+}
+
 interface JobResponse {
     _id: string;
     title: string;
@@ -44,12 +61,20 @@ interface JobResponse {
     mode: string;
     location: {
         type: string;
-        address: string;
+        address: string | {
+            street?: string;
+        };
     };
     status: boolean;
     thumbnail?: string;
     createdAt: string;
-    updatedAt: string;
+    updatedAt?: string;
+    proposals?: Proposal[];
+    createdBy?: {
+        _id: string;
+        fullName: string;
+        email: string;
+    };
 }
 
 interface JobState {
