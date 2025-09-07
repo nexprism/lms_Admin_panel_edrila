@@ -299,6 +299,34 @@ export const deleteJob = createAsyncThunk(
     }
 );
 
+export const updateJobStatus = createAsyncThunk(
+    'job/updateJobStatus',
+    async (
+        { jobId, status }: { jobId: string; status: boolean },
+        { rejectWithValue }
+    ) => {
+        try {
+            // Convert boolean status to 'open'/'closed' string format expected by the API
+            const statusValue = status ? 'open' : 'closed';
+            
+            const response = await axiosInstance.patch(
+                `/jobs/${jobId}/status`,
+                { status: statusValue },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            
+            return { ...response.data, _id: jobId, status };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
 export const jobSlice = createSlice({
     name: 'job',
     initialState,
@@ -362,6 +390,23 @@ export const jobSlice = createSlice({
                 state.totalJobs = Math.max(0, state.totalJobs - 1);
             })
             .addCase(deleteJob.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(updateJobStatus.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateJobStatus.fulfilled, (state, action) => {
+                state.loading = false;
+                // Update the job status in the jobs array
+                const { _id, status } = action.payload;
+                const index = state.jobs.findIndex(job => job._id === _id);
+                if (index !== -1) {
+                    state.jobs[index].status = status;
+                }
+            })
+            .addCase(updateJobStatus.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });

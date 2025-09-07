@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../store';
-import { fetchJobs, deleteJob, selectJobs, selectJobLoading, selectJobError, selectCurrentPage, selectTotalPages } from '../../store/slices/job';
+import { fetchJobs, deleteJob, updateJobStatus, selectJobs, selectJobLoading, selectJobError, selectCurrentPage, selectTotalPages } from '../../store/slices/job';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
 import JobProposals from '../../components/jobs/JobProposals';
@@ -170,6 +170,20 @@ const JobList: React.FC = () => {
         console.error('Failed to delete job:', err);
         alert('Failed to delete job. Please try again.');
       }
+    }
+  };
+  
+  const handleToggleStatus = async (job: Job) => {
+    try {
+      const newStatus = !job.status;
+      const statusText = newStatus ? 'open' : 'close';
+      if (window.confirm(`Are you sure you want to ${statusText} this job?`)) {
+        await dispatch(updateJobStatus({ jobId: job._id, status: newStatus })).unwrap();
+        alert(`Job ${statusText}d successfully!`);
+      }
+    } catch (err) {
+      console.error('Failed to update job status:', err);
+      alert('Failed to update job status. Please try again.');
     }
   };
 

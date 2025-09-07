@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../store';
+import { updateJobStatus } from '../../store/slices/job';
 import axiosInstance from '../../services/axiosConfig';
 
 interface ProposalUser {
@@ -100,7 +103,7 @@ const JobProposals: React.FC<JobProposalsProps> = ({ proposals, isOpen, onClose,
         </div>
         
         {/* Tabs */}
-       
+        
         
         {/* Proposals Content */}
         <div className="overflow-y-auto p-6" style={{ maxHeight: 'calc(80vh - 132px)' }}>
@@ -177,7 +180,7 @@ const JobProposals: React.FC<JobProposalsProps> = ({ proposals, isOpen, onClose,
                             Proposed: ${proposal.proposedAmount}
                           </span>
                         </div>
-                     
+                       
                       </div>
                     </div>
                   </div>
