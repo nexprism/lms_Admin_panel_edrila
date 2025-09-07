@@ -28,6 +28,7 @@ import thread from "./slices/forumSlice"
 import notification from "./slices/notification";
 import deviceApprovalsReducer from "./slices/deviceApprovals";
 import event from "./slices/event";
+import job from "./slices/job";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -57,7 +58,8 @@ export const store = configureStore({
     forum: thread,
     notification: notification,
     deviceApprovals: deviceApprovalsReducer,
-    event:event
+    event:event,
+    job:job,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

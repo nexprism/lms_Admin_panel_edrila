@@ -52,6 +52,9 @@ import ForumDetails from "./pages/Forum/ForumDetails";
 import AddEvent from "./pages/Events/AddEvent";
 import EventList from "./pages/Events/EventList";
 import EditEvent from "./pages/Events/EditEvent";
+import AddJob from "./pages/Jobs/AddJob";
+import JobList from "./pages/Jobs/JobList";
+import EditJob from "./pages/Jobs/EditJob";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -164,6 +167,11 @@ export default function App() {
               <Route path="/event/add" element={<AddEvent />} />
               <Route path="/events" element={<EventList />} />
 <Route path="/events/edit/:id" element={<EditEvent />} />
+
+              {/* Jobs */}
+              <Route path="/jobs/add" element={<AddJob />} />
+              <Route path="/jobs" element={<JobList />} />
+              <Route path="/jobs/edit/:id" element={<EditJob />} />
               {/* Courses */}
               <Route path="/courses/add" element={<AddCourse />} />
               <Route path="/courses/all/courses" element={<CourseList />} />

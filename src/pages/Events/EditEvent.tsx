@@ -335,271 +335,410 @@ const EditEvent = () => {
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <PageMeta title="Edit Event | LMS Admin" description="Edit event details" />
-      <PageBreadcrumb pageTitle="Edit Event" />
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Edit Event</h2>
+        </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6  mx-auto">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Title *</label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 p-4 mb-4 rounded">
+                <p className="text-red-700 dark:text-red-200">{error}</p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter event title"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Description *
+                </label>
+                <QuillEditor
+                  value={formData.description}
+                  onChange={(value: string) => setFormData(prev => prev ? { ...prev, description: value } : null)}
+                  placeholder="Enter event description..."
+                  height="200px"
+                  toolbar="full"
+                />
+              </div>
             </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Category *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                Start Date *
+              </label>
               <input
-                type="text"
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Description *</label>
-            <QuillEditor
-              value={formData.description}
-              onChange={(value: string) => setFormData(prev => prev ? { ...prev, description: value } : null)}
-              placeholder="Event description..."
-              height="200px"
-              toolbar="full"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Type *</label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleInputChange}
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              >
-                <option value="online">Online</option>
-                <option value="offline">Offline</option>
-                <option value="hybrid">Hybrid</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Start Date *</label>
-              <input
-                type="date"
+                type="datetime-local"
                 name="startDate"
                 value={formData.startDate}
                 onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">End Date *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                End Date *
+              </label>
               <input
-                type="date"
+                type="datetime-local"
                 name="endDate"
                 value={formData.endDate}
                 onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Event Type and Schedule</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Event Type *
+                </label>
+                <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Type</option>
+                  <option value="online">Online</option>
+                  <option value="offline">Offline</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Category *
+                </label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Category</option>
+                  <option value="technology">Technology</option>
+                  <option value="business">Business</option>
+                  <option value="education">Education</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Start Date *
+                </label>
+                <input
+                  type="datetime-local"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  End Date *
+                </label>
+                <input
+                  type="datetime-local"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
             </div>
           </div>
 
           {(formData.type === 'offline' || formData.type === 'hybrid') && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Venue Name</label>
-                <input
-                  type="text"
-                  name="venue.name"
-                  value={formData.venue?.name}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Address</label>
-                <input
-                  type="text"
-                  name="venue.address"
-                  value={formData.venue?.address}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">City</label>
-                <input
-                  type="text"
-                  name="venue.city"
-                  value={formData.venue?.city}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Country</label>
-                <input
-                  type="text"
-                  name="venue.country"
-                  value={formData.venue?.country}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Venue Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Venue Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="venue.name"
+                    value={formData.venue?.name}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Address *
+                  </label>
+                  <input
+                    type="text"
+                    name="venue.address"
+                    value={formData.venue?.address}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    City *
+                  </label>
+                  <input
+                    type="text"
+                    name="venue.city"
+                    value={formData.venue?.city}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Country *
+                  </label>
+                  <input
+                    type="text"
+                    name="venue.country"
+                    value={formData.venue?.country}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Latitude *
+                  </label>
+                  <input
+                    type="number"
+                    name="venue.coordinates.latitude"
+                    value={formData.venue?.coordinates?.latitude}
+                    onChange={handleInputChange}
+                    step="any"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Longitude *
+                  </label>
+                  <input
+                    type="number"
+                    name="venue.coordinates.longitude"
+                    value={formData.venue?.coordinates?.longitude}
+                    onChange={handleInputChange}
+                    step="any"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
               </div>
             </div>
           )}
 
           {(formData.type === 'online' || formData.type === 'hybrid') && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Platform</label>
-                <select
-                  name="onlineLink.platform"
-                  value={formData.onlineLink?.platform}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                >
-                  <option value="zoom">Zoom</option>
-                  <option value="meet">Google Meet</option>
-                  <option value="teams">Microsoft Teams</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Meeting URL</label>
-                <input
-                  type="url"
-                  name="onlineLink.url"
-                  value={formData.onlineLink?.url}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Meeting ID</label>
-                <input
-                  type="text"
-                  name="onlineLink.meetingId"
-                  value={formData.onlineLink?.meetingId}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
-                <input
-                  type="text"
-                  name="onlineLink.password"
-                  value={formData.onlineLink?.password}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Online Meeting Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Platform *
+                  </label>
+                  <select
+                    name="onlineLink.platform"
+                    value={formData.onlineLink?.platform}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="zoom">Zoom</option>
+                    <option value="meet">Google Meet</option>
+                    <option value="teams">Microsoft Teams</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Meeting URL *
+                  </label>
+                  <input
+                    type="url"
+                    name="onlineLink.url"
+                    value={formData.onlineLink?.url}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Meeting ID
+                  </label>
+                  <input
+                    type="text"
+                    name="onlineLink.meetingId"
+                    value={formData.onlineLink?.meetingId}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Password
+                  </label>
+                  <input
+                    type="text"
+                    name="onlineLink.password"
+                    value={formData.onlineLink?.password}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Capacity</label>
-              <input
-                type="number"
-                name="capacity"
-                value={formData.capacity}
-                onChange={handleInputChange}
-                min="0"
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              />
-            </div>
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Event Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Capacity *
+                </label>
+                <input
+                  type="number"
+                  name="capacity"
+                  value={formData.capacity}
+                  onChange={handleInputChange}
+                  min="0"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Price</label>
-              <input
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleInputChange}
-                min="0"
-                step="0.01"
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Price *
+                </label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Currency</label>
-              <select
-                name="currency"
-                value={formData.currency}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              >
-                <option value="INR">INR</option>
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Currency *
+                </label>
+                <select
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="INR">INR</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Tags (comma-separated)</label>
-            <input
-              type="text"
-              name="tags"
-              value={formData.tags}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              placeholder="event, workshop, webinar"
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                Tags
+              </label>
+              <input
+                type="text"
+                name="tags"
+                value={formData.tags}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter comma-separated tags (e.g. event, workshop, webinar)"
+              />
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Separate multiple tags with commas
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Status</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Status and Media</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Status *
+                </label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Thumbnail</label>
-              <input
-                type="file"
-                name="thumbnail"
-                onChange={handleFileChange}
-                accept="image/*"
-                className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-              />
-              {(files.thumbnail || formData.thumbnail) && (
-                <div className="mt-2">
-                  <img
-                    src={files.thumbnail ? URL.createObjectURL(files.thumbnail) : `${import.meta.env.VITE_BASE_URL}/${formData.thumbnail}`}
-                    alt="Thumbnail preview"
-                    className="w-32 h-20 object-cover rounded-md border"
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Thumbnail Image
+                </label>
+                <input
+                  type="file"
+                  name="thumbnail"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border file:text-sm file:font-medium file:border-gray-300 file:text-gray-700 dark:file:text-gray-200 dark:file:border-gray-600 dark:file:bg-gray-700 hover:file:bg-gray-100 dark:hover:file:bg-gray-600"
+                />
+                {(files.thumbnail || formData.thumbnail) && (
+                  <div className="mt-2">
+                    <img
+                      src={files.thumbnail ? URL.createObjectURL(files.thumbnail) : `${import.meta.env.VITE_BASE_URL}/${formData.thumbnail}`}
+                      alt="Thumbnail preview"
+                      className="w-32 h-20 object-cover rounded-md border"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -623,25 +762,25 @@ const EditEvent = () => {
             )}
           </div> */}
 
-          <div className="flex justify-between pt-4">
+          <div className="flex justify-between pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
               onClick={() => setIsDeleteModalOpen(true)}
-              className="inline-flex justify-center rounded-md border border-transparent bg-red-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              className="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               Delete Event
             </button>
-            <div className="space-x-3">
+            <div className="flex space-x-3">
               <button
                 type="button"
                 onClick={() => navigate('/events')}
-                className="inline-flex justify-center rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Save Changes
               </button>
