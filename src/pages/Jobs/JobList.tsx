@@ -136,12 +136,20 @@ const JobList: React.FC = () => {
     setShowProposals(true);
   };
 
-  const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: currency,
-      minimumFractionDigits: 0,
-    }).format(amount);
+  const formatCurrency = (amount: number, currency?: string) => {
+    // Default to USD if currency is undefined, null, or empty
+    const currencyCode = currency && currency.trim() ? currency : "INR";
+    try {
+      return new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: currencyCode,
+        minimumFractionDigits: 0,
+      }).format(amount);
+    } catch (error) {
+      console.error("Currency formatting error:", error);
+      // Fallback to basic formatting with USD symbol if an error occurs
+      return `$${amount.toLocaleString()}`;
+    }
   };
 
   const getStatusColor = (status: boolean) => {
