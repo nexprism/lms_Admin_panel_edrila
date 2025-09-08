@@ -66,6 +66,63 @@ export const fetchTestimonials = createAsyncThunk<
     }
 });
 
+
+export const updateTestimonial = createAsyncThunk<
+    void,
+    { testimonialId: string; data: { message?: string; status?: string; rating?: number }; token: string },
+    { rejectValue: string }
+>('testimonial/updateTestimonial', async ({ testimonialId, data, token }, { rejectWithValue }) => {
+    try {
+        await axiosInstance.patch(
+            `/admin/testimonials/${testimonialId}`,
+            data,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+    } catch (err: any) {
+        return rejectWithValue(err.response?.data?.message || 'Failed to update testimonial');
+    }
+});
+
+
+export const getTestimonialById = createAsyncThunk<
+    Testimonial,
+    { testimonialId: string; token: string },
+    { rejectValue: string }
+>('testimonial/getTestimonialById', async ({ testimonialId, token }, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/testimonials/${testimonialId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data?.data;
+    } catch (err: any) {
+        return rejectWithValue(err.response?.data?.message || 'Failed to fetch testimonial');
+    }
+});
+
+
+export const deleteTestimonial = createAsyncThunk<
+    void,
+    { testimonialId: string; token: string },
+    { rejectValue: string }
+>('testimonial/deleteTestimonial', async ({ testimonialId, token }, { rejectWithValue }) => {
+    try {
+        await axiosInstance.delete(`/admin/testimonials/${testimonialId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+    } catch (err: any) {
+        return rejectWithValue(err.response?.data?.message || 'Failed to delete testimonial');
+    }
+});
+
 const testimonialSlice = createSlice({
     name: 'testimonial',
     initialState,
@@ -103,6 +160,51 @@ const testimonialSlice = createSlice({
             .addCase(fetchTestimonials.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || 'Failed to fetch testimonials';
+                state.success = false;
+            })
+            .addCase(updateTestimonial.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.success = false;
+            }
+            )
+            .addCase(updateTestimonial.fulfilled, (state) => {
+                state.loading = false;
+                state.success = true;
+            })
+            .addCase(updateTestimonial.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Failed to update testimonial';
+                state.success = false;
+            }
+            )
+            .addCase(getTestimonialById.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.success = false;
+            })
+            .addCase(getTestimonialById.fulfilled, (state) => {
+                state.loading = false;
+                state.success = true;
+            })
+            .addCase(getTestimonialById.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Failed to fetch testimonial';
+                state.success = false;
+            })
+            .addCase(deleteTestimonial.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.success = false;
+            }   
+            )
+            .addCase(deleteTestimonial.fulfilled, (state) => {  
+                state.loading = false;
+                state.success = true;
+            })
+            .addCase(deleteTestimonial.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Failed to delete testimonial';
                 state.success = false;
             });
     },

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../store';
-import { fetchTestimonials, addTestimonial, resetTestimonialState } from '../store/slices/testimonial';
+import { fetchTestimonials, addTestimonial, resetTestimonialState, deleteTestimonial, updateTestimonial } from '../store/slices/testimonial';
 import { fetchCourses } from '../store/slices/course';
 import { Star, Plus, X, MessageCircle, User, Briefcase, Loader2, AlertCircle, CheckCircle, Search, Trash2, Edit, BookOpen } from 'lucide-react';
 
@@ -16,6 +16,46 @@ interface TestimonialData {
     createdAt?: string;
     updatedAt?: string;
 }
+
+// Confirmation Dialog Component
+const ConfirmDialog = ({
+    isOpen,
+    onClose,
+    onConfirm,
+    title,
+    message,
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    title: string;
+    message: string;
+}) => {
+    if (!isOpen) return null;
+    
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
+                <div className="flex justify-end gap-2">
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 // Success/Error Popup Component
 const Popup = ({
@@ -89,7 +129,14 @@ const TestimonialsPage: React.FC = () => {
     const [showAddForm, setShowAddForm] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [showCoursesList, setShowCoursesList] = useState<boolean>(false);
+    const [showCoursesList, setShowCoursesList] = useState<boolean>(true);
+    const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean; id: string | null}>({
+        show: false,
+        id: null
+    });
+    
+    const [isEditMode, setIsEditMode] = useState<boolean>(false);
+    const [editId, setEditId] = useState<string | null>(null);
     
     const [popup, setPopup] = useState({
         isVisible: false,
@@ -180,7 +227,7 @@ const TestimonialsPage: React.FC = () => {
         fetchTestimonialsData(status);
     };
     
-    const handleAddForCourse = (courseId: string, courseTitle: string) => {
+    const handleAddForCourse = (courseId: string) => {
         // Reset form data but pre-fill with courseId
         setFormData({
             name: '',
@@ -190,6 +237,66 @@ const TestimonialsPage: React.FC = () => {
             courseId: courseId
         });
         setShowAddForm(true);
+    };
+
+    // Handle edit testimonial
+    const handleEditClick = (testimonial: TestimonialData) => {
+        if (!testimonial._id) return;
+        
+        setFormData({
+            name: testimonial.name,
+            role: testimonial.role,
+            message: testimonial.message,
+            rating: testimonial.rating,
+            courseId: testimonial.courseId,
+            status: testimonial.status
+        });
+        
+        setEditId(testimonial._id);
+        setIsEditMode(true);
+        setShowAddForm(true);
+    };
+    
+    // No need for a separate handleUpdate function as we're handling it in the handleSubmit
+    
+    // Handle delete testimonial
+    const handleDelete = async (id: string) => {
+        if (!id) return;
+        
+        const token = localStorage.getItem('token') || '';
+        setLoading(true);
+        
+        try {
+            await dispatch(
+                deleteTestimonial({
+                    testimonialId: id,
+                    token
+                })
+            ).unwrap();
+            
+            // Refresh testimonials list
+            await fetchTestimonialsData(statusFilter);
+            
+            // Close delete confirmation
+            setDeleteConfirm({ show: false, id: null });
+            
+            // Show success message
+            setPopup({
+                isVisible: true,
+                message: 'Testimonial deleted successfully!',
+                type: 'success'
+            });
+        } catch (err) {
+            console.error('Failed to delete testimonial:', err);
+            
+            setPopup({
+                isVisible: true,
+                message: err instanceof Error ? err.message : 'Failed to delete testimonial',
+                type: 'error'
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -204,6 +311,56 @@ const TestimonialsPage: React.FC = () => {
         const token = localStorage.getItem('token') || '';
         setLoading(true);
         
+        // If in edit mode, call handleUpdate instead
+        if (isEditMode && editId) {
+            try {
+                await dispatch(
+                    updateTestimonial({
+                        testimonialId: editId,
+                        data: {
+                            message: formData.message,
+                            status: formData.status,
+                            rating: formData.rating
+                        },
+                        token
+                    })
+                ).unwrap();
+                
+                // Refresh testimonials list
+                await fetchTestimonialsData(statusFilter);
+                
+                // Reset form and edit mode
+                setFormData({
+                    name: '',
+                    role: '',
+                    message: '',
+                    rating: 5,
+                });
+                setEditId(null);
+                setIsEditMode(false);
+                setShowAddForm(false);
+                
+                // Show success message
+                setPopup({
+                    isVisible: true,
+                    message: 'Testimonial updated successfully!',
+                    type: 'success'
+                });
+            } catch (err) {
+                console.error('Failed to update testimonial:', err);
+                
+                setPopup({
+                    isVisible: true,
+                    message: err instanceof Error ? err.message : 'Failed to update testimonial',
+                    type: 'error'
+                });
+            } finally {
+                setLoading(false);
+            }
+            return;
+        }
+        
+        // Add new testimonial
         try {
             await dispatch(
                 addTestimonial({
@@ -281,6 +438,15 @@ const TestimonialsPage: React.FC = () => {
                 onClose={() => setPopup({ ...popup, isVisible: false })}
             />
             
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                isOpen={deleteConfirm.show}
+                onClose={() => setDeleteConfirm({ show: false, id: null })}
+                onConfirm={() => deleteConfirm.id && handleDelete(deleteConfirm.id)}
+                title="Delete Testimonial"
+                message="Are you sure you want to delete this testimonial? This action cannot be undone."
+            />
+            
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 sm:mb-0">
@@ -356,73 +522,7 @@ const TestimonialsPage: React.FC = () => {
                 </div>
             </div>
             
-            {/* Courses List Section with Add Testimonial Button */}
-            <div className="mb-8">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                        <BookOpen className="w-5 h-5" /> 
-                        Courses
-                    </h2>
-                    <button
-                        onClick={() => setShowCoursesList(prev => !prev)}
-                        className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                    >
-                        {showCoursesList ? 'Hide Courses' : 'Show Courses'}
-                    </button>
-                </div>
-                
-                {showCoursesList && (
-                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm mb-6">
-                        {coursesLoading ? (
-                            <div className="flex justify-center p-4">
-                                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-                            </div>
-                        ) : coursesList.length === 0 ? (
-                            <p className="text-gray-600 dark:text-gray-400 text-center p-4">
-                                No courses available.
-                            </p>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {coursesList.map(course => (
-                                    <div 
-                                        key={course._id} 
-                                        className="border border-gray-200 dark:border-gray-700 rounded-md p-3 flex justify-between items-center"
-                                    >
-                                        <div className="flex items-center">
-                                            {course.thumbnail ? (
-                                                <img 
-                                                    src={course.thumbnail} 
-                                                    alt={course.title} 
-                                                    className="w-10 h-10 object-cover rounded mr-3"
-                                                />
-                                            ) : (
-                                                <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center mr-3">
-                                                    <BookOpen className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                                                </div>
-                                            )}
-                                            <div>
-                                                <p className="font-medium text-gray-900 dark:text-gray-100 line-clamp-1">{course.title}</p>
-                                                {course.price && (
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                        ${course.price.toFixed(2)}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => handleAddForCourse(course._id)}
-                                            className="ml-2 p-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-md transition-colors"
-                                            title={`Add testimonial for ${course.title}`}
-                                        >
-                                            <MessageCircle className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
+        
 
             {/* Error message */}
             {error && (
@@ -467,14 +567,25 @@ const TestimonialsPage: React.FC = () => {
                                 }`}>
                                     {testimonial.status || 'Pending'}
                                 </span>
-                                {/* <div className="flex space-x-1">
-                                    <button className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                                <div className="flex space-x-1">
+                                    {/* Edit button will be implemented later */}
+                                    <button 
+                                        onClick={() => handleEditClick(testimonial)}
+                                        className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                        title="Edit testimonial"
+                                    >
                                         <Edit size={16} />
                                     </button>
-                                    <button className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div> */}
+                                    {testimonial._id && (
+                                        <button 
+                                            onClick={() => setDeleteConfirm({ show: true, id: testimonial._id || null })} 
+                                            className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                            title="Delete testimonial"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <p className="text-gray-700 dark:text-gray-300 mb-4 italic">"{testimonial.message}"</p>
@@ -516,9 +627,23 @@ const TestimonialsPage: React.FC = () => {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Add Testimonial</h3>
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                {isEditMode ? 'Edit Testimonial' : 'Add Testimonial'}
+                            </h3>
                             <button 
-                                onClick={() => setShowAddForm(false)}
+                                onClick={() => {
+                                    setShowAddForm(false);
+                                    if (isEditMode) {
+                                        setIsEditMode(false);
+                                        setEditId(null);
+                                        setFormData({
+                                            name: '',
+                                            role: '',
+                                            message: '',
+                                            rating: 5,
+                                        });
+                                    }
+                                }}
                                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                             >
                                 <X className="w-5 h-5" />
@@ -555,6 +680,26 @@ const TestimonialsPage: React.FC = () => {
                                     required
                                 />
                             </div>
+                            
+                            {isEditMode && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Status
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            name="status"
+                                            value={formData.status || 'pending'}
+                                            onChange={handleInputChange}
+                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white appearance-none"
+                                        >
+                                            <option value="pending">Pending</option>
+                                            <option value="approved">Approved</option>
+                                            <option value="rejected">Rejected</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -611,7 +756,19 @@ const TestimonialsPage: React.FC = () => {
                             <div className="flex justify-end pt-2">
                                 <button
                                     type="button"
-                                    onClick={() => setShowAddForm(false)}
+                                    onClick={() => {
+                                        setShowAddForm(false);
+                                        if (isEditMode) {
+                                            setIsEditMode(false);
+                                            setEditId(null);
+                                            setFormData({
+                                                name: '',
+                                                role: '',
+                                                message: '',
+                                                rating: 5,
+                                            });
+                                        }
+                                    }}
                                     className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg mr-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                 >
                                     Cancel
@@ -628,8 +785,17 @@ const TestimonialsPage: React.FC = () => {
                                         </>
                                     ) : (
                                         <>
-                                            <Plus className="w-4 h-4" />
-                                            Add Testimonial
+                                            {isEditMode ? (
+                                                <>
+                                                    <Edit className="w-4 h-4" />
+                                                    Update Testimonial
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Plus className="w-4 h-4" />
+                                                    Add Testimonial
+                                                </>
+                                            )}
                                         </>
                                     )}
                                 </button>
