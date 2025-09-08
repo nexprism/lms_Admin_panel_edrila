@@ -55,6 +55,7 @@ import EditEvent from "./pages/Events/EditEvent";
 import AddJob from "./pages/Jobs/AddJob";
 import JobList from "./pages/Jobs/JobList";
 import EditJob from "./pages/Jobs/EditJob";
+import TestimonialsPage from "./pages/Testimonials";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -284,6 +285,8 @@ export default function App() {
               <Route path="/videos" element={<Videos />} />
               <Route path="/send-notification" element={<AppNotificationSender />} />
               <Route path="/device-approvals" element={<DeviceApprovals />} />
+              {/* Testimonials */}
+              <Route path="/testimonials" element={<TestimonialsPage />} />
               {/* Charts */}
               <Route path="/line-chart" element={<LineChart />} />
               <Route path="/bar-chart" element={<BarChart />} />
