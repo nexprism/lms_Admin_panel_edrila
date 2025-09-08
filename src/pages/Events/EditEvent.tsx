@@ -5,6 +5,7 @@ import { fetchEventById, updateEvent, deleteEvent } from '../../store/slices/eve
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
 import QuillEditor from '../../components/QuillEditor';
+import PopupAlert from '../../components/popUpAlert';
 
 interface Coordinates {
   latitude: number;
@@ -791,13 +792,13 @@ const EditEvent = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="fixed inset-0 z-[999] overflow-y-auto">
           <div className="flex min-h-screen items-center justify-center">
             {/* Backdrop */}
-            <div className="fixed inset-0 bg-black bg-opacity-30 transition-opacity"></div>
+            <div className="fixed inset-0 bg-black/10 bg-opacity-30 backdrop-blur-xs transition-opacity"></div>
 
             {/* Modal */}
-            <div className="relative z-50 mx-auto w-full max-w-sm rounded-lg bg-white dark:bg-gray-800 p-6">
+            <div className="relative z-50 mx-auto w-full max-w-sm rounded-lg  bg-white dark:bg-gray-800/10 p-6">
               <div className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-red-100 dark:bg-red-900">
                 <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -832,49 +833,16 @@ const EditEvent = () => {
       )}
 
       {/* Success/Error Popup */}
-      <CustomPopup popup={popup} onClose={() => setPopup(prev => ({ ...prev, show: false }))} />
+      {/* <CustomPopup popup={popup} onClose={() => setPopup(prev => ({ ...prev, show: false }))} /> */}
 
-      {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center">
-            {/* Backdrop */}
-            <div className="fixed inset-0 bg-black bg-opacity-30 transition-opacity"></div>
+      <PopupAlert
+        isVisible={popup.show}
+        message={popup.message}
+        type={popup.type}
+        onClose={() => setPopup({ isVisible: false, message: "", type: "" })}
+      />
 
-            {/* Modal */}
-            <div className="relative z-50 mx-auto w-full max-w-sm rounded-lg bg-white dark:bg-gray-800 p-6">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-red-100 dark:bg-red-900">
-                <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <h3 className="mt-3 text-lg font-medium text-center text-gray-900 dark:text-white">
-                Delete Event
-              </h3>
-              <p className="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">
-                Are you sure you want to delete this event? This action cannot be undone.
-              </p>
-
-              <div className="mt-4 flex justify-center space-x-3">
-                <button
-                  type="button"
-                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                  onClick={() => setIsDeleteModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                  onClick={handleDelete}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+    
     </div>
   );
 };
