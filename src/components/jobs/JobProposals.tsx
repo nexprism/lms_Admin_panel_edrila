@@ -88,7 +88,7 @@ const JobProposals: React.FC<JobProposalsProps> = ({ proposals, isOpen, onClose,
   const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000/';
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-white/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[80vh] overflow-hidden">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Proposals for "{jobTitle}"</h2>
@@ -153,16 +153,17 @@ const JobProposals: React.FC<JobProposalsProps> = ({ proposals, isOpen, onClose,
                       <div className="mt-3 flex justify-between">
                         <div className="flex items-center space-x-4">
                           <a 
-                            href={proposal.cv.startsWith('http') 
+                            href={proposal.cv && proposal.cv.startsWith('http') 
                               ? proposal.cv 
-                              : `${BASE_URL.endsWith('/') ? BASE_URL : `${BASE_URL}/`}${proposal.cv.startsWith('/') ? proposal.cv.substring(1) : proposal.cv}`
+                              : proposal.cv 
+                                ? `${BASE_URL.endsWith('/') ? BASE_URL : `${BASE_URL}/`}${proposal.cv.startsWith('/') ? proposal.cv.substring(1) : proposal.cv}`
+                                : '#'
                             }
                             target="_blank" 
                             rel="noopener noreferrer"
                             onClick={(e) => {
-                              // Prevent default and handle the navigation manually to avoid security restrictions
+                              if (!proposal.cv) return;
                               e.preventDefault();
-                              // Ensure BASE_URL ends with '/' and proposal.cv doesn't start with '/'
                               const baseUrlWithSlash = BASE_URL.endsWith('/') ? BASE_URL : `${BASE_URL}/`;
                               const cvPath = proposal.cv.startsWith('/') ? proposal.cv.substring(1) : proposal.cv;
                               const url = proposal.cv.startsWith('http') ? proposal.cv : `${baseUrlWithSlash}${cvPath}`;
