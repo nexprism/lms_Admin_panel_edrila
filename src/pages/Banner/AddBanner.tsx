@@ -13,7 +13,9 @@ const typeOptions = [
 	{ value: "event", label: "Event" },
 	{ value: "job", label: "Job" },
 	{ value: "announcement", label: "Announcement" },
-	{ value: "all", label: "All" },
+	{ value: "all_courses", label: "All Courses" },
+	{ value: "all_events", label: "All Events" },
+	{ value: "all_jobs", label: "All Jobs" },
 ];
 
 const AddBanner: React.FC = () => {
