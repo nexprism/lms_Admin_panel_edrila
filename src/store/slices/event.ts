@@ -162,7 +162,9 @@ export const deleteEvent = createAsyncThunk(
             const response = await axiosInstance.delete(`/events/${eventId}`);
             console.log('Delete response:', response.data);
            if (response.data.success) {
-               window.location.href = '/events';
+               setTimeout(() => {
+                    window.location.href = "/banner";
+                }, 1000);
            }
 
             return { eventId, ...response.data };
