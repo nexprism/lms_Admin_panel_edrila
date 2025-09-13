@@ -51,11 +51,11 @@ const navItems: NavItem[] = [
     // ],
   },
  
-  {
-    icon: <BoxCubeIcon />,
-    name: "Course Bundle",
-    path: "/bundles/all",
-  },
+  // {
+  //   icon: <BoxCubeIcon />,
+  //   name: "Course Bundle",
+  //   path: "/bundles/all",
+  // },
   {
     icon: <BoxCubeIcon />,
     name: "Categories",

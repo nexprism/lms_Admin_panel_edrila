@@ -34,7 +34,7 @@ const ConfirmDialog = ({
     if (!isOpen) return null;
     
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-white/50 backdrop-blur-md flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
                 <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
@@ -619,7 +619,7 @@ const TestimonialsPage: React.FC = () => {
             {/* Add Testimonial Modal */}
             {showAddForm && (
                 <div 
-                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                    className="fixed inset-0 bg-white/50 backdrop-blur-md flex items-center justify-center z-50 p-4 pt-20"
                     onClick={() => setShowAddForm(false)}
                 >
                     <div 
