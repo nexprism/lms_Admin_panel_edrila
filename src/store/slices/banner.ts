@@ -44,9 +44,9 @@ export const createBanner = createAsyncThunk(
             }
             );
             if (res.data?.success == true) {
-              
-        
-                window.location.href = "/banner";
+                setTimeout(() => {
+                    window.location.href = "/banner";
+                }, 1000);
             }
                 return res.data;
         } catch (err: any) {
