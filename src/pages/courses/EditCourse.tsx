@@ -328,6 +328,12 @@ const EditCourse = () => {
       errors.demoVideoUrl = "Please enter a valid YouTube URL";
     }
 
+    if (selectedTags.length === 0) {
+      errors.tags = "At least one tag is required";
+    } else if (selectedTags.length > 5) {
+      errors.tags = "Maximum 5 tags allowed";
+    }
+
     return errors;
   };
 
@@ -436,7 +442,15 @@ const EditCourse = () => {
   };
 
   const addTag = (tag) => {
-    if (!selectedTags.includes(tag) && selectedTags.length < 10) {
+    if (selectedTags.length >= 5) {
+      setPopup({
+        isVisible: true,
+        message: "Maximum 5 tags allowed",
+        type: "error",
+      });
+      return;
+    }
+    if (!selectedTags.includes(tag)) {
       setSelectedTags([...selectedTags, tag]);
       setFormErrors((prev) => ({ ...prev, tags: "" }));
     }
@@ -464,10 +478,17 @@ const EditCourse = () => {
   };
 
   const addCustomTag = () => {
+    if (selectedTags.length >= 5) {
+      setPopup({
+        isVisible: true,
+        message: "Maximum 5 tags allowed",
+        type: "error",
+      });
+      return;
+    }
     if (
       customTag.trim() &&
-      !selectedTags.includes(customTag.trim()) &&
-      selectedTags.length < 10
+      !selectedTags.includes(customTag.trim())
     ) {
       setSelectedTags([...selectedTags, customTag.trim()]);
       setCustomTag("");
