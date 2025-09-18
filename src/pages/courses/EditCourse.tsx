@@ -1225,7 +1225,23 @@ const EditCourse = () => {
                         type="checkbox"
                         name="isPublished"
                         checked={formData.isPublished}
-                        onChange={handleInputChange}
+                        // When toggled, update state and immediately submit the change
+                        onChange={async (e) => {
+                          const checked = e.target.checked;
+                          setFormData((prev) => ({
+                            ...prev,
+                            isPublished: checked,
+                          }));
+                          setFormErrors((prev) => ({ ...prev, isPublished: "" }));
+                          // Wait for state update before submitting
+                          setTimeout(() => {
+                            // Submit with the new isPublished value
+                            handleSubmit(
+                              { preventDefault: () => {} }, // fake event
+                              !checked // isDraft: true if unchecked, false if checked
+                            );
+                          }, 0);
+                        }}
                         className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
                       />
                       <Eye className="w-4 h-4 text-blue-600" />

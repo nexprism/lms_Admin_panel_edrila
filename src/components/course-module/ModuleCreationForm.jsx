@@ -106,7 +106,7 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
                             placeholder="60"
                         />
                     </div>
-                    <div>
+                    {/* <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Module Order
                         </label>
@@ -117,10 +117,10 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                             min="1"
                         />
-                    </div>
+                    </div> */}
                 </div>
 
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                     <input
                         type="checkbox"
                         id="isPublished"
@@ -131,7 +131,7 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
                     <label htmlFor="isPublished" className="text-gray-700 font-medium">
                         Publish module immediately
                     </label>
-                </div>
+                </div> */}
 
                 <div className="pt-6">
                     <button

@@ -119,15 +119,15 @@ const navItems: NavItem[] = [
     name: "Testimonials",
     path: "/testimonials"
   },
-  {
-    icon: <Files />,
-    name: "Analytics",
-    subItems: [
-      { name: "Dashboard", path: "/files/all" },
-      { name: "Video  Logs", path: "/files/sessions" },
-      { name: "Performance", path: "/files/projects" },
-    ],
-  },
+  // {
+  //   icon: <Files />,
+  //   name: "Analytics",
+  //   subItems: [
+  //     { name: "Dashboard", path: "/files/all" },
+  //     { name: "Video  Logs", path: "/files/sessions" },
+  //     { name: "Performance", path: "/files/projects" },
+  //   ],
+  // },
 
     
 
