@@ -529,7 +529,10 @@ const EditCourse = () => {
 
     Object.keys(formData).forEach((key) => {
       const value = formData[key];
-      if (Array.isArray(value)) {
+      if (key === "isPublished") {
+        // Pass as boolean
+        submitFormData.set("isPublished", (!isDraft && !!formData.isPublished).toString());
+      } else if (Array.isArray(value)) {
         submitFormData.append(key, value.length > 0 ? String(value[0]) : "");
       } else {
         submitFormData.append(key, String(value));
@@ -544,9 +547,9 @@ const EditCourse = () => {
     );
 
     submitFormData.set("description", description);
-    submitFormData.set("seoContent",seoContent);
+    submitFormData.set("seoContent", seoContent);
     submitFormData.set("tags", JSON.stringify(selectedTags));
-    submitFormData.set("isPublished", (!isDraft).toString());
+    // isPublished already set above as boolean string
     submitFormData.set("level", formData.level || "beginner");
     submitFormData.set("demoVideo", demoVideoUrl);
 
