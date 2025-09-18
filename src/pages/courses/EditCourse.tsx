@@ -514,6 +514,7 @@ const EditCourse = () => {
       demoVideoUrl
     );
 
+    console?.log('Validation errors:', errors);
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       setPopup({

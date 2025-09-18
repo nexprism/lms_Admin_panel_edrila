@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, Save, Loader2 } from "lucide-react";
+import { X, Save, Loader2, Trash2 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { updateModule, getModuleById } from "../../store/slices/module";
 
@@ -14,6 +14,7 @@ const EditModulePopup = ({ module, courseId, onClose, onModuleUpdated }) => {
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Update form state when module prop changes (show initial values immediately)
     useEffect(() => {
@@ -76,16 +77,53 @@ const EditModulePopup = ({ module, courseId, onClose, onModuleUpdated }) => {
         }
     };
 
+    const handleDelete = async () => {
+        setSaving(true);
+        setError("");
+        try {
+            const payload = {
+                moduleId: module._id,
+                courseId,
+                title: form.title,
+                description: form.description,
+                order: module.order || 1,
+                estimatedDuration: form.estimatedDuration,
+                isPublished: false, // Mark as unpublished (deleted)
+            };
+            await dispatch(updateModule(payload)).unwrap();
+            if (onModuleUpdated) onModuleUpdated();
+            onClose();
+        } catch (e) {
+            setError("Failed to delete module");
+        } finally {
+            setSaving(false);
+            setShowDeleteConfirm(false);
+        }
+    };
+
     return (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
             <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative">
                 <button
                     className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-                    onClick={onClose}
+                    onClick={() => {
+                        setError(""); // Clear error on close
+                        onClose();
+                    }}
                 >
                     <X className="w-6 h-6" />
                 </button>
-                <h3 className="text-xl font-bold mb-4">Edit Module</h3>
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold">Edit Module</h3>
+                    <button
+                        title="Delete Module"
+                        className="text-red-600 hover:text-red-800"
+                        onClick={() => setShowDeleteConfirm(true)}
+                        disabled={saving || loading}
+                    >
+                        <Trash2 className="w-6 h-6" />
+                    </button>
+                </div>
                 {loading ? (
                     <div className="flex items-center justify-center py-8">
                         <Loader2 className="w-6 h-6 animate-spin mr-2" />
@@ -124,26 +162,15 @@ const EditModulePopup = ({ module, courseId, onClose, onModuleUpdated }) => {
                                 disabled={saving}
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Published</label>
-                            <input
-                                type="checkbox"
-                                checked={form.isPublished}
-                                onChange={e => setForm({ ...form, isPublished: e.target.checked })}
-                                disabled={saving}
-                                className="mr-2"
-                                id="isPublished"
-                            />
-                            <label htmlFor="isPublished" className="text-sm">
-                                {form.isPublished ? "Yes" : "No"}
-                            </label>
-                        </div>
                         {error && <div className="text-red-600 text-sm">{error}</div>}
                     </div>
                 )}
                 <div className="mt-6 flex justify-end gap-3">
                     <button
-                        onClick={onClose}
+                        onClick={() => {
+                            setError(""); // Clear error on close
+                            onClose();
+                        }}
                         className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
                         disabled={saving}
                     >
@@ -158,6 +185,30 @@ const EditModulePopup = ({ module, courseId, onClose, onModuleUpdated }) => {
                         {saving ? "Saving..." : "Save"}
                     </button>
                 </div>
+                {showDeleteConfirm && (
+                    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+                        <div className="bg-white rounded-lg shadow-lg p-6 max-w-xs w-full">
+                            <h4 className="text-lg font-semibold mb-2 text-red-700">Delete Module</h4>
+                            <p className="mb-4">Are you sure you want to delete this module?</p>
+                            <div className="flex justify-end gap-2">
+                                <button
+                                    className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                    disabled={saving}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                                    onClick={handleDelete}
+                                    disabled={saving}
+                                >
+                                    {saving ? <Loader2 className="w-4 h-4 animate-spin inline" /> : "Delete"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
