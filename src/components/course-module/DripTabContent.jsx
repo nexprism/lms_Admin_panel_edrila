@@ -42,6 +42,7 @@ const CourseAccordion = ({ courseId }) => {
     message: "",
     type: "",
   });
+  const [moduleDripModal, setModuleDripModal] = useState(null); // State for module-level drip modal
   // Fetch course data when component mounts or courseId changes
   useEffect(() => {
     if (courseId) {
@@ -171,8 +172,8 @@ const CourseAccordion = ({ courseId }) => {
     console.log("Saving drip settings:", dripSettings);
     // Here you would typically make an API call to save the drip settings
     // For now, just close the modal
-    
-console.log("Drip settings submitted:", result);
+
+    console.log("Drip settings submitted:", result);
     if (result) {
       setPopup({
         isVisible: true,
@@ -294,6 +295,22 @@ console.log("Drip settings submitted:", result);
     );
   }
 
+  // Remove any updateCourse or updateCourse API call from Add Drip logic.
+  // Only open the DripPopup modal.
+
+  const handleAddDrip = (module) => {
+    // Prevent any popup before opening DripPopup
+    setPopup({ isVisible: false, message: "", type: "" });
+    // Do NOT call any updateCourse or course update API here!
+    setModuleDripModal({
+      moduleId: module.id || module._id,
+      lessons: module.lessons || [],
+      targetType: "lesson",
+      targetId: (module.lessons || []).map((l) => l.id || l._id),
+      module,
+    });
+  };
+
   return (
     <>
       <div className="max-w-full mx-auto min-h-fit">
@@ -381,12 +398,17 @@ console.log("Drip settings submitted:", result);
                     <div className="text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full font-medium">
                       {module.lessons?.length || 0} lessons
                     </div>
-                    {/* {module.estimatedDuration && (
-                    <div className="text-sm text-gray-500 flex items-center">
-                      <Clock className="w-4 h-4 mr-1" />
-                      {module.estimatedDuration}min
-                    </div>
-                  )} */}
+                    {/* Add Drip Button */}
+                    <button
+                      type="button" // <-- Add this line!
+                      className="px-3 py-1.5 bg-purple-600 text-white rounded-md text-xs font-medium hover:bg-purple-700 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddDrip(module);
+                      }}
+                    >
+                      Add Drip
+                    </button>
                   </div>
                 </div>
 
@@ -661,6 +683,58 @@ console.log("Drip settings submitted:", result);
                   }}
                   targetType={dripModalData.targetType}
                   targetId={dripModalData.targetId}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Module-level DripPopup for multi-select */}
+        {moduleDripModal && (
+          <div
+            className="fixed inset-0 bg-black/20 backdrop-blur-[2px] bg-opacity-50 flex items-center justify-center z-[10000] p-4"
+            onClick={() => setModuleDripModal(null)}
+          >
+            <div
+              className="bg-white dark:bg-[#101828] rounded-lg shadow-2xl max-w-5xl h-[94%] overflow-y-auto w-full transform transition-all duration-300 scale-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white/90">
+                    Drip Settings - Module:{" "}
+                    {moduleDripModal.module?.title || moduleDripModal.module?.name}
+                  </h3>
+                  <button
+                    onClick={() => setModuleDripModal(null)}
+                    className="p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+                <DripPopup
+                  onSubmit={(dripSettings, result) => {
+                    // --- Prevent any popup after drip update ---
+                    setModuleDripModal(null);
+                    // Do NOT call setPopup here!
+                    // Prevent global popup by not dispatching any popup action here.
+                    if (result && result.success === true) {
+                      setTimeout(() => window.location.reload(), 1000);
+                    }
+                  }}
+                  onClose={() => setModuleDripModal(null)}
+                  initialData={[
+                    {
+                      dripType: "",
+                      referenceType: "lesson",
+                      referenceId: "",
+                      delayDays: 0,
+                      targetType: "lesson",
+                      targetId: moduleDripModal.targetId,
+                    },
+                  ]}
+                  targetType="lesson"
+                  targetId={moduleDripModal.targetId}
                 />
               </div>
             </div>

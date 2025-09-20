@@ -560,16 +560,17 @@ const EditCourse = () => {
       await dispatch(
         updateCourse({ id: courseId, data: submitFormData })
       ).unwrap();
-      // Refetch course data after update to get latest price/salePrice
-      const token = localStorage.getItem("token") || "";
-      dispatch(fetchCourseById({ courseId, token }));
-      setPopup({
+        setPopup({
         isVisible: true,
         message: isDraft
           ? "Course saved as draft successfully!"
           : "Course updated successfully!",
         type: "success",
       });
+      // Refetch course data after update to get latest price/salePrice
+      const token = localStorage.getItem("token") || "";
+      dispatch(fetchCourseById({ courseId, token }));
+    
     } catch (error) {
       setPopup({
         isVisible: true,
