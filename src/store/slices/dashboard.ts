@@ -14,7 +14,7 @@ const initialState: DashboardState = {
 };
 
 // Async thunk to fetch overview data
-export const fetchOverview = createAsyncThunk(
+const fetchOverview = createAsyncThunk(
     'dashboard/fetchOverview',
     async (_, { rejectWithValue }) => {
         try {
@@ -50,5 +50,6 @@ const dashboardSlice = createSlice({
             });
     },
 });
+export { fetchOverview };
 
 export default dashboardSlice.reducer;

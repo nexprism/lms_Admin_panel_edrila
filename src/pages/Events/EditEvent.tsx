@@ -1,11 +1,15 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { fetchEventById, updateEvent, deleteEvent } from '../../store/slices/event';
-import PageBreadcrumb from '../../components/common/PageBreadCrumb';
-import PageMeta from '../../components/common/PageMeta';
-import QuillEditor from '../../components/QuillEditor';
-import PopupAlert from '../../components/popUpAlert';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../hooks/redux";
+import {
+  fetchEventById,
+  updateEvent,
+  deleteEvent,
+} from "../../store/slices/event";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import PageMeta from "../../components/common/PageMeta";
+import QuillEditor from "../../components/QuillEditor";
+import PopupAlert from "../../components/popUpAlert";
 
 interface Coordinates {
   latitude: number;
@@ -21,7 +25,7 @@ interface Venue {
 }
 
 interface OnlineLink {
-  platform: 'zoom' | 'meet' | 'teams' | 'other';
+  platform: "zoom" | "meet" | "teams" | "other";
   url: string;
   meetingId?: string;
   password?: string;
@@ -37,7 +41,7 @@ export interface Event {
   _id: string;
   title: string;
   description: string;
-  type: 'online' | 'offline' | 'hybrid';
+  type: "online" | "offline" | "hybrid";
   category: string;
   startDate: string;
   endDate: string;
@@ -47,7 +51,7 @@ export interface Event {
   price: number | { $numberDecimal: string };
   currency: string;
   tags: string[];
-  status: 'draft' | 'published' | 'cancelled' | 'completed';
+  status: "draft" | "published" | "cancelled" | "completed";
   thumbnail?: string;
   attachments?: Attachment[];
   createdAt: string;
@@ -57,7 +61,7 @@ export interface Event {
 interface EventFormData {
   title: string;
   description: string;
-  type: 'online' | 'offline' | 'hybrid';
+  type: "online" | "offline" | "hybrid";
   category: string;
   startDate: string;
   endDate: string;
@@ -67,7 +71,7 @@ interface EventFormData {
   price: number | { $numberDecimal: string };
   currency: string;
   tags: string;
-  status: 'draft' | 'published' | 'cancelled' | 'completed';
+  status: "draft" | "published" | "cancelled" | "completed";
   thumbnail?: string;
   attachments?: Attachment[];
 }
@@ -92,15 +96,39 @@ const CustomPopup = ({
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
         <div className="flex items-center mb-4">
           {popup.type === "success" ? (
-            <svg className="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            <svg
+              className="w-6 h-6 text-green-600 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           ) : (
-            <svg className="w-6 h-6 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6 text-red-600 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           )}
-          <h3 className={`text-lg font-semibold ${popup.type === "success" ? "text-green-800" : "text-red-800"}`}>
+          <h3
+            className={`text-lg font-semibold ${
+              popup.type === "success" ? "text-green-800" : "text-red-800"
+            }`}
+          >
             {popup.title}
           </h3>
         </div>
@@ -129,6 +157,7 @@ const EditEvent = () => {
   const { loading, error, data } = useAppSelector((state) => state.event);
   const [formData, setFormData] = useState<EventFormData | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  // Use only one popup state for all popups
 
   useEffect(() => {
     if (id) {
@@ -157,10 +186,11 @@ const EditEvent = () => {
     if (data && data?.data) {
       const event = data?.data as Event;
       // Convert price from MongoDB decimal or number to a regular number
-      const initialPrice = typeof event.price === 'object' && '$numberDecimal' in event.price 
-        ? parseFloat(event.price.$numberDecimal) 
-        : typeof event.price === 'number' 
-          ? event.price 
+      const initialPrice =
+        typeof event.price === "object" && "$numberDecimal" in event.price
+          ? parseFloat(event.price.$numberDecimal)
+          : typeof event.price === "number"
+          ? event.price
           : 0;
 
       setFormData({
@@ -168,79 +198,87 @@ const EditEvent = () => {
         description: event.description || "",
         type: event.type || "online",
         category: event.category || "",
-        startDate: event.startDate ? new Date(event.startDate).toISOString().split('T')[0] : "",
-        endDate: event.endDate ? new Date(event.endDate).toISOString().split('T')[0] : "",
+        startDate: event.startDate
+          ? new Date(event.startDate).toISOString().split("T")[0]
+          : "",
+        endDate: event.endDate
+          ? new Date(event.endDate).toISOString().split("T")[0]
+          : "",
         venue: event.venue || {
           name: "",
           address: "",
           city: "",
           country: "",
-          coordinates: { latitude: 0, longitude: 0 }
+          coordinates: { latitude: 0, longitude: 0 },
         },
         onlineLink: event.onlineLink || {
           platform: "zoom",
           url: "",
           meetingId: "",
-          password: ""
+          password: "",
         },
         capacity: event.capacity || 0,
         price: initialPrice,
         currency: event.currency || "INR",
         tags: Array.isArray(event.tags) ? event.tags.join(", ") : "",
         status: event.status || "draft",
-        thumbnail: typeof event.thumbnail === 'string' ? event.thumbnail : "",
-        attachments: []
+        thumbnail: typeof event.thumbnail === "string" ? event.thumbnail : "",
+        attachments: [],
       });
     }
   }, [data]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value, type } = e.target;
     setFormData((prev) => {
       if (!prev) return null;
 
-      if (name.includes('.')) {
-        const [parent, child] = name.split('.');
+      if (name.includes(".")) {
+        const [parent, child] = name.split(".");
         const parentObj = prev[parent as keyof EventFormData];
-        
-        if (typeof parentObj === 'object' && parentObj !== null) {
+
+        if (typeof parentObj === "object" && parentObj !== null) {
           return {
             ...prev,
             [parent]: {
               ...parentObj,
-              [child]: value
-            }
+              [child]: value,
+            },
           };
         }
       }
 
       // Handle number inputs separately
-      if (type === 'number') {
-        const numValue = value === '' ? 0 : parseFloat(value);
+      if (type === "number") {
+        const numValue = value === "" ? 0 : parseFloat(value);
         return {
           ...prev,
-          [name]: numValue
+          [name]: numValue,
         };
       }
 
       return {
         ...prev,
-        [name]: value
+        [name]: value,
       };
     });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
-    if (name === 'thumbnail' && files?.[0]) {
-      setFiles(prev => ({
+    if (name === "thumbnail" && files?.[0]) {
+      setFiles((prev) => ({
         ...prev,
-        thumbnail: files[0]
+        thumbnail: files[0],
       }));
-    } else if (name === 'attachments' && files) {
-      setFiles(prev => ({
+    } else if (name === "attachments" && files) {
+      setFiles((prev) => ({
         ...prev,
-        attachments: [...Array.from(files)]
+        attachments: [...Array.from(files)],
       }));
     }
   };
@@ -251,54 +289,65 @@ const EditEvent = () => {
 
     try {
       const formDataToSend = new FormData();
-      
+
       // Add form data
       Object.entries(formData).forEach(([key, value]) => {
-        if (key === 'tags') {
-          const tagsArray = (value as string).split(',').map((tag: string) => tag.trim()).filter(Boolean);
-          tagsArray.forEach((tag: string) => formDataToSend.append('tags[]', tag));
-        } else if (key === 'venue' || key === 'onlineLink') {
+        if (key === "tags") {
+          const tagsArray = (value as string)
+            .split(",")
+            .map((tag: string) => tag.trim())
+            .filter(Boolean);
+          tagsArray.forEach((tag: string) =>
+            formDataToSend.append("tags[]", tag)
+          );
+        } else if (key === "venue" || key === "onlineLink") {
           if (value && Object.keys(value).length > 0) {
             formDataToSend.append(key, JSON.stringify(value));
           }
-        } else if (key === 'thumbnail') {
+        } else if (key === "thumbnail") {
           // Skip thumbnail if it's empty or not changed
-          if (value && typeof value === 'string' && !value.startsWith('data:')) {
+          if (
+            value &&
+            typeof value === "string" &&
+            !value.startsWith("data:")
+          ) {
             formDataToSend.append(key, value);
           }
-        } else if (value !== null && value !== undefined && value !== '') {
+        } else if (value !== null && value !== undefined && value !== "") {
           formDataToSend.append(key, value.toString());
         }
       });
 
       // Add files
       if (files.thumbnail) {
-        formDataToSend.append('thumbnail', files.thumbnail);
+        formDataToSend.append("thumbnail", files.thumbnail);
       }
-      
+
       files.attachments.forEach((file, index) => {
         formDataToSend.append(`attachments[${index}]`, file);
       });
 
       // Send FormData directly to the API
-      await dispatch(updateEvent({ eventId: id, eventData: formDataToSend })).unwrap();
-      
+      await dispatch(
+        updateEvent({ eventId: id, eventData: formDataToSend })
+      ).unwrap();
+
       setPopup({
         show: true,
         type: "success",
         title: "Success!",
-        message: "Event updated successfully!"
+        message: "Event updated successfully!",
       });
 
       setTimeout(() => {
-        navigate('/events');
+        navigate("/events");
       }, 2000);
     } catch (error: unknown) {
       setPopup({
         show: true,
         type: "error",
         title: "Error!",
-        message: error.message || "Failed to update event"
+        message: error.message || "Failed to update event",
       });
     }
   };
@@ -307,11 +356,24 @@ const EditEvent = () => {
     if (id) {
       try {
         await dispatch(deleteEvent(id)).unwrap();
-        navigate('/events');
+        setIsDeleteModalOpen(false);
+        setPopup({
+          show: true,
+          title: "Success!",
+          message: "Event deleted successfully!",
+          type: "success",
+        });
+        // Show popup, redirect only after user closes it
       } catch (error) {
-        console.error('Failed to delete event:', error);
+        setIsDeleteModalOpen(false);
+        setPopup({
+          show: true,
+          title: "Error!",
+          message: "Failed to delete event",
+          type: "error",
+        });
+        console.error("Failed to delete event:", error);
       }
-      setIsDeleteModalOpen(false);
     }
   };
 
@@ -336,48 +398,54 @@ const EditEvent = () => {
   }
 
   return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Edit Event</h2>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+          Edit Event
+        </h2>
+      </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 p-4 mb-4 rounded">
-                <p className="text-red-700 dark:text-red-200">{error}</p>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter event title"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                  Description *
-                </label>
-                <QuillEditor
-                  value={formData.description}
-                  onChange={(value: string) => setFormData(prev => prev ? { ...prev, description: value } : null)}
-                  placeholder="Enter event description..."
-                  height="200px"
-                  toolbar="full"
-                />
-              </div>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 p-4 mb-4 rounded">
+              <p className="text-red-700 dark:text-red-200">{error}</p>
             </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                Title *
+              </label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter event title"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                Description *
+              </label>
+              <QuillEditor
+                value={formData.description}
+                onChange={(value: string) =>
+                  setFormData((prev) =>
+                    prev ? { ...prev, description: value } : null
+                  )
+                }
+                placeholder="Enter event description..."
+                height="200px"
+                toolbar="full"
+              />
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -410,7 +478,9 @@ const EditEvent = () => {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Event Type and Schedule</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              Event Type and Schedule
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
@@ -476,9 +546,11 @@ const EditEvent = () => {
             </div>
           </div>
 
-          {(formData.type === 'offline' || formData.type === 'hybrid') && (
+          {(formData.type === "offline" || formData.type === "hybrid") && (
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Venue Details</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                Venue Details
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
@@ -564,9 +636,11 @@ const EditEvent = () => {
             </div>
           )}
 
-          {(formData.type === 'online' || formData.type === 'hybrid') && (
+          {(formData.type === "online" || formData.type === "hybrid") && (
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Online Meeting Details</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                Online Meeting Details
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
@@ -627,7 +701,9 @@ const EditEvent = () => {
           )}
 
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Event Details</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              Event Details
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
@@ -699,7 +775,9 @@ const EditEvent = () => {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Status and Media</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              Status and Media
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
@@ -733,7 +811,13 @@ const EditEvent = () => {
                 {(files.thumbnail || formData.thumbnail) && (
                   <div className="mt-2">
                     <img
-                      src={files.thumbnail ? URL.createObjectURL(files.thumbnail) : `${import.meta.env.VITE_BASE_URL}/${formData.thumbnail}`}
+                      src={
+                        files.thumbnail
+                          ? URL.createObjectURL(files.thumbnail)
+                          : `${import.meta.env.VITE_BASE_URL}/${
+                              formData.thumbnail
+                            }`
+                      }
                       alt="Thumbnail preview"
                       className="w-32 h-20 object-cover rounded-md border"
                     />
@@ -774,7 +858,7 @@ const EditEvent = () => {
             <div className="flex space-x-3">
               <button
                 type="button"
-                onClick={() => navigate('/events')}
+                onClick={() => navigate("/events")}
                 className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Cancel
@@ -800,15 +884,26 @@ const EditEvent = () => {
             {/* Modal */}
             <div className="relative z-50 mx-auto w-full max-w-sm rounded-lg  bg-white dark:bg-gray-800/10 p-6">
               <div className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-red-100 dark:bg-red-900">
-                <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg
+                  className="w-6 h-6 text-red-600 dark:text-red-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
                 </svg>
               </div>
               <h3 className="mt-3 text-lg font-medium text-center text-gray-900 dark:text-white">
                 Delete Event
               </h3>
               <p className="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">
-                Are you sure you want to delete this event? This action cannot be undone.
+                Are you sure you want to delete this event? This action cannot
+                be undone.
               </p>
 
               <div className="mt-4 flex justify-center space-x-3">
@@ -839,10 +934,16 @@ const EditEvent = () => {
         isVisible={popup.show}
         message={popup.message}
         type={popup.type}
-        onClose={() => setPopup({ isVisible: false, message: "", type: "" })}
+        onClose={() => {
+          setPopup({ show: false, title: "", message: "", type: "success" });
+          if (
+            popup.type === "success" &&
+            popup.message === "Event deleted successfully!"
+          ) {
+            navigate("/events");
+          }
+        }}
       />
-
-    
     </div>
   );
 };

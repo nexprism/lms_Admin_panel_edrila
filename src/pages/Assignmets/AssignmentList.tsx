@@ -27,6 +27,7 @@ interface Lesson {
 }
 
 interface Assignment {
+  submittedBy: any;
   _id: string;
   courseId?: Course | null;
   assignmentId?: {
@@ -420,6 +421,9 @@ const AssignmentList = () => {
                   Course
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+                  Submitted By
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                   Status
                 </th>
 
@@ -445,6 +449,11 @@ const AssignmentList = () => {
                   <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                     <div className="max-w-xs truncate" title={assignment.courseId?.title}>
                       {assignment.courseId?.title || "No Course"}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                    <div className="max-w-xs truncate" title={assignment.submittedBy?.fullName || "User"}>
+                      {assignment.submittedBy?.fullName || "User"}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm">

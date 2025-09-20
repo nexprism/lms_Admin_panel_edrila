@@ -29,6 +29,7 @@ import notification from "./slices/notification";
 import deviceApprovalsReducer from "./slices/deviceApprovals";
 import event from "./slices/event";
 import job from "./slices/job";
+import banner from "./slices/banner";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -60,6 +61,7 @@ export const store = configureStore({
     deviceApprovals: deviceApprovalsReducer,
     event:event,
     job:job,
+    banner:banner
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

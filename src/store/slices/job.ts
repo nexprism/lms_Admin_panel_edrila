@@ -42,7 +42,7 @@ interface Proposal {
     submittedAt: string;
 }
 
-interface JobResponse {
+export interface JobResponse {
     _id: string;
     title: string;
     description: string;
@@ -77,7 +77,7 @@ interface JobResponse {
     };
 }
 
-interface JobState {
+export interface JobState {
     loading: boolean;
     error: string | null;
     job: JobPayload | null;
@@ -196,9 +196,9 @@ export const fetchJobs = createAsyncThunk(
 
             return {
                 jobs: response.data.data?.data || [],
-                totalJobs: response.data.total || 0,
-                currentPage: response.data.page || 1,
-                totalPages: response.data.totalPages || 0
+                totalJobs: response.data.data.total || 0,
+                currentPage: response.data.data.page || 1,
+                totalPages: response.data.data.totalPages || 1
             };
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';

@@ -55,6 +55,11 @@ import EditEvent from "./pages/Events/EditEvent";
 import AddJob from "./pages/Jobs/AddJob";
 import JobList from "./pages/Jobs/JobList";
 import EditJob from "./pages/Jobs/EditJob";
+import TestimonialsPage from "./pages/Testimonials";
+import Banner from "./pages/Banner/banner";
+import AllBanners from "./pages/Banner/AllBanners";
+import AddBanner from "./pages/Banner/AddBanner";
+import EditBanner from "./pages/Banner/EditBanner";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -261,6 +266,11 @@ export default function App() {
               {/* Forms */}
               <Route path="/form-elements" element={<FormElements />} />
 
+
+              <Route path="/banner" element={<AllBanners />} />
+              <Route path="/banner/add" element={<AddBanner />} />
+              <Route path="/banner/edit/:id" element={<EditBanner />} />
+
               {/* sales analytics */}
               <Route path="/sales/user" element={<User />} />
               <Route path="/sales/course" element={<Course />} />
@@ -275,6 +285,7 @@ export default function App() {
               {/* Tables */}
               <Route path="/basic-tables" element={<BasicTables />} />
 
+
               {/* UI Elements */}
               <Route path="/alerts" element={<Alerts />} />
               <Route path="/avatars" element={<Avatars />} />
@@ -284,6 +295,8 @@ export default function App() {
               <Route path="/videos" element={<Videos />} />
               <Route path="/send-notification" element={<AppNotificationSender />} />
               <Route path="/device-approvals" element={<DeviceApprovals />} />
+              {/* Testimonials */}
+              <Route path="/testimonials" element={<TestimonialsPage />} />
               {/* Charts */}
               <Route path="/line-chart" element={<LineChart />} />
               <Route path="/bar-chart" element={<BarChart />} />

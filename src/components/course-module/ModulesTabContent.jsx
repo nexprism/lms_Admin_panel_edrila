@@ -1,5 +1,6 @@
-import React from 'react';
-import { BookOpen, CheckCircle, Users, Plus, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { BookOpen, CheckCircle, Users, Plus, Loader2, Pencil } from 'lucide-react';
+import EditModulePopup from './EditModulePopup';
 
 const ModulesTabContent = ({ 
     totalModules, 
@@ -20,6 +21,8 @@ const ModulesTabContent = ({
     setShowCreateForm,
     isEditing = false
 }) => {
+    const [editModule, setEditModule] = useState(null);
+
     return (
         <div>
             {/* Stats Cards */}
@@ -72,16 +75,25 @@ const ModulesTabContent = ({
             {/* Saved Modules Display */}
             <div className="space-y-6">
                 {savedModules.map((module, index) => (
-                    <SavedModuleDisplay
-                        key={module._id || index}
-                        module={module}
-                        courseId={courseId}
-                        courseData={courseData}
-                        onAddLesson={(newLesson) => addLessonToModule(index, newLesson)}
-                        onLessonChange={(lessonIndex, updatedLesson) => updateLessonInModule(index, lessonIndex, updatedLesson)}
-                        onLessonRemove={(lessonIndex) => removeLessonFromModule(index, lessonIndex)}
-                        isEditing={isEditing}
-                    />
+                    <div key={module._id || index} className="relative">
+                        {/* Edit Icon */}
+                        <button
+                            className="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-blue-100 transition"
+                            title="Edit Module"
+                            onClick={() => setEditModule(module)}
+                        >
+                            <Pencil className="w-5 h-5 text-blue-600" />
+                        </button>
+                        <SavedModuleDisplay
+                            module={module}
+                            courseId={courseId}
+                            courseData={courseData}
+                            onAddLesson={(newLesson) => addLessonToModule(index, newLesson)}
+                            onLessonChange={(lessonIndex, updatedLesson) => updateLessonInModule(index, lessonIndex, updatedLesson)}
+                            onLessonRemove={(lessonIndex) => removeLessonFromModule(index, lessonIndex)}
+                            isEditing={isEditing}
+                        />
+                    </div>
                 ))}
 
                 {moduleLoading && (
@@ -113,6 +125,15 @@ const ModulesTabContent = ({
                     </div>
                 )}
             </div>
+            {/* Edit Module Popup */}
+            {editModule && (
+                <EditModulePopup
+                    module={editModule}
+                    courseId={courseId}
+                    onClose={() => setEditModule(null)}
+                    onModuleUpdated={handleModuleCreated}
+                />
+            )}
         </div>
     );
 };

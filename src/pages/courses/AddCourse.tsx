@@ -99,8 +99,8 @@ const validateForm = (
 
   if (selectedTags.length === 0) {
     errors.tags = "At least one tag is required";
-  } else if (selectedTags.length > 10) {
-    errors.tags = "Cannot add more than 10 tags";
+  } else if (selectedTags.length > 5) {
+    errors.tags = "Maximum 5 tags allowed";
   }
 
   if (!files.thumbnailFile) {
@@ -422,7 +422,15 @@ const AddCourse = () => {
   };
 
   const addTag = (tag) => {
-    if (!selectedTags.includes(tag) && selectedTags.length < 10) {
+    if (selectedTags.length >= 5) {
+      setPopup({
+        isVisible: true,
+        message: "Maximum 5 tags allowed",
+        type: "error",
+      });
+      return;
+    }
+    if (!selectedTags.includes(tag)) {
       setSelectedTags([...selectedTags, tag]);
       setFormErrors((prev) => ({ ...prev, tags: "" }));
     }
@@ -433,10 +441,17 @@ const AddCourse = () => {
   };
 
   const addCustomTag = () => {
+    if (selectedTags.length >= 5) {
+      setPopup({
+        isVisible: true,
+        message: "Maximum 5 tags allowed",
+        type: "error",
+      });
+      return;
+    }
     if (
       customTag.trim() &&
-      !selectedTags.includes(customTag.trim()) &&
-      selectedTags.length < 10
+      !selectedTags.includes(customTag.trim())
     ) {
       setSelectedTags([...selectedTags, customTag.trim()]);
       setCustomTag("");
@@ -549,8 +564,16 @@ const AddCourse = () => {
     } catch (error: any) {
       // Extract the actual error message from the server response
       let errorMessage = "Failed to create course. Please try again.";
-      
-      if (error) {
+
+      // Show backend error for max tags
+      if (
+        error &&
+        (error.message === "Maximum 5 tags allowed" ||
+          error.err === "Maximum 5 tags allowed" ||
+          (error.data && error.data.message === "Maximum 5 tags allowed"))
+      ) {
+        errorMessage = "Maximum 5 tags allowed";
+      } else if (error) {
         if (typeof error === 'string') {
           errorMessage = error;
         } else if (error.message) {
@@ -561,7 +584,7 @@ const AddCourse = () => {
           errorMessage = error.data.message;
         }
       }
-      
+
       setPopup({
         isVisible: true,
         message: errorMessage,
