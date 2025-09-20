@@ -823,7 +823,7 @@ const EditCourse = () => {
                       formData.accessType === "subscription") && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                          Access Period (days)
+                          Access Period
                         </label>
                         <input
                           type="String"
@@ -832,7 +832,7 @@ const EditCourse = () => {
                           onChange={handleInputChange}
                           min="1"
                           className="w-full border dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Enter number of days"
+                          placeholder="1 year, 3 month, 2 week etc"
                         />
                       </div>
                     )}
