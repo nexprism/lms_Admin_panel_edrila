@@ -328,6 +328,12 @@ const EditCourse = () => {
       errors.demoVideoUrl = "Please enter a valid YouTube URL";
     }
 
+    if (selectedTags.length === 0) {
+      errors.tags = "At least one tag is required";
+    } else if (selectedTags.length > 5) {
+      errors.tags = "Maximum 5 tags allowed";
+    }
+
     return errors;
   };
 
@@ -436,7 +442,15 @@ const EditCourse = () => {
   };
 
   const addTag = (tag) => {
-    if (!selectedTags.includes(tag) && selectedTags.length < 10) {
+    if (selectedTags.length >= 5) {
+      setPopup({
+        isVisible: true,
+        message: "Maximum 5 tags allowed",
+        type: "error",
+      });
+      return;
+    }
+    if (!selectedTags.includes(tag)) {
       setSelectedTags([...selectedTags, tag]);
       setFormErrors((prev) => ({ ...prev, tags: "" }));
     }
@@ -464,10 +478,17 @@ const EditCourse = () => {
   };
 
   const addCustomTag = () => {
+    if (selectedTags.length >= 5) {
+      setPopup({
+        isVisible: true,
+        message: "Maximum 5 tags allowed",
+        type: "error",
+      });
+      return;
+    }
     if (
       customTag.trim() &&
-      !selectedTags.includes(customTag.trim()) &&
-      selectedTags.length < 10
+      !selectedTags.includes(customTag.trim())
     ) {
       setSelectedTags([...selectedTags, customTag.trim()]);
       setCustomTag("");
@@ -476,7 +497,7 @@ const EditCourse = () => {
   };
 
   const handleModulesChange = (updatedModules: any) => {
-    console.log("handleModulesChange called with:", updatedModules);
+    // Only update modules state, do not show popup here
     setModules(updatedModules);
   };
 
@@ -493,6 +514,7 @@ const EditCourse = () => {
       demoVideoUrl
     );
 
+    console?.log('Validation errors:', errors);
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       setPopup({
@@ -507,7 +529,10 @@ const EditCourse = () => {
 
     Object.keys(formData).forEach((key) => {
       const value = formData[key];
-      if (Array.isArray(value)) {
+      if (key === "isPublished") {
+        // Pass as boolean
+        submitFormData.set("isPublished", (!isDraft && !!formData.isPublished).toString());
+      } else if (Array.isArray(value)) {
         submitFormData.append(key, value.length > 0 ? String(value[0]) : "");
       } else {
         submitFormData.append(key, String(value));
@@ -522,9 +547,9 @@ const EditCourse = () => {
     );
 
     submitFormData.set("description", description);
-    submitFormData.set("seoContent",seoContent);
+    submitFormData.set("seoContent", seoContent);
     submitFormData.set("tags", JSON.stringify(selectedTags));
-    submitFormData.set("isPublished", (!isDraft).toString());
+    // isPublished already set above as boolean string
     submitFormData.set("level", formData.level || "beginner");
     submitFormData.set("demoVideo", demoVideoUrl);
 
@@ -1204,7 +1229,15 @@ const EditCourse = () => {
                         type="checkbox"
                         name="isPublished"
                         checked={formData.isPublished}
-                        onChange={handleInputChange}
+                        // Only update local state, do NOT call handleSubmit here
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setFormData((prev) => ({
+                            ...prev,
+                            isPublished: checked,
+                          }));
+                          setFormErrors((prev) => ({ ...prev, isPublished: "" }));
+                        }}
                         className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
                       />
                       <Eye className="w-4 h-4 text-blue-600" />
