@@ -1,3 +1,31 @@
+import axios from "axios";
+// Remove duplicate import of createAsyncThunk
+
+export interface BulkEnrollResponse {
+  success: boolean;
+  message?: string;
+  students?: Student[];
+}
+
+export const bulkEnrollStudents = createAsyncThunk<
+  BulkEnrollResponse,
+  FormData,
+  { rejectValue: string }
+>("students/bulkEnrollStudents", async (formData, { rejectWithValue }) => {
+  try {
+    const response = await axiosInstance.post("/bulk-import", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data as BulkEnrollResponse;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      return rejectWithValue(
+        error.response?.data?.message || "Bulk upload failed"
+      );
+    }
+    return rejectWithValue("Bulk upload failed");
+  }
+});
 // studentSlice.ts
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../../services/axiosConfig";
@@ -98,8 +126,6 @@ export const fetchAllStudents = createAsyncThunk<
   }
 });
 
-
-
 export interface BanStudentPayload {
   userId: string;
   banType: "shadowBan" | "ban";
@@ -109,39 +135,32 @@ export interface BanStudentPayload {
 export const banStudent = createAsyncThunk<
   { userId: string; banType: string; banReason: string },
   BanStudentPayload
->(
-  "students/banStudent",
-  async (payload, { rejectWithValue }) => {
-    try {
-      const response = await axiosInstance.put(
-        `${API_BASE_URL}/ban-shadow-ban`,
-        payload
-      );
-      return response.data?.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
-    }
+>("students/banStudent", async (payload, { rejectWithValue }) => {
+  try {
+    const response = await axiosInstance.put(
+      `${API_BASE_URL}/ban-shadow-ban`,
+      payload
+    );
+    return response.data?.data;
+  } catch (error: any) {
+    return rejectWithValue(error.response?.data?.message || error.message);
   }
-);
+});
 
 export const unbanStudent = createAsyncThunk<
   { userId: string },
   BanStudentPayload
->(
-  "students/unbanStudent",
-  async (payload, { rejectWithValue }) => {
-    try {
-      const response = await axiosInstance.put(
-        `${API_BASE_URL}/unban-user`,
-        payload
-      );
-      return response.data?.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
-    }
+>("students/unbanStudent", async (payload, { rejectWithValue }) => {
+  try {
+    const response = await axiosInstance.put(
+      `${API_BASE_URL}/unban-user`,
+      payload
+    );
+    return response.data?.data;
+  } catch (error: any) {
+    return rejectWithValue(error.response?.data?.message || error.message);
   }
-);
-
+});
 
 export const fetchStudentById = createAsyncThunk<Student, string>(
   "students/fetchById",
@@ -159,7 +178,6 @@ export const fetchStudentById = createAsyncThunk<Student, string>(
   }
 );
 
-
 export const deleteStudent = createAsyncThunk<string, string>(
   "students/delete",
   async (id, { rejectWithValue }) => {
@@ -172,13 +190,10 @@ export const deleteStudent = createAsyncThunk<string, string>(
   }
 );
 
-
-
 export interface DisableDripPayload {
   courseId: string;
   userId: string;
 }
-
 
 export interface DisableDripForModulePayload {
   moduleId: string;
@@ -203,10 +218,7 @@ export const disableDripForModule = createAsyncThunk<
   }
 );
 
-export const fetchStudentAnalytics = createAsyncThunk<
-  any,
-  string
->(
+export const fetchStudentAnalytics = createAsyncThunk<any, string>(
   "students/fetchAnalytics",
   async (studentId, { rejectWithValue }) => {
     try {
@@ -219,7 +231,6 @@ export const fetchStudentAnalytics = createAsyncThunk<
     }
   }
 );
-
 
 export const disableDripForUser = createAsyncThunk<
   { courseId: string; userId: string },
@@ -261,16 +272,12 @@ export const createStudent = createAsyncThunk<Student, CreateStudentPayload>(
   }
 );
 
-
 export interface EnrollStudentPayload {
   userId: string;
   courseId: string;
 }
 
-export const enrollStudent = createAsyncThunk<
-  any,
-  EnrollStudentPayload
->(
+export const enrollStudent = createAsyncThunk<any, EnrollStudentPayload>(
   "students/enroll",
   async (payload, { rejectWithValue }) => {
     try {
@@ -373,8 +380,7 @@ const studentSlice = createSlice({
       .addCase(createStudent.pending, (state) => {
         state.loading = true;
         state.error = null;
-      }
-      )
+      })
       .addCase(createStudent.fulfilled, (state, action) => {
         state.loading = false;
         state.students.push(action.payload);
@@ -389,11 +395,24 @@ const studentSlice = createSlice({
       })
       .addCase(enrollStudent.fulfilled, (state, action) => {
         state.loading = false;
-        
+
         // Assuming the response contains the updated student data
         const updatedStudent = action.payload.student;
       })
       .addCase(enrollStudent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(bulkEnrollStudents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(bulkEnrollStudents.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
+        // Optionally update students list if response contains new students
+      })
+      .addCase(bulkEnrollStudents.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
@@ -403,7 +422,7 @@ const studentSlice = createSlice({
       })
       .addCase(disableDripForUser.fulfilled, (state, action) => {
         state.loading = false;
-     })
+      })
       .addCase(disableDripForUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
@@ -415,13 +434,21 @@ const studentSlice = createSlice({
       .addCase(banStudent.fulfilled, (state, action) => {
         state.loading = false;
         // Update student in list if present
-        state.students = state.students.map(student =>
+        state.students = state.students.map((student) =>
           student._id === action.payload.userId
-            ? { ...student, status: action.payload.banType, banReason: action.payload.banReason, isActive: false }
+            ? {
+                ...student,
+                status: action.payload.banType,
+                banReason: action.payload.banReason,
+                isActive: false,
+              }
             : student
         );
         // Update details if present
-        if (state.studentDetails && state.studentDetails._id === action.payload.userId) {
+        if (
+          state.studentDetails &&
+          state.studentDetails._id === action.payload.userId
+        ) {
           state.studentDetails = {
             ...state.studentDetails,
             status: action.payload.banType,
@@ -441,13 +468,21 @@ const studentSlice = createSlice({
       .addCase(unbanStudent.fulfilled, (state, action) => {
         state.loading = false;
         // Update student in list if present
-        state.students = state.students.map(student =>
+        state.students = state.students.map((student) =>
           student._id === action.payload.userId
-            ? { ...student, status: "active", banReason: undefined, isActive: true }
+            ? {
+                ...student,
+                status: "active",
+                banReason: undefined,
+                isActive: true,
+              }
             : student
         );
         // Update details if present
-        if (state.studentDetails && state.studentDetails._id === action.payload.userId) {
+        if (
+          state.studentDetails &&
+          state.studentDetails._id === action.payload.userId
+        ) {
           state.studentDetails = {
             ...state.studentDetails,
             status: "active",
@@ -487,15 +522,16 @@ const studentSlice = createSlice({
   },
 });
 
-export const { 
-  clearStudentDetails, 
-  setSearchQuery, 
-  setFilters, 
-  resetFilters, 
-  setCurrentPage 
+export const {
+  clearStudentDetails,
+  setSearchQuery,
+  setFilters,
+  resetFilters,
+  setCurrentPage,
 } = studentSlice.actions;
 
 export default studentSlice.reducer;
 
 // Selector to get all students
-export const getAllStudents = (state: { students: StudentState }) => state.students;
+export const getAllStudents = (state: { students: StudentState }) =>
+  state.students;

@@ -80,6 +80,7 @@ const EditJob: React.FC = () => {
 
   // Find the job to edit
   useEffect(() => {
+    console.log("Jobs loaded:", jobs);
     if (id && jobs.length > 0) {
       const jobToEdit = jobs.find((job) => job._id === id);
       if (jobToEdit) {
@@ -630,6 +631,30 @@ const EditJob: React.FC = () => {
                     No image selected. Upload a thumbnail image for the job.
                   </p>
                 )}
+              </div>
+
+
+                <div className="space-y-4 mb-10">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  Job Status
+                </h3>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="status"
+                    id="status"
+                    onChange={() => setFormData((prev) => ({ ...prev, status: !prev.status }))}
+                   checked={formData.status}
+                    className="w-4 h-4 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border file:text-sm file:font-medium file:border-gray-300 file:text-gray-700 dark:file:text-gray-200 dark:file:border-gray-600 dark:file:bg-gray-700 hover:file:bg-gray-100 dark:hover:file:bg-gray-600"
+                  />
+                  <label
+                    htmlFor="status"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 "
+                  >
+                    JOB Open
+                  </label>
+                </div>
               </div>
             </div>
 
