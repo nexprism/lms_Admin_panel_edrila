@@ -8,6 +8,7 @@ const EditModulePopup = ({ module, courseId, onClose, onModuleUpdated }) => {
     const [form, setForm] = useState({
         title: module.title || "",
         description: module.description || "",
+        order: module.order || 1,
         estimatedDuration: module.estimatedDuration ?? 60,
         isPublished: module.isPublished ?? false,
     });
@@ -21,6 +22,7 @@ const EditModulePopup = ({ module, courseId, onClose, onModuleUpdated }) => {
         setForm({
             title: module.title || "",
             description: module.description || "",
+            order: module.order || 1,
             estimatedDuration: module.estimatedDuration ?? 60,
             isPublished: module.isPublished ?? false,
         });
@@ -37,6 +39,7 @@ const EditModulePopup = ({ module, courseId, onClose, onModuleUpdated }) => {
                 setForm({
                     title: data.title || "",
                     description: data.description || "",
+                    order: data.order || 1,
                     estimatedDuration: data.estimatedDuration ?? 60,
                     isPublished: data.isPublished ?? false,
                 });
@@ -63,7 +66,7 @@ const EditModulePopup = ({ module, courseId, onClose, onModuleUpdated }) => {
                 courseId,
                 title: form.title,
                 description: form.description,
-                order: module.order || 1,
+                order: form.order || 1,
                 estimatedDuration: form.estimatedDuration,
                 isPublished: form.isPublished,
             };
@@ -86,7 +89,7 @@ const EditModulePopup = ({ module, courseId, onClose, onModuleUpdated }) => {
                 courseId,
                 title: form.title,
                 description: form.description,
-                order: module.order || 1,
+                order: form.order || 1,
                 estimatedDuration: form.estimatedDuration,
                 isPublished: false, // Mark as unpublished (deleted)
             };
@@ -157,6 +160,17 @@ const EditModulePopup = ({ module, courseId, onClose, onModuleUpdated }) => {
                                 type="number"
                                 value={form.estimatedDuration}
                                 onChange={e => setForm({ ...form, estimatedDuration: parseInt(e.target.value) || 60 })}
+                                className="w-full border rounded px-3 py-2"
+                                min={1}
+                                disabled={saving}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Module Order</label>
+                            <input
+                                type="number"
+                                value={form.order || 1}
+                                onChange={e => setForm({ ...form, order: parseInt(e.target.value) || 1 })}
                                 className="w-full border rounded px-3 py-2"
                                 min={1}
                                 disabled={saving}

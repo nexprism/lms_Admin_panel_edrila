@@ -118,7 +118,7 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
     description: "",
     order: 1,
     estimatedDuration: 60,
-    isPublished: false,
+    isPublished: true,
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -173,7 +173,7 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
         description: "",
         order: moduleData.order + 1, // Increment order for next module
         estimatedDuration: 60,
-        isPublished: false,
+        isPublished: true,
       });
     } catch (error) {
       setPopup({
@@ -257,7 +257,7 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
                 placeholder="60"
               />
             </div>
-            {/* <div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                 Module Order
               </label>
@@ -272,8 +272,9 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
                 }
                 className="w-full px-4 py-3 border-2 border-gray-300 dark:text-white/70  rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 min="1"
+                placeholder="1"
               />
-            </div> */}
+            </div>
           </div>
 
           {/* <div className="flex items-center gap-2">
@@ -977,7 +978,7 @@ const LessonEditor = ({
 
           {/* Basic Form Section */}
           <div className="p-5 bg-white">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Lesson Title
@@ -1002,7 +1003,7 @@ const LessonEditor = ({
                   onChange={(e) =>
                     onChange({ ...lesson, type: e.target.value })
                   }
-                  disabled={savedLessonId} // Make readonly when lesson is already saved
+                  disabled={savedLessonId}
                   className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base ${
                     savedLessonId
                       ? "bg-gray-100 text-gray-500 cursor-not-allowed"
@@ -1020,6 +1021,25 @@ const LessonEditor = ({
                     Lesson type cannot be changed after creation
                   </p>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Lesson Order
+                </label>
+                <input
+                  type="number"
+                  value={lesson.order || 1}
+                  onChange={(e) =>
+                    onChange({
+                      ...lesson,
+                      order: parseInt(e.target.value) || 1,
+                    })
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
+                  min="1"
+                  placeholder="1"
+                />
               </div>
             </div>
 
