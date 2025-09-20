@@ -16,6 +16,7 @@ import {
   ClipboardList,
   Clock,
   Users,
+  Lock,
 } from "lucide-react";
 import { fetchCourseById } from "../../store/slices/course";
 import { updateLessonMobileOnly } from "../../store/slices/lesson"; // Import the lesson thunk
@@ -453,6 +454,18 @@ const CourseAccordion = ({ courseId }) => {
                               <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
                                 Mobile Only
                               </span>
+                            )}
+                            
+                            {Array.isArray(lesson.dripRules) && lesson.dripRules.length > 0 && (
+                              <button
+                                type="button"
+                                className="flex items-center gap-1 px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-medium cursor-default"
+                                title="This lesson has a drip rule"
+                                style={{ pointerEvents: "none" }}
+                              >
+                                <Lock className="w-3 h-3 mr-1" />
+                                Drip Rule Added
+                              </button>
                             )}
                           </div>
                         </div>
