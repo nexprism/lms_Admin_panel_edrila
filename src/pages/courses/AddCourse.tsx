@@ -476,6 +476,7 @@ const AddCourse = () => {
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
+      console.log(errors);
       setPopup({
         isVisible: true,
         message: "Please fix the errors in the form",

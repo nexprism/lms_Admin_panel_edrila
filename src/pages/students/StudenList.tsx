@@ -32,6 +32,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { Link, useNavigate } from "react-router-dom";
 import EnrollStudentPopup from "../../components/students/EnrollStudentPopup";
 import CreateStudentPopup from "../../components/students/CreateStudentPopup";
+import BulkUploadPopup from "../../components/students/bulkUploadPopup";
 
 interface Student {
   _id: string;
@@ -140,16 +141,17 @@ const StudentList: React.FC = () => {
     useAppSelector((state) => state.students);
 
   // Add this after the useAppSelector line
-  console.log('Pagination state:', pagination);
-  console.log('Total pages:', pagination.totalPages);
-  console.log('Current page:', pagination.page);
-  console.log('Total items:', pagination.total);
+  console.log("Pagination state:", pagination);
+  console.log("Total pages:", pagination.totalPages);
+  console.log("Current page:", pagination.page);
+  console.log("Total items:", pagination.total);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [createPopupOpen, setCreatePopupOpen] = useState(false);
   const [enrollPopupOpen, setEnrollPopupOpen] = useState(false);
+  const [bulkUploadPopupOpen, setBulkUploadPopupOpen] = useState(false);
   const [banModalOpen, setBanModalOpen] = useState(false);
   const [studentToBan, setStudentToBan] = useState<Student | null>(null);
   const [banReason, setBanReason] = useState("");
@@ -157,7 +159,8 @@ const StudentList: React.FC = () => {
   const [banLoading, setBanLoading] = useState(false);
 
   const [searchInput, setSearchInput] = useState(searchQuery);
-  const [localFilters, setLocalFilters] = useState<Record<string, any>>(filters);
+  const [localFilters, setLocalFilters] =
+    useState<Record<string, any>>(filters);
 
   const [popup, setPopup] = useState<{
     message: string;
@@ -216,7 +219,9 @@ const StudentList: React.FC = () => {
           filters: {
             ...(localFilters.status ? { status: localFilters.status } : {}),
           },
-          searchFields: searchQuery ? { name: searchQuery, email: searchQuery } : {},
+          searchFields: searchQuery
+            ? { name: searchQuery, email: searchQuery }
+            : {},
           sort: { createdAt: "desc" },
         })
       );
@@ -271,7 +276,9 @@ const StudentList: React.FC = () => {
         await dispatch(deleteStudent(studentToDelete._id)).unwrap();
 
         setPopup({
-          message: `Student "${studentToDelete.fullName || studentToDelete.name}" deleted successfully`,
+          message: `Student "${
+            studentToDelete.fullName || studentToDelete.name
+          }" deleted successfully`,
           type: "success",
           isVisible: true,
         });
@@ -326,13 +333,17 @@ const StudentList: React.FC = () => {
     if (!studentToBan) return;
     setBanLoading(true);
     try {
-      await dispatch(banStudent({
-        userId: studentToBan._id,
-        banType,
-        banReason: banReason || "No reason provided",
-      })).unwrap();
+      await dispatch(
+        banStudent({
+          userId: studentToBan._id,
+          banType,
+          banReason: banReason || "No reason provided",
+        })
+      ).unwrap();
       setPopup({
-        message: `Student "${studentToBan.fullName || studentToBan.name}" banned successfully`,
+        message: `Student "${
+          studentToBan.fullName || studentToBan.name
+        }" banned successfully`,
         type: "success",
         isVisible: true,
       });
@@ -352,12 +363,13 @@ const StudentList: React.FC = () => {
     try {
       await dispatch(unbanStudent({ userId: student._id })).unwrap();
       setPopup({
-        message: `Student "${student.fullName || student.name}" unbanned successfully`,
+        message: `Student "${
+          student.fullName || student.name
+        }" unbanned successfully`,
         type: "success",
         isVisible: true,
       });
-            setTimeout(() => window.location.reload(), 1000);
-
+      setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       setPopup({
         message: "Failed to unban student. Please try again.",
@@ -416,12 +428,18 @@ const StudentList: React.FC = () => {
               + Enroll Student
             </button>
 
+            <button
+              onClick={() => setBulkUploadPopupOpen(true)}
+              className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-5 py-2 rounded-md shadow transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400"
+            >
+              Bulk Upload
+            </button>
+
             {/* Delete Student Button */}
             <button
               onClick={() => navigate("/students/delete-requests")}
               className="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2 rounded-md shadow transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
             >
-              
               Delete Student
             </button>
           </div>
@@ -528,7 +546,10 @@ const StudentList: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
               {students.length === 0 && !loading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                  <td
+                    colSpan={8}
+                    className="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                  >
                     No students found.
                   </td>
                 </tr>
@@ -539,7 +560,9 @@ const StudentList: React.FC = () => {
                     <tr
                       key={student._id || idx}
                       className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                      onClick={() => window.location.href = `/students/${student._id}`}
+                      onClick={() =>
+                        (window.location.href = `/students/${student._id}`)
+                      }
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                         {(pagination.page - 1) * pagination.limit + idx + 1}
@@ -548,8 +571,14 @@ const StudentList: React.FC = () => {
                         <img
                           src={
                             student?.profilePicture || student?.image
-                              ? `${import.meta.env.VITE_IMAGE_URL}/${student?.profilePicture || student?.image}`
-                              : `https://placehold.co/40x40?text=${(student?.fullName || student?.name || "S")?.charAt(0)}`
+                              ? `${import.meta.env.VITE_IMAGE_URL}/${
+                                  student?.profilePicture || student?.image
+                                }`
+                              : `https://placehold.co/40x40?text=${(
+                                  student?.fullName ||
+                                  student?.name ||
+                                  "S"
+                                )?.charAt(0)}`
                           }
                           onError={(e) => {
                             (e.currentTarget as HTMLImageElement).src =
@@ -576,12 +605,16 @@ const StudentList: React.FC = () => {
                         ) : (
                           <span className="inline-flex items-center">
                             <XCircle className="text-red-500 h-5 w-5" />
-                            <span className="ml-2 text-red-700 dark:text-red-400">Inactive</span>
+                            <span className="ml-2 text-red-700 dark:text-red-400">
+                              Inactive
+                            </span>
                           </span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {student?.createdAt ? new Date(student.createdAt).toLocaleDateString() : "-"}
+                        {student?.createdAt
+                          ? new Date(student.createdAt).toLocaleDateString()
+                          : "-"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {student.isBanned == true ? (
@@ -606,16 +639,28 @@ const StudentList: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
-                          <Link to={`/certificates/issue?user=${student._id}`}>
-                            <button className="text-green-500 hover:text-green-700 transition-colors p-1">
-                              <Award className="h-5 w-5" />
-                            </button>
-                          </Link>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(
+                                `/certificates/issue?user=${student._id}`,
+                                "_blank"
+                              );
+                            }}
+                            className="text-green-500 hover:text-green-700 transition-colors p-1"
+                          >
+                            <Award className="h-5 w-5" />
+                          </button>
+
                           {/* Ban/Unban Button */}
-                          {student.isBanned == true || student.isShadowBanned == true ? (
+                          {student.isBanned == true ||
+                          student.isShadowBanned == true ? (
                             <button
                               className="text-yellow-600 hover:text-yellow-800 transition-colors p-1"
-                              onClick={e => { e.stopPropagation(); handleUnban(student); }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUnban(student);
+                              }}
                               disabled={banLoading}
                               title="Unban Student"
                             >
@@ -624,7 +669,10 @@ const StudentList: React.FC = () => {
                           ) : (
                             <button
                               className="text-red-500 hover:text-red-700 transition-colors p-1"
-                              onClick={e => { e.stopPropagation(); openBanModal(student); }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openBanModal(student);
+                              }}
                               disabled={banLoading}
                               title="Ban/Shadow Ban Student"
                             >
@@ -719,21 +767,34 @@ const StudentList: React.FC = () => {
         onClose={() => setEnrollPopupOpen(false)}
       />
 
+      <BulkUploadPopup
+        open={bulkUploadPopupOpen}
+        onClose={() => setBulkUploadPopupOpen(false)}
+      />
+
       {/* Ban Modal */}
       {banModalOpen && studentToBan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Ban Student
             </h3>
             <p className="text-gray-700 mb-4">
-              Are you sure you want to ban <span className="font-semibold">{studentToBan.fullName || studentToBan.name}</span>?
+              Are you sure you want to ban{" "}
+              <span className="font-semibold">
+                {studentToBan.fullName || studentToBan.name}
+              </span>
+              ?
             </p>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Ban Type</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ban Type
+              </label>
               <select
                 value={banType}
-                onChange={e => setBanType(e.target.value as "ban" | "shadowBan")}
+                onChange={(e) =>
+                  setBanType(e.target.value as "ban" | "shadowBan")
+                }
                 className="w-full border border-gray-300 rounded-md px-3 py-2"
               >
                 <option value="ban">Ban</option>
@@ -741,11 +802,13 @@ const StudentList: React.FC = () => {
               </select>
             </div>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Reason
+              </label>
               <input
                 type="text"
                 value={banReason}
-                onChange={e => setBanReason(e.target.value)}
+                onChange={(e) => setBanReason(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2"
                 placeholder="Enter reason (optional)"
               />
@@ -759,7 +822,9 @@ const StudentList: React.FC = () => {
                 Cancel
               </button>
               <button
-                className={`px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 flex items-center ${banLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 flex items-center ${
+                  banLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
                 onClick={handleBanConfirm}
                 disabled={banLoading}
               >
