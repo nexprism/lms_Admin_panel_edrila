@@ -69,24 +69,24 @@ const validateForm = (
     errors.title = "Title must be less than 100 characters";
   }
 
-  if (formData.price) {
-    if (isNaN(formData.price) || formData.price < 0) {
-      errors.price = "Price must be a non-negative number";
-    } else if (formData.price > 100000) {
-      errors.price = "Price cannot exceed 100,000";
-    }
-  } else {
-    errors.price = "Price is required";
-  }
+  // if (formData.price) {
+  //   if (isNaN(formData.price) || formData.price < 0) {
+  //     errors.price = "Price must be a non-negative number";
+  //   } else if (formData.price > 100000) {
+  //     errors.price = "Price cannot exceed 100,000";
+  //   }
+  // } else {
+  //   errors.price = "Price is required";
+  // }
 
   // Validate salePrice only if it's provided
-  if (formData.salePrice && formData.salePrice.trim() !== "") {
-    if (isNaN(formData.salePrice) || formData.salePrice < 0) {
-      errors.salePrice = "Sale price must be a non-negative number";
-    } else if (formData.salePrice > 100000) {
-      errors.salePrice = "Sale price cannot exceed 100,000";
-    }
-  }
+  // if (formData.salePrice && formData.salePrice.trim() !== "") {
+  //   if (isNaN(formData.salePrice) || formData.salePrice < 0) {
+  //     errors.salePrice = "Sale price must be a non-negative number";
+  //   } else if (formData.salePrice > 100000) {
+  //     errors.salePrice = "Sale price cannot exceed 100,000";
+  //   }
+  // }
 
   if (formData.seoMetaDescription.length > 160) {
     errors.seoMetaDescription =
@@ -659,8 +659,6 @@ const AddCourse = () => {
         return formData.categoryId && formData.subCategoryId && formData.duration;
       case "media":
         return thumbnailFile !== null;
-      case "pricing":
-        return formData.price && !isNaN(formData.price) && formData.price >= 0;
       case "tags":
         return selectedTags.length > 0;
       default:
@@ -946,7 +944,7 @@ const AddCourse = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   Pricing
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       Price *
@@ -1033,7 +1031,7 @@ const AddCourse = () => {
                       </option>
                     </select>
                   </div>
-                </div>
+                </div> */}
                 {/* --- Plans Section --- */}
                 <div className="mt-8">
                   <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-2">
