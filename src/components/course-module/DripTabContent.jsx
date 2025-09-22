@@ -415,13 +415,13 @@ const CourseAccordion = ({ courseId }) => {
 
                 {/* Lessons List */}
                 <div
-                  className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                  className={`overflow-auto transition-all duration-500 ease-in-out ${
                     expandedModules.has(module.id || module._id)
                       ? "max-h-screen opacity-100"
                       : "max-h-0 opacity-0"
                   }`}
                 >
-                  <div className="bg-blue-50 dark:bg-white/[0.01] border-t border-blue-100">
+                  <div className="bg-blue-50 dark:bg-white/[0.01] border-t border-blue-100 overflow-y-scroll">
                     {module.lessons?.map((lesson, index) => (
                       <div
                         key={lesson.id || lesson._id}
