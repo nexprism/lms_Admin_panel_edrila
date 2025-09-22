@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCourseById, updateCourse } from "../../store/slices/course";
 import CategorySubcategoryDropdowns from "../../components/CategorySubcategoryDropdowns";
@@ -265,9 +265,31 @@ const EditCourse = () => {
     isSubscription: false,
     isPrivate: false,
     enableWaitlist: false,
-    accessType: "lifetime",
-    accessPeriod: "",
+    // accessType: "lifetime",
+    // accessPeriod: "",
   });
+
+  // Plans state
+  const [plans, setPlans] = useState<
+    { name: string; price: string; description: string; durationType: string; duration: string; salePrice: string; _id?: string }[]
+  >([]);
+
+  // Plan form state
+  const [planForm, setPlanForm] = useState({
+    name: "",
+    price: "",
+    description: "",
+    durationType: "Month",
+    duration: "",
+    salePrice: "",
+    _id: undefined,
+  });
+
+  // Track if editing a plan (by index)
+  const [editingPlanIdx, setEditingPlanIdx] = useState<number | null>(null);
+
+  // Plan form errors
+  const [planFormError, setPlanFormError] = useState("");
 
   // Predefined tags (unchanged)
   const predefinedTags = [
@@ -394,8 +416,8 @@ const EditCourse = () => {
         isSubscription: course.isSubscription || false,
         isPrivate: course.isPrivate || false,
         enableWaitlist: course.enableWaitlist || false,
-        accessType: course.accessType || "lifetime",
-        accessPeriod: course.accessPeriod || "",
+        // accessType: course.accessType || "lifetime",
+        // accessPeriod: course.accessPeriod || "",
       }));
 
       setDescription(course.description || "");
@@ -428,6 +450,21 @@ const EditCourse = () => {
       }));
 
       setModules(processedModules);
+
+      // --- Load initial plans from backend ---
+      if (Array.isArray(course.plans)) {
+        setPlans(
+          course.plans.map((p) => ({
+            name: p.name || "",
+            price: String(p.price ?? ""),
+            description: p.description || "",
+            durationType: p.durationType || "Month",
+            duration: String(p.duration ?? ""),
+            salePrice: String(p.salePrice ?? ""),
+            _id: p._id,
+          }))
+        );
+      }
     }
   }, [courseData]);
 
@@ -501,6 +538,49 @@ const EditCourse = () => {
     setModules(updatedModules);
   };
 
+  // Add or update plan
+  const handleAddOrUpdatePlan = () => {
+    if (!planForm.name.trim() || !planForm.price.trim() || !planForm.durationType || !planForm.duration.trim()) {
+      setPlanFormError("Name, price, duration type, and duration are required");
+      return;
+    }
+    if (editingPlanIdx !== null) {
+      // Update existing plan
+      setPlans((prev) =>
+        prev.map((p, idx) => (idx === editingPlanIdx ? { ...planForm } : p))
+      );
+      setEditingPlanIdx(null);
+    } else {
+      // Add new plan
+      setPlans([...plans, { ...planForm }]);
+    }
+    setPlanForm({ name: "", price: "", description: "", durationType: "Month", duration: "", salePrice: "", _id: undefined });
+    setPlanFormError("");
+  };
+
+  // Edit plan
+  const handleEditPlan = (idx: number) => {
+    setPlanForm({ ...plans[idx] });
+    setEditingPlanIdx(idx);
+    setPlanFormError("");
+  };
+
+  // Remove plan
+  const handleRemovePlan = (idx: number) => {
+    setPlans(plans.filter((_, i) => i !== idx));
+    if (editingPlanIdx === idx) {
+      setPlanForm({ name: "", price: "", description: "", durationType: "Month", duration: "", salePrice: "", _id: undefined });
+      setEditingPlanIdx(null);
+    }
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setPlanForm({ name: "", price: "", description: "", durationType: "Month", duration: "", salePrice: "", _id: undefined });
+    setEditingPlanIdx(null);
+    setPlanFormError("");
+  };
+
   const handleSubmit = async (e, isDraft = false) => {
     e.preventDefault();
 
@@ -530,7 +610,6 @@ const EditCourse = () => {
     Object.keys(formData).forEach((key) => {
       const value = formData[key];
       if (key === "isPublished") {
-        // Pass as boolean
         submitFormData.set("isPublished", (!isDraft && !!formData.isPublished).toString());
       } else if (Array.isArray(value)) {
         submitFormData.append(key, value.length > 0 ? String(value[0]) : "");
@@ -541,26 +620,35 @@ const EditCourse = () => {
 
     submitFormData.set("title", String(formData.title));
     submitFormData.set("subtitle", String(formData.subtitle));
-    submitFormData.set(
-      "seoMetaDescription",
-      String(formData.seoMetaDescription)
-    );
-
+    submitFormData.set("seoMetaDescription", String(formData.seoMetaDescription));
     submitFormData.set("description", description);
     submitFormData.set("seoContent", seoContent);
     submitFormData.set("tags", JSON.stringify(selectedTags));
-    // isPublished already set above as boolean string
     submitFormData.set("level", formData.level || "beginner");
     submitFormData.set("demoVideo", demoVideoUrl);
 
     if (thumbnailFile) submitFormData.set("thumbnail", thumbnailFile);
     if (coverImageFile) submitFormData.set("coverImage", coverImageFile);
 
+    // --- FLATTEN PLANS IN PAYLOAD WITHOUT QUOTES ---
+    plans.forEach((plan, idx) => {
+      Object.entries(plan).forEach(([key, value]) => {
+        if (key !== "_id") {
+          submitFormData.append(`plans[${idx}][${key}]`, value);
+        }
+        // Optionally, send _id for existing plans if backend supports updating by _id
+        if (key === "_id" && value) {
+          submitFormData.append(`plans[${idx}][_id]`, value);
+        }
+      });
+    });
+    // --- END FLATTEN PLANS ---
+
     try {
       await dispatch(
         updateCourse({ id: courseId, data: submitFormData })
       ).unwrap();
-        setPopup({
+      setPopup({
         isVisible: true,
         message: isDraft
           ? "Course saved as draft successfully!"
@@ -805,39 +893,7 @@ const EditCourse = () => {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        Access Type
-                      </label>
-                      <select
-                        name="accessType"
-                        value={formData.accessType}
-                        onChange={handleInputChange}
-                        className="w-full border dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="lifetime">Lifetime</option>
-                        <option value="limited">Limited</option>
-                      </select>
-                    </div>
-                    {(formData.accessType === "limited" ||
-                      formData.accessType === "subscription") && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                          Access Period
-                        </label>
-                        <input
-                          type="String"
-                          name="accessPeriod"
-                          value={formData.accessPeriod}
-                          onChange={handleInputChange}
-                          min="1"
-                          className="w-full border dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="1 year, 3 month, 2 week etc"
-                        />
-                      </div>
-                    )}
-                  </div>
+                 
                 </div>
               )}
 
@@ -948,7 +1004,7 @@ const EditCourse = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
                         <DollarSign className="w-4 h-4" />
-                        sale Price
+                        Sale Price
                       </label>
                       <input
                         type="number"
@@ -994,6 +1050,125 @@ const EditCourse = () => {
                       </select>
                     </div>
                   </div>
+                  {/* --- Plans Section --- */}
+                  <div className="mt-8">
+                    <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                      Course Plans
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-2">
+                      <input
+                        type="text"
+                        placeholder="Plan Name"
+                        value={planForm.name}
+                        onChange={e => setPlanForm({ ...planForm, name: e.target.value })}
+                        className="border rounded px-2 py-2 text-sm"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Price"
+                        value={planForm.price}
+                        onChange={e => setPlanForm({ ...planForm, price: e.target.value })}
+                        className="border rounded px-2 py-2 text-sm"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Description"
+                        value={planForm.description}
+                        onChange={e => setPlanForm({ ...planForm, description: e.target.value })}
+                        className="border rounded px-2 py-2 text-sm"
+                      />
+                      <select
+                        value={planForm.durationType}
+                        onChange={e => setPlanForm({ ...planForm, durationType: e.target.value })}
+                        className="border rounded px-2 py-2 text-sm"
+                      >
+                        <option value="Month">Month</option>
+                        <option value="Year">Year</option>
+                        <option value="Day">Day</option>
+                      </select>
+                      <input
+                        type="number"
+                        placeholder="Duration"
+                        value={planForm.duration}
+                        onChange={e => setPlanForm({ ...planForm, duration: e.target.value })}
+                        className="border rounded px-2 py-2 text-sm"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Sale Price"
+                        value={planForm.salePrice}
+                        onChange={e => setPlanForm({ ...planForm, salePrice: e.target.value })}
+                        className="border rounded px-2 py-2 text-sm"
+                      />
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        type="button"
+                        onClick={handleAddOrUpdatePlan}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                      >
+                        {editingPlanIdx !== null ? "Update Plan" : "Add Plan"}
+                      </button>
+                      {editingPlanIdx !== null && (
+                        <button
+                          type="button"
+                          onClick={handleCancelEdit}
+                          className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                    {planFormError && (
+                      <div className="text-xs text-red-600 mt-1">{planFormError}</div>
+                    )}
+                    {plans.length > 0 && (
+                      <div className="mt-4">
+                        <table className="w-full text-sm border">
+                          <thead>
+                            <tr className="bg-gray-100 dark:bg-gray-700">
+                              <th className="p-2">Name</th>
+                              <th className="p-2">Price</th>
+                              <th className="p-2">Description</th>
+                              <th className="p-2">Duration Type</th>
+                              <th className="p-2">Duration</th>
+                              <th className="p-2">Sale Price</th>
+                              <th className="p-2">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {plans.map((plan, idx) => (
+                              <tr key={plan._id || idx}>
+                                <td className="p-2">{plan.name}</td>
+                                <td className="p-2">{plan.price}</td>
+                                <td className="p-2">{plan.description}</td>
+                                <td className="p-2">{plan.durationType}</td>
+                                <td className="p-2">{plan.duration}</td>
+                                <td className="p-2">{plan.salePrice}</td>
+                                <td className="p-2 flex gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEditPlan(idx)}
+                                    className="text-blue-500 hover:underline"
+                                  >
+                                    Edit
+                                  </button>
+                                  {/* <button
+                                    type="button"
+                                    onClick={() => handleRemovePlan(idx)}
+                                    className="text-red-500 hover:underline"
+                                  >
+                                    Remove
+                                  </button> */}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                  {/* --- End Plans Section --- */}
                 </div>
               )}
 

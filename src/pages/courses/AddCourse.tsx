@@ -391,10 +391,27 @@ const AddCourse = () => {
     courseForum: false,
     isSubscription: false,
     isPrivate: false,
-    enableWaitlist: false,
-    accessType: "lifetime",
-    accessPeriod: "",
+    enableWaitlist: false
+    
   });
+
+  // Plans state
+  const [plans, setPlans] = useState<
+    { name: string; price: string; description: string; durationType: string; duration: string; salePrice: string }[]
+  >([]);
+
+  // Plan form state
+  const [planForm, setPlanForm] = useState({
+    name: "",
+    price: "",
+    description: "",
+    durationType: "Month",
+    duration: "",
+    salePrice: "",
+  });
+
+  // Plan form errors
+  const [planFormError, setPlanFormError] = useState("");
 
   const predefinedTags = [
     "Programming",
@@ -476,6 +493,22 @@ const AddCourse = () => {
     setFormErrors((prev) => ({ ...prev, subCategoryId: "" }));
   };
 
+  // Add plan to plans array
+  const handleAddPlan = () => {
+    if (!planForm.name.trim() || !planForm.price.trim() || !planForm.durationType || !planForm.duration.trim()) {
+      setPlanFormError("Name, price, duration type, and duration are required");
+      return;
+    }
+    setPlans([...plans, { ...planForm }]);
+    setPlanForm({ name: "", price: "", description: "", durationType: "Month", duration: "", salePrice: "" });
+    setPlanFormError("");
+  };
+
+  // Remove plan
+  const handleRemovePlan = (idx: number) => {
+    setPlans(plans.filter((_, i) => i !== idx));
+  };
+
   const handleSubmit = async (e, isDraft = false) => {
     e.preventDefault();
 
@@ -503,9 +536,8 @@ const AddCourse = () => {
     const submitFormData = new FormData();
     Object.keys(formData).forEach((key) => {
       const value = formData[key];
-      // Handle empty salePrice - don't append if it's empty
       if (key === 'salePrice' && (!value || value === '')) {
-        return; // Skip appending empty salePrice
+        return;
       }
       submitFormData.append(key, String(value));
     });
@@ -517,6 +549,15 @@ const AddCourse = () => {
 
     if (thumbnailFile) submitFormData.append("thumbnail", thumbnailFile);
     if (coverImageFile) submitFormData.append("coverImage", coverImageFile);
+
+    // --- FLATTEN PLANS IN PAYLOAD WITHOUT QUOTES ---
+    plans.forEach((plan, idx) => {
+      Object.entries(plan).forEach(([key, value]) => {
+        // Use bracket notation, not quotes
+        submitFormData.append(`plans[${idx}][${key}]`, value);
+      });
+    });
+    // --- END FLATTEN PLANS ---
 
     try {
       await dispatch(createCourse(submitFormData) as any).unwrap();
@@ -551,9 +592,8 @@ const AddCourse = () => {
         courseForum: false,
         isSubscription: false,
         isPrivate: false,
-        enableWaitlist: false,
-        accessType: "lifetime",
-        accessPeriod: "",
+        enableWaitlist: false
+       
       });
       setDescription("");
       setSeoContent("");
@@ -831,57 +871,7 @@ const AddCourse = () => {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                      Access Type
-                    </label>
-                    <select
-                      name="accessType"
-                      value={formData.accessType}
-                      onChange={handleInputChange}
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="lifetime">Lifetime</option>
-                      <option value="limited">Limited</option>
-                    </select>
-                  </div>
-                  {(formData.accessType === "limited" || formData.accessType === "subscription") && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        Access Period
-                      </label>
-                      <input
-                        type="text"
-                        name="accessPeriod"
-                        value={formData.accessPeriod}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const valid =
-                            value.trim() === "" ||
-                            /(day|month|year)/i.test(value);
-                          handleInputChange(e);
-                          setFormErrors((prev) => ({
-                            ...prev,
-                            accessPeriod:
-                              !valid && value.trim() !== ""
-                                ? 'Access period must include "day", "month", or "year"'
-                                : "",
-                          }));
-                        }}
-                        className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          formErrors.accessPeriod
-                            ? "border-red-400"
-                            : "border-gray-300 dark:border-gray-600"
-                        }`}
-                        placeholder="2 weeks, 1 month, etc."
-                      />
-                      {formErrors.accessPeriod && (
-                        <p className="mt-1 text-xs text-red-600">{formErrors.accessPeriod}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
+               
               </div>
             )}
             {activeTab === "media" && (
@@ -1044,6 +1034,107 @@ const AddCourse = () => {
                     </select>
                   </div>
                 </div>
+                {/* --- Plans Section --- */}
+                <div className="mt-8">
+                  <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                    Course Plans
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-2">
+                    <input
+                      type="text"
+                      placeholder="Plan Name"
+                      value={planForm.name}
+                      onChange={e => setPlanForm({ ...planForm, name: e.target.value })}
+                      className="border rounded px-2 py-2 text-sm"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Price"
+                      value={planForm.price}
+                      onChange={e => setPlanForm({ ...planForm, price: e.target.value })}
+                      className="border rounded px-2 py-2 text-sm"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Description"
+                      value={planForm.description}
+                      onChange={e => setPlanForm({ ...planForm, description: e.target.value })}
+                      className="border rounded px-2 py-2 text-sm"
+                    />
+                    <select
+                      value={planForm.durationType}
+                      onChange={e => setPlanForm({ ...planForm, durationType: e.target.value })}
+                      className="border rounded px-2 py-2 text-sm"
+                    >
+                      <option value="Month">Month</option>
+                      <option value="Year">Year</option>
+                      <option value="Day">Day</option>
+                    </select>
+                    <input
+                      type="number"
+                      placeholder="Duration"
+                      value={planForm.duration}
+                      onChange={e => setPlanForm({ ...planForm, duration: e.target.value })}
+                      className="border rounded px-2 py-2 text-sm"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Sale Price"
+                      value={planForm.salePrice}
+                      onChange={e => setPlanForm({ ...planForm, salePrice: e.target.value })}
+                      className="border rounded px-2 py-2 text-sm"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddPlan}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                  >
+                    Add Plan
+                  </button>
+                  {planFormError && (
+                    <div className="text-xs text-red-600 mt-1">{planFormError}</div>
+                  )}
+                  {plans.length > 0 && (
+                    <div className="mt-4">
+                      <table className="w-full text-sm border">
+                        <thead>
+                          <tr className="bg-gray-100 dark:bg-gray-700">
+                            <th className="p-2">Name</th>
+                            <th className="p-2">Price</th>
+                            <th className="p-2">Description</th>
+                            <th className="p-2">Duration Type</th>
+                            <th className="p-2">Duration</th>
+                            <th className="p-2">Sale Price</th>
+                            <th className="p-2"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {plans.map((plan, idx) => (
+                            <tr key={idx}>
+                              <td className="p-2">{plan.name}</td>
+                              <td className="p-2">{plan.price}</td>
+                              <td className="p-2">{plan.description}</td>
+                              <td className="p-2">{plan.durationType}</td>
+                              <td className="p-2">{plan.duration}</td>
+                              <td className="p-2">{plan.salePrice}</td>
+                              <td className="p-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemovePlan(idx)}
+                                  className="text-red-500 hover:underline"
+                                >
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+                {/* --- End Plans Section --- */}
               </div>
             )}
             {activeTab === "tags" && (
