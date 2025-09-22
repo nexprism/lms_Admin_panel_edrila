@@ -139,6 +139,72 @@ const DripPopup = ({
   console.log("targetType:", course);
   const [edit, setEdit] = useState(false);
 
+  const [activeCategory, setActiveCategory] = useState("all");
+
+  // Always use the latest drip rule from API, not just initialData
+  const getInitialForm = () => ({
+    dripType: "",
+    referenceType: "enrollment",
+    referenceId: "",
+    delayDays: 0,
+    unlockDate: "",
+    requiredScore: "",
+    conditionOperator: "AND",
+    targetType: targetType || "lesson",
+    targetId: targetId || "",
+  });
+
+  const [form, setForm] = useState(getInitialForm());
+
+  // Always fetch latest drip rule from API when popup opens (targetId changes)
+  const getData = async () => {
+    try {
+      const result = await axiosInstance.get(
+        `/drip/drip-rules/by-reference/${targetId}`
+      );
+      // Support both array and object API responses
+      const data =
+        Array.isArray(result?.data?.data) && result.data.data.length > 0
+          ? result.data.data[0]
+          : result?.data?.data;
+      if (!data || !data.dripRuleId) {
+        setEdit(false);
+        setForm(getInitialForm());
+        return;
+      }
+      setEdit(true);
+      setForm({
+        dripType: data.dripRuleId.dripType || "",
+        referenceType: data.dripRuleId.referenceType || "",
+        referenceId: data.dripRuleId.referenceId || "",
+        delayDays: data.dripRuleId.delayDays || 0,
+        unlockDate: data.dripRuleId.unlockDate || "",
+        requiredScore: data.dripRuleId.requiredScore || "",
+        conditionOperator: data.dripRuleId.conditionOperator || "AND",
+        targetType: data.targetType || "lesson",
+        targetId: data.targetId || "",
+      });
+    } catch (error) {
+      setEdit(false);
+      setForm(getInitialForm());
+      console.error("Failed to fetch drip data:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (targetId) {
+      getData();
+    }
+    // eslint-disable-next-line
+  }, [targetId]);
+
+  // When closing popup, also reset edit state and form
+  const handleClose = () => {
+    setEdit(false);
+    setForm(getInitialForm());
+    onClose();
+  };
+
   const [popup, setPopup] = useState({
     isVisible: false,
     message: "",
@@ -154,41 +220,6 @@ const DripPopup = ({
   }, [dispatch]);
 
   console.log("Initial Data:", initialData[0]?.dripType);
-
-  const [form, setForm] = useState({
-    dripType: initialData[0]?.dripType || "",
-    referenceType: initialData[0]?.referenceType || "enrollment",
-    referenceId: initialData[0]?.referenceId || initialData[0]?.targetId || "",
-    delayDays: initialData[0]?.delayDays || 0,
-    unlockDate: initialData[0]?.unlockDate || "",
-    requiredScore: initialData[0]?.requiredScore || "",
-    conditionOperator: initialData[0]?.conditionOperator || "AND",
-    targetType: targetType || initialData[0]?.targetType || "lesson",
-    targetId: targetId || initialData[0]?.targetId || "",
-  });
-
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  // --- MULTISELECT STATE ---
-  const [multiSelectOpen, setMultiSelectOpen] = useState(false);
-  const [selectAll, setSelectAll] = useState(false);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Reset referenceId when reference type changes
-    if (name === "referenceType") {
-      setForm((prev) => ({
-        ...prev,
-        referenceId: "",
-      }));
-    }
-  };
 
   // Update form state for multi-select
   const handleMultiSelectChange = (value) => {
@@ -215,34 +246,7 @@ const DripPopup = ({
     }
   };
 
-  const getData = async () => {
-    try {
-      const result = await axiosInstance.get(
-        `/drip/drip-rules/by-reference/${targetId}`
-      );
-      const data = result.data.data[0];
-      setEdit(true);
-      setForm({
-        dripType: data.dripRuleId.dripType || "",
-        referenceType: data.dripRuleId.referenceType || "",
-        referenceId: data.dripRuleId.referenceId || "",
-        delayDays: data.dripRuleId.delayDays || 0,
-        unlockDate: data.dripRuleId.unlockDate || "",
-        requiredScore: data.dripRuleId.requiredScore || "",
-        conditionOperator: data.dripRuleId.conditionOperator || "AND",
-        targetType: data.targetType || "lesson",
-        targetId: data.targetId || "",
-      });
-    } catch (error) {
-      console.error("Failed to fetch drip data:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (targetId) {
-      getData();
-    }
-  }, [targetId]);
+  // Duplicate getData removed to fix redeclaration error.
 
   const handleSubmit = async () => {
     if (form.dripType) {
@@ -410,6 +414,27 @@ const DripPopup = ({
       label: lesson.title,
     }));
   };
+
+  // Add handleChange function (was missing)
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Reset referenceId when reference type changes
+    if (name === "referenceType") {
+      setForm((prev) => ({
+        ...prev,
+        referenceId: "",
+      }));
+    }
+  };
+
+  // Add missing state for multiSelectOpen and selectAll
+  const [multiSelectOpen, setMultiSelectOpen] = useState(false);
+  const [selectAll, setSelectAll] = useState(false);
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -753,7 +778,11 @@ const DripPopup = ({
                     <input
                       type="date"
                       name="unlockDate"
-                      value={form.unlockDate}
+                      value={
+                        form.unlockDate
+                          ? form.unlockDate.slice(0, 10) // Show only YYYY-MM-DD
+                          : ""
+                      }
                       onChange={handleChange}
                       className="w-full pl-12 pr-4 py-3 border dark:text-white/70 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                       required
@@ -835,7 +864,7 @@ const DripPopup = ({
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-6 py-3 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all duration-200 font-medium"
             >
               Cancel

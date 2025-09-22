@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { fetchCourseById } from "../../store/slices/course";
 import { updateLessonMobileOnly } from "../../store/slices/lesson"; // Import the lesson thunk
+import { fetchDripRules, fetchCourseContents } from "../../store/slices/drip"; // already imported
+import axiosInstance from "../../services/axiosConfig"; // already imported in DripPopup, import here if needed
 import DripPopup from "./DripPopup";
 import PopupAlert from "../popUpAlert";
 
@@ -37,6 +39,8 @@ const CourseAccordion = ({ courseId }) => {
   const [modalData, setModalData] = useState(null);
   const [modules, setModules] = useState([]);
   const [dripModalData, setDripModalData] = useState(null);
+  // Add a state to force re-mount DripPopup so it always shows fresh data
+  const [dripPopupKey, setDripPopupKey] = useState(0);
   const [savingSettings, setSavingSettings] = useState(false); // Local loading state for settings save
   const [popup, setPopup] = useState({
     isVisible: false,
@@ -146,6 +150,17 @@ const CourseAccordion = ({ courseId }) => {
     }
   };
 
+  // Helper to refresh drip rules for a specific target
+  const refreshDripRulesForTarget = async (targetId) => {
+    try {
+      // Fetch latest drip rules for the specific target
+      await axiosInstance.get(`/drip/drip-rules/by-reference/${targetId}`);
+      // Optionally, update local state if needed
+    } catch (e) {
+      // handle error if needed
+    }
+  };
+
   const handleDripSettings = (lessonId, moduleId) => {
     console.log("Drip settings for lesson:", lessonId, "in module:", moduleId);
     // Find the lesson and module data
@@ -163,16 +178,17 @@ const CourseAccordion = ({ courseId }) => {
       targetType: "lesson", // Add target type
       targetId: lessonId, // Add target ID
     });
+    // Increment key to force DripPopup remount and always fetch latest data
+    setDripPopupKey((prev) => prev + 1);
   };
 
   const closeDripModal = () => {
     setDripModalData(null);
   };
 
-  const handleDripSubmit = (dripSettings, result) => {
+  const handleDripSubmit = async (dripSettings, result) => {
     console.log("Saving drip settings:", dripSettings);
     // Here you would typically make an API call to save the drip settings
-    // For now, just close the modal
 
     console.log("Drip settings submitted:", result);
     if (result) {
@@ -181,10 +197,12 @@ const CourseAccordion = ({ courseId }) => {
         message: "Drip settings saved successfully!",
         type: "success",
       });
-      // Refresh course data after successful drip update
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // Fetch updated drip rules for the target and refresh course contents
+      if (dripSettings?.targetId) {
+        await refreshDripRulesForTarget(dripSettings.targetId);
+      }
+      await dispatch(fetchCourseContents());
+      closeDripModal();
     } else {
       return setPopup({
         isVisible: true,
@@ -192,8 +210,6 @@ const CourseAccordion = ({ courseId }) => {
         type: "error",
       });
     }
-
-    closeDripModal();
   };
 
   const handleLessonSettings = (lessonId, moduleId) => {
@@ -686,7 +702,9 @@ const CourseAccordion = ({ courseId }) => {
                 </div>
                 {console.log("Drip Modal Data:", dripModalData)}
 
+                {/* Force DripPopup to remount by using key={dripPopupKey} */}
                 <DripPopup
+                  key={dripPopupKey}
                   onSubmit={handleDripSubmit}
                   onClose={closeDripModal}
                   initialData={{
@@ -726,14 +744,13 @@ const CourseAccordion = ({ courseId }) => {
                   </button>
                 </div>
                 <DripPopup
-                  onSubmit={(dripSettings, result) => {
-                    // --- Prevent any popup after drip update ---
+                  onSubmit={async (dripSettings, result) => {
                     setModuleDripModal(null);
-                    // Do NOT call setPopup here!
-                    // Prevent global popup by not dispatching any popup action here.
-                    if (result && result.success === true) {
-                      setTimeout(() => window.location.reload(), 1000);
+                    // Fetch updated drip rules for the target and refresh course contents
+                    if (dripSettings?.targetId) {
+                      await refreshDripRulesForTarget(dripSettings.targetId);
                     }
+                    await dispatch(fetchCourseContents());
                   }}
                   onClose={() => setModuleDripModal(null)}
                   initialData={[
