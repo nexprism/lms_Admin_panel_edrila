@@ -32,7 +32,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { Link, useNavigate } from "react-router-dom";
 import EnrollStudentPopup from "../../components/students/EnrollStudentPopup";
 import CreateStudentPopup from "../../components/students/CreateStudentPopup";
-import BulkUploadPopup from "../../components/students/bulkUploadPopup";
+import BulkUploadPopup from "../../components/students/BulkUploadPopup";
 
 interface Student {
   _id: string;
