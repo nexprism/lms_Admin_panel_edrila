@@ -118,7 +118,7 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
     description: "",
     order: 1,
     estimatedDuration: 60,
-    isPublished: false,
+    isPublished: true,
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -173,7 +173,7 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
         description: "",
         order: moduleData.order + 1, // Increment order for next module
         estimatedDuration: 60,
-        isPublished: false,
+        isPublished: true,
       });
     } catch (error) {
       setPopup({
@@ -257,7 +257,7 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
                 placeholder="60"
               />
             </div>
-            {/* <div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
                 Module Order
               </label>
@@ -272,8 +272,9 @@ const ModuleCreationForm = ({ onModuleCreated, courseId }) => {
                 }
                 className="w-full px-4 py-3 border-2 border-gray-300 dark:text-white/70  rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 min="1"
+                placeholder="1"
               />
-            </div> */}
+            </div>
           </div>
 
           {/* <div className="flex items-center gap-2">
@@ -369,7 +370,6 @@ const LessonEditor = ({
   // Extract content IDs based on lesson type
   // Helper to get the correct content object (e.g., quiz, assignment, etc.) by lesson type and lesson ID
   const getContentId = () => {
-    // If lesson already has the content object, use its _id
     switch (lesson.type) {
       case "quiz":
         // If lesson.quiz exists, use its _id, else try to find from courseData
@@ -403,32 +403,24 @@ const LessonEditor = ({
         }
         return lesson.assignmentId || lesson.fileId || null;
       case "text":
-        console.log("lesson.textContent", lesson);
-        console.log("modeLessons", courseData?.modules);
+        // Only return a valid string ID if it exists
         if (lesson.textLessons?.[0]?._id) return lesson.textLessons[0]._id;
         if (courseData?.modules) {
           for (const mod of courseData.modules) {
             if (mod.lessons) {
-              console.log("Checking module lessons:", mod.lessons);
               for (const l of mod.lessons) {
-                console.log("Checking lesson:", l);
-                // Check if the lesson matches and has textLessons
-                console.log(
-                  "Comparing lesson._id:",
-                  l._id,
-                  "with lesson._id:",
-                  lesson._id
-                );
-                // If lesson has textLessons, return the first one
-                console.log("l.textLessons", l.textLessons);
-                if (l._id == lesson._id && l.textLessons[0]?._id) {
-                  return l.textLessons._id || l.textLessons[0]?._id;
+                if (l._id == lesson._id && l.textLessons && l.textLessons[0]?._id) {
+                  return l.textLessons[0]._id;
                 }
               }
             }
           }
         }
-        return lesson.textLessons || lesson.textLessons || null;
+        // Only return a string if it's a valid ID
+        if (typeof lesson.textLessonId === "string" && lesson.textLessonId.length > 0) {
+          return lesson.textLessonId;
+        }
+        return null;
       case "video":
         if (lesson.files?.[0]?._id) return lesson.files?.[0]?._id;
         if (courseData?.modules) {
@@ -470,8 +462,8 @@ const LessonEditor = ({
   };
 
   const contentId = getContentId();
-  console.log("Content ID for lesson:", contentId);
-  const hasExistingContent = !!contentId;
+  // Only consider as existing content if contentId is a non-empty string
+  const hasExistingContent = typeof contentId === "string" && contentId.length > 0;
 
   const lessonTypeConfig = {
     "video-lesson": {
@@ -977,7 +969,7 @@ const LessonEditor = ({
 
           {/* Basic Form Section */}
           <div className="p-5 bg-white">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Lesson Title
@@ -1002,7 +994,7 @@ const LessonEditor = ({
                   onChange={(e) =>
                     onChange({ ...lesson, type: e.target.value })
                   }
-                  disabled={savedLessonId} // Make readonly when lesson is already saved
+                  disabled={savedLessonId}
                   className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base ${
                     savedLessonId
                       ? "bg-gray-100 text-gray-500 cursor-not-allowed"
@@ -1020,6 +1012,25 @@ const LessonEditor = ({
                     Lesson type cannot be changed after creation
                   </p>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Lesson Order
+                </label>
+                <input
+                  type="number"
+                  value={lesson.order || 1}
+                  onChange={(e) =>
+                    onChange({
+                      ...lesson,
+                      order: parseInt(e.target.value) || 1,
+                    })
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
+                  min="1"
+                  placeholder="1"
+                />
               </div>
             </div>
 
@@ -1641,3 +1652,4 @@ const ModuleSection = ({
 };
 
 export default ModuleSection;
+           

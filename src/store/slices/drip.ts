@@ -8,7 +8,7 @@ interface DripRulePayload {
   referenceId: string;
   delayDays: number;
   targetType: string;
-  targetId: string;
+  targetId: string | string[]; // <-- allow array for multi-select
 }
 
 interface DripState {

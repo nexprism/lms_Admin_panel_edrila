@@ -139,6 +139,72 @@ const DripPopup = ({
   console.log("targetType:", course);
   const [edit, setEdit] = useState(false);
 
+  const [activeCategory, setActiveCategory] = useState("all");
+
+  // Always use the latest drip rule from API, not just initialData
+  const getInitialForm = () => ({
+    dripType: "",
+    referenceType: "enrollment",
+    referenceId: "",
+    delayDays: 0,
+    unlockDate: "",
+    requiredScore: "",
+    conditionOperator: "AND",
+    targetType: targetType || "lesson",
+    targetId: targetId || "",
+  });
+
+  const [form, setForm] = useState(getInitialForm());
+
+  // Always fetch latest drip rule from API when popup opens (targetId changes)
+  const getData = async () => {
+    try {
+      const result = await axiosInstance.get(
+        `/drip/drip-rules/by-reference/${targetId}`
+      );
+      // Support both array and object API responses
+      const data =
+        Array.isArray(result?.data?.data) && result.data.data.length > 0
+          ? result.data.data[0]
+          : result?.data?.data;
+      if (!data || !data.dripRuleId) {
+        setEdit(false);
+        setForm(getInitialForm());
+        return;
+      }
+      setEdit(true);
+      setForm({
+        dripType: data.dripRuleId.dripType || "",
+        referenceType: data.dripRuleId.referenceType || "",
+        referenceId: data.dripRuleId.referenceId || "",
+        delayDays: data.dripRuleId.delayDays || 0,
+        unlockDate: data.dripRuleId.unlockDate || "",
+        requiredScore: data.dripRuleId.requiredScore || "",
+        conditionOperator: data.dripRuleId.conditionOperator || "AND",
+        targetType: data.targetType || "lesson",
+        targetId: data.targetId || "",
+      });
+    } catch (error) {
+      setEdit(false);
+      setForm(getInitialForm());
+      console.error("Failed to fetch drip data:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (targetId) {
+      getData();
+    }
+    // eslint-disable-next-line
+  }, [targetId]);
+
+  // When closing popup, also reset edit state and form
+  const handleClose = () => {
+    setEdit(false);
+    setForm(getInitialForm());
+    onClose();
+  };
+
   const [popup, setPopup] = useState({
     isVisible: false,
     message: "",
@@ -155,65 +221,32 @@ const DripPopup = ({
 
   console.log("Initial Data:", initialData[0]?.dripType);
 
-  const [form, setForm] = useState({
-    dripType: initialData[0]?.dripType || "",
-    referenceType: initialData[0]?.referenceType || "enrollment",
-    referenceId: initialData[0]?.referenceId || initialData[0]?.targetId || "",
-    delayDays: initialData[0]?.delayDays || 0,
-    unlockDate: initialData[0]?.unlockDate || "",
-    requiredScore: initialData[0]?.requiredScore || "",
-    conditionOperator: initialData[0]?.conditionOperator || "AND",
-    targetType: targetType || initialData[0]?.targetType || "lesson",
-    targetId: targetId || initialData[0]?.targetId || "",
-  });
+  // Update form state for multi-select
+  const handleMultiSelectChange = (value) => {
+    setForm((prev) => {
+      let targetIds = Array.isArray(prev.targetId) ? [...prev.targetId] : [];
+      if (targetIds.includes(value)) {
+        targetIds = targetIds.filter((id) => id !== value);
+      } else {
+        targetIds.push(value);
+      }
+      return { ...prev, targetId: targetIds };
+    });
+  };
 
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Reset referenceId when reference type changes
-    if (name === "referenceType") {
-      setForm((prev) => ({
-        ...prev,
-        referenceId: "",
-      }));
+  // Handle select all
+  const handleSelectAll = () => {
+    const options = getLessonMultiSelectOptions();
+    if (!selectAll) {
+      setForm((prev) => ({ ...prev, targetId: options.map((o) => o.value) }));
+      setSelectAll(true);
+    } else {
+      setForm((prev) => ({ ...prev, targetId: [] }));
+      setSelectAll(false);
     }
   };
 
-  const getData = async () => {
-    try {
-      const result = await axiosInstance.get(
-        `/drip/drip-rules/by-reference/${targetId}`
-      );
-      const data = result.data.data[0];
-      setEdit(true);
-      setForm({
-        dripType: data.dripRuleId.dripType || "",
-        referenceType: data.dripRuleId.referenceType || "",
-        referenceId: data.dripRuleId.referenceId || "",
-        delayDays: data.dripRuleId.delayDays || 0,
-        unlockDate: data.dripRuleId.unlockDate || "",
-        requiredScore: data.dripRuleId.requiredScore || "",
-        conditionOperator: data.dripRuleId.conditionOperator || "AND",
-        targetType: data.targetType || "lesson",
-        targetId: data.targetId || "",
-      });
-    } catch (error) {
-      console.error("Failed to fetch drip data:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (targetId) {
-      getData();
-    }
-  }, [targetId]);
+  // Duplicate getData removed to fix redeclaration error.
 
   const handleSubmit = async () => {
     if (form.dripType) {
@@ -221,7 +254,7 @@ const DripPopup = ({
         const dripRuleData = {
           ...form,
           targetType: form.targetType,
-          targetId: form.targetId,
+          targetId: form.targetId, // can be array
         };
 
         console.log("Creating drip rule with data:", dripRuleData);
@@ -234,13 +267,33 @@ const DripPopup = ({
         }
         console.log("Drip rule creation result:", result);
 
-        onSubmit(dripRuleData, result.payload);
+        // Show popup for success/failure
+        if (result?.payload && !result.error) {
+          setPopup({
+            isVisible: true,
+            message: edit
+              ? "Drip rule updated successfully!"
+              : "Drip rule created successfully!",
+            type: "success",
+          });
+          // Optionally close after a short delay
+          setTimeout(() => {
+            setPopup({ isVisible: false, message: "", type: "" });
+            onSubmit(dripRuleData, result.payload);
+          }, 1200);
+        } else {
+          setPopup({
+            isVisible: true,
+            message: "Failed to save drip rule. Please try again.",
+            type: "error",
+          });
+        }
       } catch (error) {
-        // setPopup({
-        //   isVisible: true,
-        //   message: `Failed to add Drip Rule , Please try again later!`,
-        //   type: "error",
-        // });
+        setPopup({
+          isVisible: true,
+          message: `Failed to add Drip Rule , Please try again later!`,
+          type: "error",
+        });
         console.error("Failed to create drip rule:", error);
       }
     }
@@ -352,6 +405,36 @@ const DripPopup = ({
       form.dripType !== "specific_date"
     );
   };
+
+  // Get lesson options for multi-select
+  const getLessonMultiSelectOptions = () => {
+    if (!course) return [];
+    return (course.lessons || []).map((lesson) => ({
+      value: lesson._id,
+      label: lesson.title,
+    }));
+  };
+
+  // Add handleChange function (was missing)
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Reset referenceId when reference type changes
+    if (name === "referenceType") {
+      setForm((prev) => ({
+        ...prev,
+        referenceId: "",
+      }));
+    }
+  };
+
+  // Add missing state for multiSelectOpen and selectAll
+  const [multiSelectOpen, setMultiSelectOpen] = useState(false);
+  const [selectAll, setSelectAll] = useState(false);
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -602,6 +685,64 @@ const DripPopup = ({
                   </div>
                 )}
 
+              {/* Multi-select for lessons as targetId */}
+              {form.targetType === "lesson" && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white/90">
+                    Select Lessons to Apply Drip (Multi-select)
+                  </label>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setMultiSelectOpen(!multiSelectOpen)}
+                      className="w-full px-4 py-3 border dark:text-white/70 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-white/[0.03] text-left flex sm:flex-row items-center sm:items-center justify-between gap-4"
+                    >
+                      <span>
+                        {Array.isArray(form.targetId) && form.targetId.length > 0
+                          ? `${form.targetId.length} lesson(s) selected`
+                          : "Select lessons..."}
+                      </span>
+                      <ChevronDown
+                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                          multiSelectOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                    {multiSelectOpen && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        <div className="px-4 py-2 border-b border-gray-100 flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={selectAll}
+                            onChange={handleSelectAll}
+                            className="mr-2"
+                            id="select-all-lessons"
+                          />
+                          <label htmlFor="select-all-lessons" className="text-sm font-medium">
+                            Select All
+                          </label>
+                        </div>
+                        {getLessonMultiSelectOptions().map((option) => (
+                          <div
+                            key={option.value}
+                            className="px-4 py-2 flex items-center cursor-pointer hover:bg-purple-50 border-b border-gray-100 last:border-b-0 transition-colors duration-150"
+                            onClick={() => handleMultiSelectChange(option.value)}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={Array.isArray(form.targetId) && form.targetId.includes(option.value)}
+                              onChange={() => handleMultiSelectChange(option.value)}
+                              className="mr-2"
+                            />
+                            <span>{option.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Delay Days */}
               {(form.dripType === "days_after_enrollment" ||
                 form.dripType === "days_after_lesson_completed" ||
@@ -637,7 +778,11 @@ const DripPopup = ({
                     <input
                       type="date"
                       name="unlockDate"
-                      value={form.unlockDate}
+                      value={
+                        form.unlockDate
+                          ? form.unlockDate.slice(0, 10) // Show only YYYY-MM-DD
+                          : ""
+                      }
                       onChange={handleChange}
                       className="w-full pl-12 pr-4 py-3 border dark:text-white/70 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                       required
@@ -719,7 +864,7 @@ const DripPopup = ({
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-6 py-3 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all duration-200 font-medium"
             >
               Cancel

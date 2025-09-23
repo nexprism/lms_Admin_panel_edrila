@@ -16,9 +16,12 @@ import {
   ClipboardList,
   Clock,
   Users,
+  Lock,
 } from "lucide-react";
 import { fetchCourseById } from "../../store/slices/course";
 import { updateLessonMobileOnly } from "../../store/slices/lesson"; // Import the lesson thunk
+import { fetchDripRules, fetchCourseContents } from "../../store/slices/drip"; // already imported
+import axiosInstance from "../../services/axiosConfig"; // already imported in DripPopup, import here if needed
 import DripPopup from "./DripPopup";
 import PopupAlert from "../popUpAlert";
 
@@ -36,12 +39,15 @@ const CourseAccordion = ({ courseId }) => {
   const [modalData, setModalData] = useState(null);
   const [modules, setModules] = useState([]);
   const [dripModalData, setDripModalData] = useState(null);
+  // Add a state to force re-mount DripPopup so it always shows fresh data
+  const [dripPopupKey, setDripPopupKey] = useState(0);
   const [savingSettings, setSavingSettings] = useState(false); // Local loading state for settings save
   const [popup, setPopup] = useState({
     isVisible: false,
     message: "",
     type: "",
   });
+  const [moduleDripModal, setModuleDripModal] = useState(null); // State for module-level drip modal
   // Fetch course data when component mounts or courseId changes
   useEffect(() => {
     if (courseId) {
@@ -144,6 +150,17 @@ const CourseAccordion = ({ courseId }) => {
     }
   };
 
+  // Helper to refresh drip rules for a specific target
+  const refreshDripRulesForTarget = async (targetId) => {
+    try {
+      // Fetch latest drip rules for the specific target
+      await axiosInstance.get(`/drip/drip-rules/by-reference/${targetId}`);
+      // Optionally, update local state if needed
+    } catch (e) {
+      // handle error if needed
+    }
+  };
+
   const handleDripSettings = (lessonId, moduleId) => {
     console.log("Drip settings for lesson:", lessonId, "in module:", moduleId);
     // Find the lesson and module data
@@ -161,28 +178,31 @@ const CourseAccordion = ({ courseId }) => {
       targetType: "lesson", // Add target type
       targetId: lessonId, // Add target ID
     });
+    // Increment key to force DripPopup remount and always fetch latest data
+    setDripPopupKey((prev) => prev + 1);
   };
 
   const closeDripModal = () => {
     setDripModalData(null);
   };
 
-  const handleDripSubmit = (dripSettings, result) => {
+  const handleDripSubmit = async (dripSettings, result) => {
     console.log("Saving drip settings:", dripSettings);
     // Here you would typically make an API call to save the drip settings
-    // For now, just close the modal
-    
-console.log("Drip settings submitted:", result);
+
+    console.log("Drip settings submitted:", result);
     if (result) {
       setPopup({
         isVisible: true,
         message: "Drip settings saved successfully!",
         type: "success",
       });
-      // Refresh course data after successful drip update
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // Fetch updated drip rules for the target and refresh course contents
+      if (dripSettings?.targetId) {
+        await refreshDripRulesForTarget(dripSettings.targetId);
+      }
+      await dispatch(fetchCourseContents());
+      closeDripModal();
     } else {
       return setPopup({
         isVisible: true,
@@ -190,8 +210,6 @@ console.log("Drip settings submitted:", result);
         type: "error",
       });
     }
-
-    closeDripModal();
   };
 
   const handleLessonSettings = (lessonId, moduleId) => {
@@ -294,6 +312,22 @@ console.log("Drip settings submitted:", result);
     );
   }
 
+  // Remove any updateCourse or updateCourse API call from Add Drip logic.
+  // Only open the DripPopup modal.
+
+  const handleAddDrip = (module) => {
+    // Prevent any popup before opening DripPopup
+    setPopup({ isVisible: false, message: "", type: "" });
+    // Do NOT call any updateCourse or course update API here!
+    setModuleDripModal({
+      moduleId: module.id || module._id,
+      lessons: module.lessons || [],
+      targetType: "lesson",
+      targetId: (module.lessons || []).map((l) => l.id || l._id),
+      module,
+    });
+  };
+
   return (
     <>
       <div className="max-w-full mx-auto min-h-fit">
@@ -381,24 +415,29 @@ console.log("Drip settings submitted:", result);
                     <div className="text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full font-medium">
                       {module.lessons?.length || 0} lessons
                     </div>
-                    {/* {module.estimatedDuration && (
-                    <div className="text-sm text-gray-500 flex items-center">
-                      <Clock className="w-4 h-4 mr-1" />
-                      {module.estimatedDuration}min
-                    </div>
-                  )} */}
+                    {/* Add Drip Button */}
+                    <button
+                      type="button" // <-- Add this line!
+                      className="px-3 py-1.5 bg-purple-600 text-white rounded-md text-xs font-medium hover:bg-purple-700 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddDrip(module);
+                      }}
+                    >
+                      Add Drip
+                    </button>
                   </div>
                 </div>
 
                 {/* Lessons List */}
                 <div
-                  className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                  className={`overflow-auto transition-all duration-500 ease-in-out ${
                     expandedModules.has(module.id || module._id)
                       ? "max-h-screen opacity-100"
                       : "max-h-0 opacity-0"
                   }`}
                 >
-                  <div className="bg-blue-50 dark:bg-white/[0.01] border-t border-blue-100">
+                  <div className="bg-blue-50 dark:bg-white/[0.01] border-t border-blue-100 overflow-y-scroll">
                     {module.lessons?.map((lesson, index) => (
                       <div
                         key={lesson.id || lesson._id}
@@ -431,6 +470,18 @@ console.log("Drip settings submitted:", result);
                               <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
                                 Mobile Only
                               </span>
+                            )}
+                            
+                            {Array.isArray(lesson.dripRules) && lesson.dripRules.length > 0 && (
+                              <button
+                                type="button"
+                                className="flex items-center gap-1 px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-medium cursor-default"
+                                title="This lesson has a drip rule"
+                                style={{ pointerEvents: "none" }}
+                              >
+                                <Lock className="w-3 h-3 mr-1" />
+                                Drip Rule Added
+                              </button>
                             )}
                           </div>
                         </div>
@@ -651,7 +702,9 @@ console.log("Drip settings submitted:", result);
                 </div>
                 {console.log("Drip Modal Data:", dripModalData)}
 
+                {/* Force DripPopup to remount by using key={dripPopupKey} */}
                 <DripPopup
+                  key={dripPopupKey}
                   onSubmit={handleDripSubmit}
                   onClose={closeDripModal}
                   initialData={{
@@ -661,6 +714,57 @@ console.log("Drip settings submitted:", result);
                   }}
                   targetType={dripModalData.targetType}
                   targetId={dripModalData.targetId}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Module-level DripPopup for multi-select */}
+        {moduleDripModal && (
+          <div
+            className="fixed inset-0 bg-black/20 backdrop-blur-[2px] bg-opacity-50 flex items-center justify-center z-[10000] p-4"
+            onClick={() => setModuleDripModal(null)}
+          >
+            <div
+              className="bg-white dark:bg-[#101828] rounded-lg shadow-2xl max-w-5xl h-[94%] overflow-y-auto w-full transform transition-all duration-300 scale-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex sm:flex-row items-center sm:items-center justify-between gap-4 mb-4">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white/90">
+                    Drip Settings - Module:{" "}
+                    {moduleDripModal.module?.title || moduleDripModal.module?.name}
+                  </h3>
+                  <button
+                    onClick={() => setModuleDripModal(null)}
+                    className="p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+                <DripPopup
+                  onSubmit={async (dripSettings, result) => {
+                    setModuleDripModal(null);
+                    // Fetch updated drip rules for the target and refresh course contents
+                    if (dripSettings?.targetId) {
+                      await refreshDripRulesForTarget(dripSettings.targetId);
+                    }
+                    await dispatch(fetchCourseContents());
+                  }}
+                  onClose={() => setModuleDripModal(null)}
+                  initialData={[
+                    {
+                      dripType: "",
+                      referenceType: "lesson",
+                      referenceId: "",
+                      delayDays: 0,
+                      targetType: "lesson",
+                      targetId: moduleDripModal.targetId,
+                    },
+                  ]}
+                  targetType="lesson"
+                  targetId={moduleDripModal.targetId}
                 />
               </div>
             </div>
