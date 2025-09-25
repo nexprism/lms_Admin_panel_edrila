@@ -1340,6 +1340,19 @@ const SavedModuleDisplay = ({
                 </div>
               )}
             </div>
+
+             <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addLesson();
+                }}
+                className="flex mt-4 items-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Lesson</span>
+              </button>
+            
           </div>
         </div>
       </div>
