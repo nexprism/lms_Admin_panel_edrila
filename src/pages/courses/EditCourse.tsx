@@ -271,7 +271,7 @@ const EditCourse = () => {
 
   // Plans state
   const [plans, setPlans] = useState<
-    { name: string; price: string; description: string; durationType: string; duration: string; salePrice: string; _id?: string }[]
+    { name: string; price: string; description: string; durationType: string; duration: string; salePrice: string; status: string; _id?: string }[]
   >([]);
 
   // Plan form state
@@ -282,6 +282,7 @@ const EditCourse = () => {
     durationType: "Month",
     duration: "",
     salePrice: "",
+    status: "active",
     _id: undefined,
   });
 
@@ -461,6 +462,7 @@ const EditCourse = () => {
             durationType: p.durationType || "Month",
             duration: String(p.duration ?? ""),
             salePrice: String(p.salePrice ?? ""),
+            status: p.status || "active",
             _id: p._id,
           }))
         );
@@ -554,7 +556,7 @@ const EditCourse = () => {
       // Add new plan
       setPlans([...plans, { ...planForm }]);
     }
-    setPlanForm({ name: "", price: "", description: "", durationType: "Month", duration: "", salePrice: "", _id: undefined });
+    setPlanForm({ name: "", price: "", description: "", durationType: "Month", duration: "", salePrice: "", status: "active", _id: undefined });
     setPlanFormError("");
   };
 
@@ -569,14 +571,14 @@ const EditCourse = () => {
   const handleRemovePlan = (idx: number) => {
     setPlans(plans.filter((_, i) => i !== idx));
     if (editingPlanIdx === idx) {
-      setPlanForm({ name: "", price: "", description: "", durationType: "Month", duration: "", salePrice: "", _id: undefined });
+      setPlanForm({ name: "", price: "", description: "", durationType: "Month", duration: "", salePrice: "", status: "active", _id: undefined });
       setEditingPlanIdx(null);
     }
   };
 
   // Cancel editing
   const handleCancelEdit = () => {
-    setPlanForm({ name: "", price: "", description: "", durationType: "Month", duration: "", salePrice: "", _id: undefined });
+    setPlanForm({ name: "", price: "", description: "", durationType: "Month", duration: "", salePrice: "", status: "active", _id: undefined });
     setEditingPlanIdx(null);
     setPlanFormError("");
   };
@@ -1055,7 +1057,7 @@ const EditCourse = () => {
                     <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-2">
                       Course Plans
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-2">
+                    <div className="grid grid-cols-1 md:grid-cols-7 gap-3 mb-2">
                       <input
                         type="text"
                         placeholder="Plan Name"
@@ -1100,25 +1102,22 @@ const EditCourse = () => {
                         onChange={e => setPlanForm({ ...planForm, salePrice: e.target.value })}
                         className="border rounded px-2 py-2 text-sm"
                       />
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        type="button"
-                        onClick={handleAddOrUpdatePlan}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                      <select
+                        value={planForm.status}
+                        onChange={e => setPlanForm({ ...planForm, status: e.target.value })}
+                        className="border rounded px-2 py-2 text-sm"
                       >
-                        {editingPlanIdx !== null ? "Update Plan" : "Add Plan"}
-                      </button>
-                      {editingPlanIdx !== null && (
-                        <button
-                          type="button"
-                          onClick={handleCancelEdit}
-                          className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm"
-                        >
-                          Cancel
-                        </button>
-                      )}
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
                     </div>
+                    <button
+                      type="button"
+                      onClick={handleAddOrUpdatePlan}
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                    >
+                      {editingPlanIdx !== null ? "Update Plan" : "Add Plan"}
+                    </button>
                     {planFormError && (
                       <div className="text-xs text-red-600 mt-1">{planFormError}</div>
                     )}
@@ -1133,33 +1132,35 @@ const EditCourse = () => {
                               <th className="p-2">Duration Type</th>
                               <th className="p-2">Duration</th>
                               <th className="p-2">Sale Price</th>
-                              <th className="p-2">Actions</th>
+                              <th className="p-2">Status</th>
+                              <th className="p-2"></th>
                             </tr>
                           </thead>
                           <tbody>
                             {plans.map((plan, idx) => (
-                              <tr key={plan._id || idx}>
+                              <tr key={idx}>
                                 <td className="p-2">{plan.name}</td>
                                 <td className="p-2">{plan.price}</td>
                                 <td className="p-2">{plan.description}</td>
                                 <td className="p-2">{plan.durationType}</td>
                                 <td className="p-2">{plan.duration}</td>
                                 <td className="p-2">{plan.salePrice}</td>
-                                <td className="p-2 flex gap-2">
+                                <td className="p-2">{plan.status}</td>
+                                <td className="p-2">
                                   <button
                                     type="button"
                                     onClick={() => handleEditPlan(idx)}
-                                    className="text-blue-500 hover:underline"
+                                    className="text-blue-500 hover:underline mr-2"
                                   >
                                     Edit
                                   </button>
-                                  {/* <button
+                                  <button
                                     type="button"
                                     onClick={() => handleRemovePlan(idx)}
                                     className="text-red-500 hover:underline"
                                   >
                                     Remove
-                                  </button> */}
+                                  </button>
                                 </td>
                               </tr>
                             ))}

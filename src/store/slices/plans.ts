@@ -49,6 +49,7 @@ export const updatePricingPlan = createAsyncThunk(
   "pricing/updatePricingPlan",
   async ({ planId, updatedData }, { rejectWithValue }) => {
     try {
+      // Ensure status is included in updatedData if present
       const response = await axiosInstance.put(
         `/pricing-plan-discounts/${planId}`,
         updatedData
