@@ -397,7 +397,7 @@ const AddCourse = () => {
 
   // Plans state
   const [plans, setPlans] = useState<
-    { name: string; price: string; description: string; durationType: string; duration: string; salePrice: string }[]
+    { name: string; price: string; description: string; durationType: string; duration: string; salePrice: string; status: string }[]
   >([]);
 
   // Plan form state
@@ -408,6 +408,7 @@ const AddCourse = () => {
     durationType: "Month",
     duration: "",
     salePrice: "",
+    status: "active",
   });
 
   // Plan form errors
@@ -500,7 +501,7 @@ const AddCourse = () => {
       return;
     }
     setPlans([...plans, { ...planForm }]);
-    setPlanForm({ name: "", price: "", description: "", durationType: "Month", duration: "", salePrice: "" });
+    setPlanForm({ name: "", price: "", description: "", durationType: "Month", duration: "", salePrice: "", status: "active" });
     setPlanFormError("");
   };
 
@@ -1037,7 +1038,7 @@ const AddCourse = () => {
                   <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-2">
                     Course Plans
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-2">
+                  <div className="grid grid-cols-1 md:grid-cols-7 gap-3 mb-2">
                     <input
                       type="text"
                       placeholder="Plan Name"
@@ -1082,6 +1083,14 @@ const AddCourse = () => {
                       onChange={e => setPlanForm({ ...planForm, salePrice: e.target.value })}
                       className="border rounded px-2 py-2 text-sm"
                     />
+                    <select
+                      value={planForm.status}
+                      onChange={e => setPlanForm({ ...planForm, status: e.target.value })}
+                      className="border rounded px-2 py-2 text-sm"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
                   </div>
                   <button
                     type="button"
@@ -1104,6 +1113,7 @@ const AddCourse = () => {
                             <th className="p-2">Duration Type</th>
                             <th className="p-2">Duration</th>
                             <th className="p-2">Sale Price</th>
+                            <th className="p-2">Status</th>
                             <th className="p-2"></th>
                           </tr>
                         </thead>
@@ -1116,6 +1126,7 @@ const AddCourse = () => {
                               <td className="p-2">{plan.durationType}</td>
                               <td className="p-2">{plan.duration}</td>
                               <td className="p-2">{plan.salePrice}</td>
+                              <td className="p-2">{plan.status}</td>
                               <td className="p-2">
                                 <button
                                   type="button"
