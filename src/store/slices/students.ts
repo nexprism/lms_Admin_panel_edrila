@@ -272,25 +272,43 @@ export const createStudent = createAsyncThunk<Student, CreateStudentPayload>(
   }
 );
 
-export interface EnrollStudentPayload {
-  userId: string;
-  courseId: string;
-}
-
-export const enrollStudent = createAsyncThunk<any, EnrollStudentPayload>(
-  "students/enroll",
-  async (payload, { rejectWithValue }) => {
-    try {
-      const response = await axiosInstance.post(
-        `${API_BASE_URL}/enrollment/admin-enroll`,
-        payload
-      );
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
-    }
+export const enrollStudent = createAsyncThunk<
+  any,
+  {
+    userId: string;
+    courseId: string;
+    accessExpiry?: string;
+    customPrice?: number;
+    addToRevenue?: boolean;
+  },
+  { rejectValue: string }
+>("students/enrollStudent", async (payload, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token") || "";
+    const response = await axiosInstance.post(
+      "/enrollment/admin-enroll",
+      {
+        userId: payload.userId,
+        courseId: payload.courseId,
+        accessExpiry: payload.accessExpiry,
+        customPrice: payload.customPrice,
+        addToRevenue: payload.addToRevenue,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    return rejectWithValue(
+      error.response?.data?.message || error.message || "Failed to enroll student"
+    );
   }
-);
+})
+;
 
 const initialState: StudentState = {
   students: [],
