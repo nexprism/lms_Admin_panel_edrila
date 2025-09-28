@@ -1,4 +1,4 @@
-  import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
   import { useAppDispatch, useAppSelector } from "../../hooks/redux";
   import { enrollStudent, fetchAllStudents } from "../../store/slices/students";
   import { fetchCourses } from "../../store/slices/course";
@@ -20,6 +20,9 @@
     const [submitted, setSubmitted] = useState(false);
     const [localError, setLocalError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const [accessExpiry, setAccessExpiry] = useState("");
+    const [customPrice, setCustomPrice] = useState("");
+    const [addToRevenue, setAddToRevenue] = useState(true);
 
     useEffect(() => {
       if (open) {
@@ -30,6 +33,9 @@
         setSubmitted(false);
         setLocalError(null);
         setSuccess(false);
+        setAccessExpiry("");
+        setCustomPrice("");
+        setAddToRevenue(true);
       }
     }, [open, dispatch, studentId]);
 
@@ -50,6 +56,9 @@
           enrollStudent({
             userId: selectedStudent,
             courseId: selectedCourse,
+            accessExpiry: accessExpiry ? new Date(accessExpiry).toISOString() : undefined,
+            customPrice: customPrice ? Number(customPrice) : undefined,
+            addToRevenue,
           })
         );
         if (result.meta.requestStatus === "fulfilled") {
@@ -83,7 +92,7 @@
             <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white tracking-tight">
               Enroll a Student
             </h2>
-            <div onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
               <div className="space-y-2">
                 <label
                   htmlFor="student-select"
@@ -132,6 +141,45 @@
                   ))}
                 </select>
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                  Access Expiry (optional)
+                </label>
+                <input
+                  type="date"
+                  value={accessExpiry}
+                  onChange={(e) => setAccessExpiry(e.target.value)}
+                  className="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                  Custom Price (optional)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={customPrice}
+                  onChange={(e) => setCustomPrice(e.target.value)}
+                  className="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                  placeholder="e.g. 99.99"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={addToRevenue}
+                  onChange={(e) => setAddToRevenue(e.target.checked)}
+                  id="add-to-revenue"
+                />
+                <label
+                  htmlFor="add-to-revenue"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  Add to Revenue
+                </label>
+              </div>
               {localError && submitted && (
                 <div
                   id="error-message"
@@ -171,7 +219,7 @@
                   Enroll
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </div>

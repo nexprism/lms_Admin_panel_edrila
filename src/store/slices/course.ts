@@ -97,7 +97,7 @@ export const updateCourse = createAsyncThunk(
     try {
       // Remove any existing 'instructorId' entries before appending the correct one
       data.delete("instructorId");
-      data.append("instructorId", "684088dfef718469d2bbcb62");
+      data.append("instructorId", "68b69334dffbe2b24ed4f059");
 
       const response = await axiosInstance.put(`/courses/${id}`, data, {
         headers: {
@@ -135,6 +135,28 @@ export const fetchCourseAttachments = createAsyncThunk(
     }
   }
 );
+
+export const fetchCourseEnrollments = createAsyncThunk<
+  any,
+  { courseId: string },
+  { rejectValue: string }
+>("course/fetchCourseEnrollments", async ({ courseId }, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token") || "";
+    const response = await axiosInstance.get(
+      `/enrollment/courses/${courseId}/enrollments`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data?.data || [];
+  } catch (error: any) {
+    return rejectWithValue(error.response?.data?.message || "Failed to fetch enrollments");
+  }
+});
 
 const courseSlice = createSlice({
   name: "course",
@@ -204,6 +226,23 @@ const courseSlice = createSlice({
         }
       })
       .addCase(fetchCourseAttachments.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchCourseEnrollments.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCourseEnrollments.fulfilled, (state, action) => {
+        state.loading = false;
+        // Assuming you want to store enrollments in the data field
+        if (state.data) {
+          state.data.enrollments = action.payload;
+        } else {
+          state.data = { enrollments: action.payload };
+        }
+      })
+      .addCase(fetchCourseEnrollments.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
