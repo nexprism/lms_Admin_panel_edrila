@@ -75,6 +75,7 @@ export interface JobResponse {
         fullName: string;
         email: string;
     };
+    isAdminApproved?: boolean; // <-- Add this line
 }
 
 export interface JobState {
@@ -327,6 +328,32 @@ export const updateJobStatus = createAsyncThunk(
     }
 );
 
+export const approveJobByAdmin = createAsyncThunk(
+  'job/approveJobByAdmin',
+  async (
+    { jobId, isAdminApproved, token }: { jobId: string; isAdminApproved: boolean; token: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axiosInstance.patch(
+        `/jobs/${jobId}/admin-approval`,
+        { isAdminApproved },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return { jobId, isAdminApproved, ...response.data };
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data?.message || error.message || "Failed to approve job"
+      );
+    }
+  }
+);
+
 export const jobSlice = createSlice({
     name: 'job',
     initialState,
@@ -408,6 +435,26 @@ export const jobSlice = createSlice({
             })
             .addCase(updateJobStatus.rejected, (state, action) => {
                 state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(approveJobByAdmin.fulfilled, (state, action) => {
+                // Update the job in the jobs array if present
+                const idx = state.jobs.findIndex(job => job._id === action.payload.jobId);
+                if (idx !== -1) {
+                    state.jobs[idx] = {
+                        ...state.jobs[idx],
+                        isAdminApproved: action.payload.isAdminApproved,
+                    };
+                }
+                // Optionally update the single job if loaded
+                if (state.job && state.job._id === action.payload.jobId) {
+                    state.job = {
+                        ...state.job,
+                        isAdminApproved: action.payload.isAdminApproved,
+                    };
+                }
+            })
+            .addCase(approveJobByAdmin.rejected, (state, action) => {
                 state.error = action.payload as string;
             });
     },

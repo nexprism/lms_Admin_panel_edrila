@@ -51,7 +51,7 @@ export const fetchDeviceApprovals = createAsyncThunk(
   ) => {
     try {
       const response = await axiosInstance.get("/device-approvals", {
-        params: { page, limit },
+        params: { page, limit, sort: "desc" },
       });
       const data = response.data?.data;
       return {

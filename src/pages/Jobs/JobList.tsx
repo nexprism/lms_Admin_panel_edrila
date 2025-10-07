@@ -8,6 +8,7 @@ import {
   selectJobs,
   selectJobLoading,
   selectJobError,
+  approveJobByAdmin, // <-- add import
 } from "../../store/slices/job";
 import type { JobResponse, JobState } from "../../store/slices/job";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -75,6 +76,8 @@ const JobList: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<JobResponse | null>(null);
   const [showProposals, setShowProposals] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [approvingJobId, setApprovingJobId] = useState<string | null>(null);
+  const [rejectingJobId, setRejectingJobId] = useState<string | null>(null);
 
   useEffect(() => {
     const filters: {
@@ -168,6 +171,45 @@ const JobList: React.FC = () => {
         type: "error",
       });
     }
+  };
+
+  // Approve job handler
+  const handleApproveJob = async (jobId: string, isAdminApproved: boolean) => {
+    if (isAdminApproved) setApprovingJobId(jobId);
+    else setRejectingJobId(jobId);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setPopup({
+          isVisible: true,
+          message: "Authentication required",
+          type: "error",
+        });
+        setApprovingJobId(null);
+        setRejectingJobId(null);
+        return;
+      }
+      await dispatch(
+        approveJobByAdmin({ jobId, isAdminApproved, token })
+      ).unwrap();
+      setPopup({
+        isVisible: true,
+        message: isAdminApproved
+          ? "Job approved successfully!"
+          : "Job rejected successfully!",
+        type: "success",
+      });
+    } catch (err) {
+      setPopup({
+        isVisible: true,
+        message: isAdminApproved
+          ? "Failed to approve job. Please try again."
+          : "Failed to reject job. Please try again.",
+        type: "error",
+      });
+    }
+    setApprovingJobId(null);
+    setRejectingJobId(null);
   };
 
   return (
@@ -477,6 +519,40 @@ const JobList: React.FC = () => {
                       >
                         <Trash2 className="w-4 h-4 text-red-600" />
                       </button>
+                      {/* Approve/Reject buttons always visible */}
+                      <button
+                        className={`p-2 rounded ${
+                          job.isAdminApproved
+                            ? "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+                            : "bg-green-600 text-white hover:bg-green-700"
+                        } disabled:opacity-50`}
+                        disabled={approvingJobId === job._id}
+                        onClick={() => handleApproveJob(job._id, true)}
+                      >
+                        {approvingJobId === job._id ? "Approving..." : "Approve"}
+                      </button>
+                      <button
+                        className={`p-2 rounded ${
+                          job.isAdminApproved === false
+                            ? "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+                            : "bg-red-600 text-white hover:bg-red-700"
+                        } disabled:opacity-50`}
+                        disabled={rejectingJobId === job._id}
+                        onClick={() => handleApproveJob(job._id, false)}
+                      >
+                        {rejectingJobId === job._id ? "Rejecting..." : "Reject"}
+                      </button>
+                      {/* Show current admin approval status */}
+                      {job.isAdminApproved === true && (
+                        <span className="p-2 rounded bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 text-xs">
+                          Approved
+                        </span>
+                      )}
+                      {job.isAdminApproved === false && (
+                        <span className="p-2 rounded bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 text-xs">
+                          Rejected
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

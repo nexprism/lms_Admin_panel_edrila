@@ -310,6 +310,33 @@ export const enrollStudent = createAsyncThunk<
 })
 ;
 
+export const deleteEnrollment = createAsyncThunk<
+  string,
+  { enrollmentId: string },
+  { rejectValue: string }
+>(
+  "students/deleteEnrollment",
+  async ({ enrollmentId }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token") || "";
+      await axiosInstance.delete(
+        `/enrollment/${enrollmentId}/remove`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return enrollmentId;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Failed to delete enrollment"
+      );
+    }
+  }
+);
+
 const initialState: StudentState = {
   students: [],
   studentDetails: null,
@@ -536,7 +563,20 @@ const studentSlice = createSlice({
       .addCase(fetchStudentAnalytics.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(deleteEnrollment.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteEnrollment.fulfilled, (state, action) => {
+        state.loading = false;
+        // Optionally update student enrollments if tracked in state
+      })
+      .addCase(deleteEnrollment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
+      
   },
 });
 

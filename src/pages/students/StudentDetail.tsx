@@ -7,6 +7,7 @@ import {
   banStudent,
   unbanStudent,
   disableDripForModule,
+  deleteEnrollment,
 } from "../../store/slices/students";
 import { fetchCourseById } from "../../store/slices/course";
 import {
@@ -115,6 +116,10 @@ function StudentDetail() {
   const [selectedModuleId, setSelectedModuleId] = useState<string>("");
   const [courseModules, setCourseModules] = useState<any[]>([]);
   const [moduleDripLoading, setModuleDripLoading] = useState(false);
+
+  // Enrollment removal state
+  const [removingEnrollmentId, setRemovingEnrollmentId] = useState<string | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
     // Auto-hide toast after 2.5s
@@ -245,6 +250,24 @@ function StudentDetail() {
       setToast({ message: "Failed to unban student.", type: "error" });
     } finally {
       setBanLoading(false);
+    }
+  };
+
+  // Remove enrollment handler
+  const handleRemoveEnrollment = async (enrollmentId: string) => {
+    setRemovingEnrollmentId(enrollmentId);
+    try {
+      await dispatch(deleteEnrollment({ enrollmentId })).unwrap();
+      setToast({ message: "Enrollment removed successfully.", type: "success" });
+      setData((prev: any) => ({
+        ...prev,
+        enrollments: prev.enrollments.filter((enr: any) => enr._id !== enrollmentId),
+      }));
+    } catch (e) {
+      setToast({ message: "Failed to remove enrollment.", type: "error" });
+    } finally {
+      setRemovingEnrollmentId(null);
+      setConfirmRemove(null);
     }
   };
 
@@ -704,6 +727,14 @@ function StudentDetail() {
                           )}
                           </div>
                         </div>
+                        <button
+                          className="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 rounded-md text-xs font-medium hover:bg-red-200 transition-colors mb-2"
+                          onClick={() => setConfirmRemove({ id: enrollment._id, title: enrollment.course?.title || "this course" })}
+                          disabled={removingEnrollmentId === enrollment._id}
+                        >
+                          <XCircle className="w-3 h-3 mr-1" />
+                          Remove Enrollment
+                        </button>
                       </div>
                     ))}
                     </div>
@@ -1088,6 +1119,42 @@ function StudentDetail() {
                   <Ban className="w-4 h-4 mr-2" />
                 )}
                 Ban
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Remove Enrollment Confirmation Popup */}
+      {confirmRemove && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-lg p-8 max-w-sm w-full">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Remove Course Access
+            </h3>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to remove access to <span className="font-semibold">{confirmRemove.title}</span> for this student?<br />
+              <span className="text-xs text-gray-500">This action cannot be undone.</span>
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                onClick={() => setConfirmRemove(null)}
+                disabled={!!removingEnrollmentId}
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 flex items-center ${removingEnrollmentId ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => handleRemoveEnrollment(confirmRemove.id)}
+                disabled={!!removingEnrollmentId}
+              >
+                {removingEnrollmentId ? (
+                  <span className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                ) : (
+                  <XCircle className="w-4 h-4 mr-2" />
+                )}
+                Yes, Remove
               </button>
             </div>
           </div>

@@ -27,6 +27,8 @@ import {
   Trash2,
   Award,
 } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { deleteEnrollment } from "../../store/slices/students";
 
 interface Course {
   _id: string;
@@ -67,6 +69,7 @@ const VITE_IMAGE_URL = import.meta.env.VITE_BASE_URL;
 const CourseList: React.FC = () => {
   const dispatch = useAppDispatch();
   const { loading, error, data } = useAppSelector((state) => state.course);
+  const [removingEnrollmentId, setRemovingEnrollmentId] = useState<string | null>(null);
 
   // State for search, filter, pagination
   const [searchInput, setSearchInput] = useState("");
@@ -82,6 +85,7 @@ const CourseList: React.FC = () => {
     courseTitle: "" 
   });
   const [enrollmentsLoading, setEnrollmentsLoading] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState<{ id: string; name: string } | null>(null);
 
   // Debounce search
   useEffect(() => {
@@ -165,6 +169,23 @@ const CourseList: React.FC = () => {
       });
     }
     setEnrollmentsLoading(false);
+  };
+
+  // Remove enrollment handler
+  const handleRemoveEnrollment = async (enrollmentId: string) => {
+    setRemovingEnrollmentId(enrollmentId);
+    try {
+      await dispatch(deleteEnrollment({ enrollmentId }) as any).unwrap();
+      setEnrollmentsModal((prev) => ({
+        ...prev,
+        enrollments: prev.enrollments.filter((enr: any) => enr._id !== enrollmentId),
+      }));
+    } catch (e) {
+      // Optionally show error toast
+    } finally {
+      setRemovingEnrollmentId(null);
+      setConfirmRemove(null);
+    }
   };
 
   const StatusBadge = ({ isPublished }: { isPublished: boolean }) => (
@@ -725,6 +746,9 @@ const CourseList: React.FC = () => {
                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider dark:text-gray-300">
                               Source
                             </th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider dark:text-gray-300">
+                              Actions
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
@@ -780,6 +804,16 @@ const CourseList: React.FC = () => {
                                   {enroll.enrollmentSource || "Razorpay"}
                                 </span>
                               </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <button
+                                  className="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 rounded-md text-xs font-medium hover:bg-red-200 transition-colors"
+                                  onClick={() => setConfirmRemove({ id: enroll._id, name: enroll.userId?.fullName || enroll.userId?.email || "this user" })}
+                                  disabled={removingEnrollmentId === enroll._id}
+                                >
+                                  <XCircle className="w-3 h-3 mr-1" />
+                                  Remove Enrollment
+                                </button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -796,6 +830,41 @@ const CourseList: React.FC = () => {
               )}
             </div>
           </div>
+          {/* Remove Enrollment Confirmation Popup */}
+          {confirmRemove && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+              <div className="bg-white rounded-xl shadow-lg p-8 max-w-sm w-full">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Remove Course Access
+                </h3>
+                <p className="text-gray-700 mb-6">
+                  Are you sure you want to remove access for <span className="font-semibold">{confirmRemove.name}</span>?<br />
+                  <span className="text-xs text-gray-500">This action cannot be undone.</span>
+                </p>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    onClick={() => setConfirmRemove(null)}
+                    disabled={!!removingEnrollmentId}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className={`px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 flex items-center ${removingEnrollmentId ? "opacity-50 cursor-not-allowed" : ""}`}
+                    onClick={() => handleRemoveEnrollment(confirmRemove.id)}
+                    disabled={!!removingEnrollmentId}
+                  >
+                    {removingEnrollmentId ? (
+                      <span className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                    ) : (
+                      <XCircle className="w-4 h-4 mr-2" />
+                    )}
+                    Yes, Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
