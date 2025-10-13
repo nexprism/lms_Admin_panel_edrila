@@ -119,6 +119,12 @@ const navItems: NavItem[] = [
     name: "Testimonials",
     path: "/testimonials"
   },
+
+  {
+    icon: <PieChartIcon />,
+    name: "Leaderboard Settings",
+    path: "/leaderboard-setting"
+  },
   // {
   //   icon: <Files />,
   //   name: "Analytics",

@@ -60,6 +60,7 @@ import Banner from "./pages/Banner/banner";
 import AllBanners from "./pages/Banner/AllBanners";
 import AddBanner from "./pages/Banner/AddBanner";
 import EditBanner from "./pages/Banner/EditBanner";
+import LeaderboardSetting from "./pages/LeaderboardSetting";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -300,6 +301,7 @@ export default function App() {
               {/* Charts */}
               <Route path="/line-chart" element={<LineChart />} />
               <Route path="/bar-chart" element={<BarChart />} />
+              <Route path="/leaderboard-setting" element={<LeaderboardSetting />} />
             </Route>
           </Route>
 
