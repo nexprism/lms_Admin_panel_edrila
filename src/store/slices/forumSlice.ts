@@ -24,6 +24,8 @@ export interface ForumThread {
   replies: ForumReply[];
   isApproved?: boolean;      // fixed type
   Is_openSource?: boolean;   // backend naming kept as-is
+  tags?: string[];           // add tags as array
+  attachments?: any[];       // add attachments
 }
 
 export interface ThreadReplies {
@@ -180,6 +182,61 @@ export const fetchThreadReplies = createAsyncThunk(
   }
 );
 
+/**
+ * Update Forum Thread with file uploads and tags as array
+ */
+export const updateForumThread = createAsyncThunk(
+  "forum/updateThread",
+  async (
+    { 
+      threadId, 
+      data,
+      token 
+    }: { 
+      threadId: string; 
+      data: {
+        title: string;
+        content: string;
+        tags: string[];
+        files?: File[];
+      };
+      token: string 
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const formData = new FormData();
+      formData.append("title", data.title);
+      formData.append("content", data.content);
+      
+      // Handle tags as array
+      data.tags.forEach((tag, index) => {
+        formData.append(`tags[${index}]`, tag);
+      });
+      
+      // Handle multiple file attachments
+      if (data.files && data.files.length > 0) {
+        data.files.forEach((file) => {
+          formData.append("files", file);
+        });
+      }
+
+      const response = await axiosInstance.put(
+        `/forum/thread/${threadId}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return { threadId, ...response.data?.data };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
 
 const forumSlice = createSlice({
   name: "forum",
@@ -198,6 +255,9 @@ const forumSlice = createSlice({
     },
     clearSelectedThread: (state) => {
       state.selectedThread = null;
+    },
+    setSelectedThread: (state, action: PayloadAction<ForumThread>) => {
+      state.selectedThread = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -265,9 +325,32 @@ const forumSlice = createSlice({
       .addCase(fetchThreadReplies.rejected, (state, action) => {
         state.repliesLoading = false;
         state.repliesError = action.payload as string;
+      })
+
+      // Update thread
+      .addCase(updateForumThread.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateForumThread.fulfilled, (state, action: PayloadAction<any>) => {
+        state.loading = false;
+        const { threadId } = action.payload;
+        const threadIndex = state.threads.findIndex((t) => t._id === threadId);
+        if (threadIndex !== -1) {
+          // Update the thread in the list
+          state.threads[threadIndex] = { ...state.threads[threadIndex], ...action.payload };
+        }
+        // Update selected thread if it matches
+        if (state.selectedThread?._id === threadId) {
+          state.selectedThread = { ...state.selectedThread, ...action.payload };
+        }
+      })
+      .addCase(updateForumThread.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });
 
-export const { setPage, setLimit, setStatusFilter, clearSelectedThread } = forumSlice.actions;
+export const { setPage, setLimit, setStatusFilter, clearSelectedThread, setSelectedThread } = forumSlice.actions;
 export default forumSlice.reducer;

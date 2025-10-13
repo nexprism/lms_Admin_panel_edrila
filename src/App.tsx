@@ -49,6 +49,7 @@ import ForumThreadList from "./pages/Forum/ForumThreadList";
 import AppNotificationSender from "./pages/AppNotificationSender";
 import DeviceApprovals from "./pages/DeviceApprovals";
 import ForumDetails from "./pages/Forum/ForumDetails";
+import EditForumThread from "./pages/Forum/EditForumThread";
 import AddEvent from "./pages/Events/AddEvent";
 import EventList from "./pages/Events/EventList";
 import EditEvent from "./pages/Events/EditEvent";
@@ -217,6 +218,7 @@ export default function App() {
 
               <Route path="/forum" element={<ForumThreadList />} />
               <Route path="/forum/:threadId" element={<ForumDetails />} />
+              <Route path="/forum/edit/:threadId" element={<EditForumThread />} />
 
               {/* Support Tickets */}
               <Route
