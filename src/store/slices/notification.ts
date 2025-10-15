@@ -5,12 +5,33 @@ interface NotificationState {
     loading: boolean;
     error: string | null;
     success: boolean;
+    notifications: any[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+    filters: {
+        status?: number;
+        courseId?: string;
+        userId?: string;
+        type?: string;
+    };
 }
 
 const initialState: NotificationState = {
     loading: false,
     error: null,
     success: false,
+    notifications: [],
+    pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 1,
+    },
+    filters: {},
 };
 
 export const sendNotification = createAsyncThunk<
@@ -71,6 +92,61 @@ export const sendCourseNotification = createAsyncThunk<
     }
 });
 
+export const fetchNotifications = createAsyncThunk<
+    {
+        notifications: any[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    },
+    {
+        page?: number;
+        limit?: number;
+        status?: number;
+        courseId?: string;
+        userId?: string;
+        type?: string;
+        token: string;
+    }
+>('notification/fetchAll', async (params, { rejectWithValue }) => {
+    try {
+        const { page = 1, limit = 10, status, courseId, userId, type, token } = params;
+        
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            limit: limit.toString(),
+        });
+
+        if (status !== undefined) queryParams.append('status', status.toString());
+        if (courseId) queryParams.append('courseId', courseId);
+        if (userId) queryParams.append('userId', userId);
+        if (type) queryParams.append('type', type);
+
+        const response = await axiosInstance.get(`/notifications/admin/all?${queryParams.toString()}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        console?.log("Full Response:", response?.data);
+
+        // The API response structure is: { success: true, data: { notifications: [...], pagination: {...} } }
+        const responseData = response?.data?.data || {};
+        console?.log("Response Data:", responseData);
+        
+        return {
+            notifications: responseData?.notifications || [],
+            total: responseData.pagination?.total || 0,
+            page: responseData.pagination?.page || 1,
+            limit: responseData.pagination?.limit || 10,
+            totalPages: responseData.pagination?.totalPages || 1,
+        };
+    } catch (error: any) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to fetch notifications');
+    }
+});
+
 const notificationSlice = createSlice({
     name: 'notification',
     initialState,
@@ -79,6 +155,12 @@ const notificationSlice = createSlice({
             state.loading = false;
             state.error = null;
             state.success = false;
+        },
+        setFilters: (state, action) => {
+            state.filters = { ...state.filters, ...action.payload };
+        },
+        clearFilters: (state) => {
+            state.filters = {};
         },
     },
     extraReducers: (builder) => {
@@ -110,10 +192,28 @@ const notificationSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
                 state.success = false;
+            })
+            .addCase(fetchNotifications.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchNotifications.fulfilled, (state, action) => {
+                state.loading = false;
+                state.notifications = action.payload.notifications;
+                state.pagination = {
+                    page: action.payload.page,
+                    limit: action.payload.limit,
+                    total: action.payload.total,
+                    totalPages: action.payload.totalPages,
+                };
+            })
+            .addCase(fetchNotifications.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
             });
     },
 });
 
-export const { clearNotificationState } = notificationSlice.actions;
+export const { clearNotificationState, setFilters, clearFilters } = notificationSlice.actions;
 
 export default notificationSlice.reducer;

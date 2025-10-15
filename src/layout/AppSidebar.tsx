@@ -152,8 +152,11 @@ const navItems: NavItem[] = [
 
 {
   icon: <Bell />,
-  name: "Send Notifications",
-  path:"/send-notification"
+  name: "Notifications",
+  subItems: [
+    { name: "Send Notifications", path: "/send-notification" },
+    { name: "Notification History", path: "/notification-history" },
+  ],
 },
 
 

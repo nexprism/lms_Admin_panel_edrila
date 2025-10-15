@@ -63,6 +63,7 @@ import AddBanner from "./pages/Banner/AddBanner";
 import EditBanner from "./pages/Banner/EditBanner";
 import LeaderboardSetting from "./pages/LeaderboardSetting";
 import NotificationDashboard from "./pages/Notifications/NotificationDashboard";
+import NotificationList from "./pages/Notifications/NotificationList";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -298,6 +299,7 @@ export default function App() {
               <Route path="/images" element={<Images />} />
               <Route path="/videos" element={<Videos />} />
               <Route path="/send-notification" element={<NotificationDashboard />} />
+              <Route path="/notification-history" element={<NotificationList />} />
               <Route path="/device-approvals" element={<DeviceApprovals />} />
               {/* Testimonials */}
               <Route path="/testimonials" element={<TestimonialsPage />} />
