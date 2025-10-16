@@ -31,6 +31,7 @@ import { selectIsAuthenticated } from "./store/slices/authslice";
 import StudentList from "./pages/students/StudenList";
 import StudentDetail from "./pages/students/StudentDetail";
 import AssignmentSubmissionReview from "./pages/Assignmets/AssignmentDetails";
+import AssignmentPage from "./pages/Assignmets/AssignmentPage";
 import HelpDesk from "./pages/HelpDesk/RequestList";
 import TicketDetails from "./pages/HelpDesk/TicketDetails";
 import CertificationList from "./pages/Certification/CertificationList";
@@ -205,6 +206,7 @@ export default function App() {
 
               {/* Assignments */}
               <Route path="/assignments/all" element={<AssignmentList />} />
+              <Route path="/assignments/:assignmentId" element={<AssignmentPage />} />
               <Route
                 path="/assignments/edit/:assignmentId"
                 element={<EditAssignmentForm />}
