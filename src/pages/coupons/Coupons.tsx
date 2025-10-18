@@ -21,6 +21,9 @@ import {
   CheckCircle,
   XCircle,
   Pencil,
+  Eye,
+  Users,
+  Calendar,
 } from "lucide-react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -38,12 +41,163 @@ interface Coupon {
   usageLimit: number;
   usageLimitPerUser: number;
   isActive: boolean;
-  usedBy: string[];
+  usedBy: Array<{
+    userId: {
+      _id: string;
+      fullName: string;
+      email: string;
+      phone?: string;
+    } | null;
+    usageCount?: number;
+  }>;
   startDate: string;
   endDate: string;
   createdAt: string;
   updatedAt: string;
 }
+
+// Usage Details Modal Component
+const UsageDetailsModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  coupon: Coupon | null;
+}> = ({ isOpen, onClose, coupon }) => {
+  if (!isOpen || !coupon) return null;
+
+  const validUsages = coupon.usedBy.filter(usage => usage.userId !== null);
+  const totalUsages = validUsages.reduce((sum, usage) => sum + (usage.usageCount || 0), 0);
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div
+        className="fixed inset-0 bg-transparent backdrop-blur-xs transition-opacity"
+        onClick={onClose}
+      ></div>
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+          <div className="flex items-center justify-between gap-4 p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Coupon Usage Details
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Code: <span className="font-medium">{coupon.code}</span>
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="p-6">
+            {/* Usage Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-900 dark:text-blue-300">
+                    Total Users
+                  </span>
+                </div>
+                <p className="text-2xl font-bold text-blue-800 dark:text-blue-200 mt-1">
+                  {validUsages.length}
+                </p>
+              </div>
+              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-sm font-medium text-green-900 dark:text-green-300">
+                    Total Uses
+                  </span>
+                </div>
+                <p className="text-2xl font-bold text-green-800 dark:text-green-200 mt-1">
+                  {totalUsages}
+                </p>
+              </div>
+              <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-900 dark:text-purple-300">
+                    Limit
+                  </span>
+                </div>
+                <p className="text-2xl font-bold text-purple-800 dark:text-purple-200 mt-1">
+                  {coupon.usageLimit}
+                </p>
+              </div>
+            </div>
+
+            {/* Usage List */}
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                User Usage Details
+              </h4>
+              
+              {validUsages.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">
+                    No users have used this coupon yet
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {validUsages.map((usage, index) => (
+                    <div
+                      key={usage.userId?._id || index}
+                      className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                          {usage.userId?.fullName?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                        <div>
+                          <h5 className="font-medium text-gray-900 dark:text-white">
+                            {usage.userId?.fullName || 'Unknown User'}
+                          </h5>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {usage.userId?.email || 'No email'}
+                          </p>
+                          {usage.userId?.phone && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {usage.userId.phone}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="inline-flex items-center px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
+                          Used: {usage.usageCount || 0} time{(usage.usageCount || 0) !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Delete Confirmation Modal Component
 const DeleteModal: React.FC<{
@@ -122,14 +276,15 @@ const DeleteModal: React.FC<{
 
 const Coupons: React.FC = () => {
   const dispatch = useAppDispatch();
-
   const navigate = useNavigate();
   const { data, loading, error, pagination, searchQuery, filters } = useSelector(
     (state: RootState) => state.coupons
   );
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [usageModalOpen, setUsageModalOpen] = useState(false);
   const [couponToDelete, setCouponToDelete] = useState<Coupon | null>(null);
+  const [couponToViewUsage, setCouponToViewUsage] = useState<Coupon | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchInput, setSearchInput] = useState(searchQuery);
   const [localFilters, setLocalFilters] = useState<Record<string, any>>(filters);
@@ -253,6 +408,16 @@ const Coupons: React.FC = () => {
         setIsDeleting(false);
       }
     }
+  };
+
+  const openUsageModal = (coupon: Coupon) => {
+    setCouponToViewUsage(coupon);
+    setUsageModalOpen(true);
+  };
+
+  const closeUsageModal = () => {
+    setCouponToViewUsage(null);
+    setUsageModalOpen(false);
   };
 
   const generatePageNumbers = () => {
@@ -403,6 +568,9 @@ const Coupons: React.FC = () => {
                   Discount
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                  Usage
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
@@ -416,65 +584,91 @@ const Coupons: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
               {coupons.length === 0 && !loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                     No coupons found.
                   </td>
                 </tr>
               ) : (
-                coupons.map((coupon: Coupon, idx: number) => (
-                  <tr
-                    key={coupon._id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                      {(pagination.page - 1) * pagination.limit + idx + 1}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                      {coupon.code}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                      {coupon.description}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                      {coupon.discountType === "flat"
-                        ? `₹${coupon.discountAmount}`
-                        : `${coupon.discountPercent}%`}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {coupon.isActive ? (
-                        <span className="inline-flex items-center">
-                          <CheckCircle className="text-green-500 h-5 w-5" />
-                          <span className="ml-2 text-green-700 dark:text-green-400">Active</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center">
-                          <XCircle className="text-red-500 h-5 w-5" />
-                          <span className="ml-2 text-red-700 dark:text-red-400">Inactive</span>
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(coupon.endDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {/* <button
-                         onClick={() => navigate(`/coupons/edit/${coupon._id}`)}
-                         className="text-blue-500 hover:text-blue-700 transition-colors p-1"
-                         title="Edit coupon"
-                       >
-                         <Pencil className="h-5 w-5" />
-                       </button> */}
-
-                      <button
-                        onClick={() => openDeleteModal(coupon)}
-                        className="text-red-500 hover:text-red-700 transition-colors p-1"
-                        title="Delete coupon"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                coupons.map((coupon: Coupon, idx: number) => {
+                  const validUsages = coupon.usedBy.filter(usage => usage.userId !== null);
+                  const totalUsages = validUsages.reduce((sum, usage) => sum + (usage.usageCount || 0), 0);
+                  
+                  return (
+                    <tr
+                      key={coupon._id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                        {(pagination.page - 1) * pagination.limit + idx + 1}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        {coupon.code}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                        {coupon.description}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                        {coupon.discountType === "flat"
+                          ? `₹${coupon.discountAmount}`
+                          : `${coupon.discountPercent}%`}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                        <div className="flex items-center gap-2">
+                          <span className="text-blue-600 dark:text-blue-400 font-medium">
+                            {totalUsages}
+                          </span>
+                          <span className="text-gray-400">/</span>
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {coupon.usageLimit}
+                          </span>
+                          {validUsages.length > 0 && (
+                            <button
+                              onClick={() => openUsageModal(coupon)}
+                              className="ml-2 text-blue-500 hover:text-blue-700 transition-colors"
+                              title="View usage details"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {coupon.isActive ? (
+                          <span className="inline-flex items-center">
+                            <CheckCircle className="text-green-500 h-5 w-5" />
+                            <span className="ml-2 text-green-700 dark:text-green-400">Active</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center">
+                            <XCircle className="text-red-500 h-5 w-5" />
+                            <span className="ml-2 text-red-700 dark:text-red-400">Inactive</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {new Date(coupon.endDate).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => openUsageModal(coupon)}
+                            className="text-blue-500 hover:text-blue-700 transition-colors p-1"
+                            title="View usage details"
+                          >
+                            <Eye className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => openDeleteModal(coupon)}
+                            className="text-red-500 hover:text-red-700 transition-colors p-1"
+                            title="Delete coupon"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -549,6 +743,13 @@ const Coupons: React.FC = () => {
         onConfirm={handleDeleteConfirm}
         coupon={couponToDelete}
         isDeleting={isDeleting}
+      />
+
+      {/* Usage Details Modal */}
+      <UsageDetailsModal
+        isOpen={usageModalOpen}
+        onClose={closeUsageModal}
+        coupon={couponToViewUsage}
       />
     </div>
   );

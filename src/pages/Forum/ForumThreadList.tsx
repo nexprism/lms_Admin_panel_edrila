@@ -219,7 +219,7 @@ const ForumThreadList: React.FC = () => {
                     <tr
                       key={thread._id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                      onClick={() => navigate(`/forum/${thread._id}`)}
+                      onClick={() => navigate(`/forum/edit/${thread._id}`)}
                     >
                       <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{(pagination.page - 1) * pagination.limit + idx + 1}</td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{thread.title}</td>
@@ -231,6 +231,13 @@ const ForumThreadList: React.FC = () => {
                         className="px-6 py-4 text-right text-sm font-medium flex gap-3"
                         onClick={e => e.stopPropagation()}
                       >
+                        <button
+                          className="p-2 rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+                          onClick={() => navigate(`/forum/${thread._id}`)}
+                          title="View Details"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
                         <button
                           className={`p-2 rounded-md transition ${
                             thread.Is_openSource

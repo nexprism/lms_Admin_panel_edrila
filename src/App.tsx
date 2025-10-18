@@ -31,6 +31,7 @@ import { selectIsAuthenticated } from "./store/slices/authslice";
 import StudentList from "./pages/students/StudenList";
 import StudentDetail from "./pages/students/StudentDetail";
 import AssignmentSubmissionReview from "./pages/Assignmets/AssignmentDetails";
+import AssignmentPage from "./pages/Assignmets/AssignmentPage";
 import HelpDesk from "./pages/HelpDesk/RequestList";
 import TicketDetails from "./pages/HelpDesk/TicketDetails";
 import CertificationList from "./pages/Certification/CertificationList";
@@ -49,6 +50,7 @@ import ForumThreadList from "./pages/Forum/ForumThreadList";
 import AppNotificationSender from "./pages/AppNotificationSender";
 import DeviceApprovals from "./pages/DeviceApprovals";
 import ForumDetails from "./pages/Forum/ForumDetails";
+import EditForumThread from "./pages/Forum/EditForumThread";
 import AddEvent from "./pages/Events/AddEvent";
 import EventList from "./pages/Events/EventList";
 import EditEvent from "./pages/Events/EditEvent";
@@ -60,6 +62,9 @@ import Banner from "./pages/Banner/banner";
 import AllBanners from "./pages/Banner/AllBanners";
 import AddBanner from "./pages/Banner/AddBanner";
 import EditBanner from "./pages/Banner/EditBanner";
+import LeaderboardSetting from "./pages/LeaderboardSetting";
+import NotificationDashboard from "./pages/Notifications/NotificationDashboard";
+import NotificationList from "./pages/Notifications/NotificationList";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -201,6 +206,7 @@ export default function App() {
 
               {/* Assignments */}
               <Route path="/assignments/all" element={<AssignmentList />} />
+              <Route path="/assignments/:assignmentId" element={<AssignmentPage />} />
               <Route
                 path="/assignments/edit/:assignmentId"
                 element={<EditAssignmentForm />}
@@ -216,6 +222,7 @@ export default function App() {
 
               <Route path="/forum" element={<ForumThreadList />} />
               <Route path="/forum/:threadId" element={<ForumDetails />} />
+              <Route path="/forum/edit/:threadId" element={<EditForumThread />} />
 
               {/* Support Tickets */}
               <Route
@@ -293,13 +300,15 @@ export default function App() {
               <Route path="/buttons" element={<Buttons />} />
               <Route path="/images" element={<Images />} />
               <Route path="/videos" element={<Videos />} />
-              <Route path="/send-notification" element={<AppNotificationSender />} />
+              <Route path="/send-notification" element={<NotificationDashboard />} />
+              <Route path="/notification-history" element={<NotificationList />} />
               <Route path="/device-approvals" element={<DeviceApprovals />} />
               {/* Testimonials */}
               <Route path="/testimonials" element={<TestimonialsPage />} />
               {/* Charts */}
               <Route path="/line-chart" element={<LineChart />} />
               <Route path="/bar-chart" element={<BarChart />} />
+              <Route path="/leaderboard-setting" element={<LeaderboardSetting />} />
             </Route>
           </Route>
 

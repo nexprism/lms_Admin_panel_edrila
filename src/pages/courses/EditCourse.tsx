@@ -259,6 +259,7 @@ const EditCourse = () => {
     isPublished: false,
     enrollmentType: "open",
     maxStudents: "",
+    enrolledStudentsCount: 0,
     certificateTemplate: true,
     isDownloadable: true,
     courseForum: true,
@@ -406,6 +407,7 @@ const EditCourse = () => {
         isPublished: course.isPublished || false,
         enrollmentType: course.enrollmentType || "open",
         maxStudents: course.maxStudents || "",
+        enrolledStudentsCount: course.enrolledStudentsCount || 0,
         certificateTemplate:
           course.certificateTemplate !== undefined
             ? course.certificateTemplate
@@ -894,8 +896,35 @@ const EditCourse = () => {
                         }}
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
+                        <Users className="w-4 h-4 text-blue-600" />
+                        Enrolled Students Count
+                      </label>
+                      <input
+                        type="number"
+                        name="enrolledStudentsCount"
+                        value={formData.enrolledStudentsCount}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "" || /^\d+$/.test(value)) {
+                            handleInputChange(e);
+                          }
+                        }}
+                        step="1"
+                        min="0"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Number of enrolled students"
+                        onWheel={(e) => e.currentTarget.blur()}
+                        onInput={(e) => {
+                          const value = e.currentTarget.value;
+                          if (value && value.includes(".")) {
+                            e.currentTarget.value = value.split(".")[0];
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
-                 
                 </div>
               )}
 

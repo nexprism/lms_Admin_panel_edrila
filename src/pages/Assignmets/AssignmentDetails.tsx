@@ -12,6 +12,7 @@ import {
   Clock,
   Award,
   Send,
+  ExternalLink,
 } from "lucide-react";
 import axiosInstance from "../../services/axiosConfig";
 import { useNavigate, useParams } from "react-router";
@@ -127,6 +128,38 @@ const AssignmentSubmissionReview = () => {
     }
   };
 
+  const handleViewAssignment = () => {
+    if (submission?.assignmentId?._id) {
+      // Navigate directly to the assignment page
+      navigate(`/assignments/${submission.assignmentId._id}`);
+    }
+  };
+
+  const handleFileDownload = (filePath, fileName = null) => {
+    if (!filePath) return;
+
+    // Create a proper download link
+    const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:5000";
+    const fullUrl = `${baseUrl}/${filePath}`;
+
+    // Create a temporary anchor element for download
+    const link = document.createElement("a");
+    link.href = fullUrl;
+
+    // Extract filename from path if not provided
+    const extractedFileName = fileName || filePath.split("/").pop() || "download";
+    link.download = extractedFileName;
+
+    // Set proper attributes to force download
+    link.setAttribute("target", "_blank");
+    link.setAttribute("rel", "noopener noreferrer");
+
+    // Append to body, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   useEffect(() => {
     getData();
   }, []);
@@ -169,10 +202,21 @@ const AssignmentSubmissionReview = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Assignment Details */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90 flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-purple-600" />
-                  Assignment Details
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-purple-600" />
+                    Assignment Details
+                  </h3>
+                  {submission?.assignmentId?._id && (
+                    <button
+                      onClick={handleViewAssignment}
+                      className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      View Assignment
+                    </button>
+                  )}
+                </div>
                 <div className="space-y-3">
                   <div>
                     <label className="text-sm font-medium text-gray-600 dark:text-white/90">
@@ -314,19 +358,20 @@ const AssignmentSubmissionReview = () => {
                     <FileText className="w-6 h-6 text-blue-600" />
                     <div>
                       <p className="font-medium text-blue-900">
-                        {submission?.submissionFile}
+                        {submission.submissionFile.split("/").pop() || "Submitted File"}
                       </p>
                       <p className="text-sm text-blue-600">
                         Click to download and review
                       </p>
                     </div>
                   </div>
-                  <a href={submission?.submissionFile} download>
-                    <button className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                      <Download className="w-4 h-4" />
-                      Download
-                    </button>
-                  </a>
+                  <button
+                    onClick={() => handleFileDownload(submission.submissionFile)}
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download
+                  </button>
                 </div>
               </div>
             )}
@@ -401,8 +446,12 @@ const AssignmentSubmissionReview = () => {
                   className="w-full px-4 py-3 border dark:text-white/70 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   disabled={loading}
                 >
-                  <option  className="dark:text-black" value="graded">Graded</option>
-                  <option  className="dark:text-black" value="resubmitted">Needs Resubmission</option>
+                  <option className="dark:text-black" value="graded">
+                    Graded
+                  </option>
+                  <option className="dark:text-black" value="resubmitted">
+                    Needs Resubmission
+                  </option>
                 </select>
               </div>
 

@@ -119,6 +119,12 @@ const navItems: NavItem[] = [
     name: "Testimonials",
     path: "/testimonials"
   },
+
+  {
+    icon: <PieChartIcon />,
+    name: "Leaderboard Settings",
+    path: "/leaderboard-setting"
+  },
   // {
   //   icon: <Files />,
   //   name: "Analytics",
@@ -146,8 +152,11 @@ const navItems: NavItem[] = [
 
 {
   icon: <Bell />,
-  name: "Send Notifications",
-  path:"/send-notification"
+  name: "Notifications",
+  subItems: [
+    { name: "Send Notifications", path: "/send-notification" },
+    { name: "Notification History", path: "/notification-history" },
+  ],
 },
 
 
@@ -494,30 +503,26 @@ const AppSidebar: React.FC = () => {
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
-        <Link to="/">
+        <Link to="/" className="flex items-end ">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <img
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
+                className="dark:hidden h-11"
+                src="/images/logo/ed-logo.png"
                 alt="Logo"
-                width={150}
-                height={40}
               />
               <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
+                className="hidden dark:block h-11"
+                src="/images/logo/ed-logo.png"
                 alt="Logo"
-                width={150}
-                height={40}
               />
+              <span className="ml-1 text-lg font-semibold">edrilla</span>
             </>
           ) : (
             <img
-              src="/images/logo/logo-icon.svg"
+            className="dark:hidden h-11"
+              src="/images/logo/ed-logo.png"
               alt="Logo"
-              width={32}
-              height={32}
             />
           )}
         </Link>
