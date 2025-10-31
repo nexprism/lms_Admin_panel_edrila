@@ -39,6 +39,26 @@ const AssignmentSubmissionReview = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "scoreGiven") {
+      const numValue = parseFloat(value);
+      const maxScore = submission?.assignmentId?.maxScore || 0;
+
+      // Prevent values above maxScore
+      if (numValue > maxScore) {
+        setError(`Score cannot exceed ${maxScore} points`);
+        setFormData((prev) => ({
+          ...prev,
+          [name]: maxScore.toString(),
+        }));
+        // Clear error after 3 seconds
+        setTimeout(() => setError(""), 3000);
+        return;
+      } else {
+        setError(""); // Clear error if value is valid
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -399,6 +419,42 @@ const AssignmentSubmissionReview = () => {
                     min="0"
                     max={submission?.assignmentId.maxScore}
                     step="0.5"
+                    onInput={(e) => {
+                      // Additional safety check on input
+                      const value = parseFloat(e.target.value);
+                      const maxScore = submission?.assignmentId?.maxScore || 0;
+                      if (value > maxScore) {
+                        e.target.value = maxScore;
+                        setFormData(prev => ({ ...prev, scoreGiven: maxScore.toString() }));
+                        setError(`Score cannot exceed ${maxScore} points`);
+                        setTimeout(() => setError(""), 3000);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // Allow navigation and control keys
+                      const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+                      if (allowedKeys.includes(e.key)) {
+                        return;
+                      }
+                      
+                      // Allow decimal point and digits
+                      if (e.key === '.' || /^\d$/.test(e.key)) {
+                        const currentValue = e.target.value;
+                        const cursorPosition = e.target.selectionStart;
+                        const newValue = currentValue.slice(0, cursorPosition) + e.key + currentValue.slice(e.target.selectionEnd);
+                        const numValue = parseFloat(newValue);
+                        const maxScore = submission?.assignmentId?.maxScore || 0;
+                        
+                        if (!isNaN(numValue) && numValue > maxScore) {
+                          e.preventDefault();
+                          setError(`Score cannot exceed ${maxScore} points`);
+                          setTimeout(() => setError(""), 3000);
+                        }
+                      } else {
+                        // Block any other keys
+                        e.preventDefault();
+                      }
+                    }}
                     className="w-full px-4 py-3 dark:text-white/70 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     placeholder={`Enter score (0-${submission?.assignmentId.maxScore})`}
                     disabled={loading}
@@ -407,6 +463,12 @@ const AssignmentSubmissionReview = () => {
                     / {submission?.assignmentId.maxScore}
                   </div>
                 </div>
+                {formData.scoreGiven &&
+                  parseFloat(formData.scoreGiven) === submission?.assignmentId?.maxScore && (
+                    <p className="text-sm text-green-600 mt-1">
+                      Maximum score reached
+                    </p>
+                  )}
               </div>
 
               {/* Feedback */}
