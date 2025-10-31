@@ -408,7 +408,7 @@ const AssignmentSubmissionReview = () => {
               {/* Score Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
-                  Score (out of {submission?.assignmentId.maxScore})*
+                  Score (out of {submission?.assignmentId?.maxScore})*
                 </label>
                 <div className="relative">
                   <input
@@ -460,7 +460,7 @@ const AssignmentSubmissionReview = () => {
                     disabled={loading}
                   />
                   <div className="absolute right-4 top-3 text-gray-500">
-                    / {submission?.assignmentId.maxScore}
+                    / {submission?.assignmentId?.maxScore}
                   </div>
                 </div>
                 {formData.scoreGiven &&
