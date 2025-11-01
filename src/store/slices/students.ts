@@ -62,6 +62,7 @@ interface StudentState {
   error: string | null;
   searchQuery: string;
   filters: Record<string, any>;
+  analytics?: any;
   pagination: {
     total: number;
     page: number;
