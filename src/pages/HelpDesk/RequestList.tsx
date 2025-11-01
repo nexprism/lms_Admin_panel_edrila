@@ -4,13 +4,21 @@ import { fetchSupportTickets } from "../../store/slices/support";
 import { fetchStudentById, clearStudentDetails } from "../../store/slices/students";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-import { Search, ChevronLeft, ChevronRight, RotateCcw, Eye, Edit, Paperclip, User, X, Clock, CheckCircle, AlertCircle, Timer, TrendingUp, Users, Calendar, MessageCircle, BarChart3, Activity, Filter } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, RotateCcw, Eye, Edit, Paperclip, User, X, Clock, CheckCircle, AlertCircle, Timer, TrendingUp, Users, Calendar, MessageCircle, BarChart3, Activity, Filter, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface User {
     _id: string;
     fullName: string;
     email: string;
+}
+
+interface Message {
+    sender: string;
+    message: string;
+    attachments: string[];
+    timestamp: string;
+    _id: string;
 }
 
 interface SupportTicket {
@@ -21,6 +29,7 @@ interface SupportTicket {
     description: string;
     priority: string;
     status: string;
+    messages: Message[];
     attachments: string[];
     createdAt: string;
     updatedAt: string;
@@ -36,12 +45,41 @@ const RequestList: React.FC = () => {
     const [page, setPage] = useState(1);
     const [isSearching, setIsSearching] = useState(false);
     const [showUserProfile, setShowUserProfile] = useState(false);
+    const [showUserTickets, setShowUserTickets] = useState(false);
+    const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+    const [userTicketsData, setUserTicketsData] = useState<SupportTicket[]>([]);
     const [selectedTimeRange, setSelectedTimeRange] = useState('7days');
     const [selectedPriority, setSelectedPriority] = useState('all');
     const [selectedStatus, setSelectedStatus] = useState('all');
+    const [allTickets, setAllTickets] = useState<SupportTicket[]>([]);
+    const [analyticsLoading, setAnalyticsLoading] = useState(true);
     const hasFetched = useRef(false);
+    const hasAllTicketsFetched = useRef(false);
 
-    // Fetch tickets on component mount and page change
+    // Fetch all tickets for analytics (once)
+    useEffect(() => {
+        if (!hasAllTicketsFetched.current) {
+            setAnalyticsLoading(true);
+            dispatch(fetchSupportTickets({ page: 1, limit: 10000 }))
+                .unwrap()
+                .then((response: any) => {
+                    console.log('All tickets response:', response); // Debug log
+                    if (response && response.tickets) {
+                        setAllTickets(response.tickets);
+                    } else if (response.data && response.data.tickets) {
+                        setAllTickets(response.data.tickets);
+                    }
+                    setAnalyticsLoading(false);
+                })
+                .catch((error) => {
+                    console.error('Error fetching all tickets:', error);
+                    setAnalyticsLoading(false);
+                });
+            hasAllTicketsFetched.current = true;
+        }
+    }, [dispatch]);
+
+    // Fetch tickets for current page display
     useEffect(() => {
         if (!hasFetched.current || (!isSearching && page !== pagination.page)) {
             dispatch(fetchSupportTickets({ page, limit: pagination.limit || 10 }));
@@ -135,17 +173,110 @@ const RequestList: React.FC = () => {
         dispatch(clearStudentDetails());
     };
 
-    const currentTickets = getCurrentPageTickets();
-    const totalTickets = isSearching ? filteredTickets.length : pagination.total;
-    const currentPage = isSearching ? page : pagination.page;
-    const totalPages = isSearching 
-        ? Math.ceil(filteredTickets.length / (pagination.limit || 10))
-        : pagination.totalPages;
+    // Get user ticket analytics using all tickets
+    const getUserTicketAnalytics = () => {
+        const userStats = new Map();
+        
+        // Use allTickets for complete analytics, fall back to current tickets if allTickets is empty
+        const ticketsToAnalyze = allTickets.length > 0 ? allTickets : tickets;
+        
+        ticketsToAnalyze.forEach(ticket => {
+            if (ticket.userId?._id) {
+                const userId = ticket.userId._id;
+                const userInfo = userStats.get(userId) || {
+                    id: userId,
+                    name: ticket.userId.fullName,
+                    email: ticket.userId.email,
+                    totalTickets: 0,
+                    openTickets: 0,
+                    closedTickets: 0,
+                    resolvedTickets: 0,
+                    pendingTickets: 0,
+                    highPriority: 0,
+                    mediumPriority: 0,
+                    lowPriority: 0,
+                    lastActivity: ticket.updatedAt,
+                    avgResponseTime: 0,
+                    totalResponseTime: 0,
+                    responseCount: 0,
+                    tickets: []
+                };
 
-    // Enhanced dashboard statistics with detailed analytics
+                userInfo.totalTickets++;
+                userInfo.tickets.push(ticket);
+                
+                // Count by status
+                if (ticket.status === 'open') userInfo.openTickets++;
+                else if (ticket.status === 'closed') userInfo.closedTickets++;
+                else if (ticket.status === 'resolved') userInfo.resolvedTickets++;
+                else userInfo.pendingTickets++;
+
+                // Count by priority
+                if (ticket.priority === 'high') userInfo.highPriority++;
+                else if (ticket.priority === 'medium') userInfo.mediumPriority++;
+                else userInfo.lowPriority++;
+
+                // Calculate response times for this user's tickets
+                if (ticket.messages && ticket.messages.length > 1) {
+                    for (let i = 1; i < ticket.messages.length; i++) {
+                        const prevMsg = new Date(ticket.messages[i-1].timestamp);
+                        const currentMsg = new Date(ticket.messages[i].timestamp);
+                        const timeDiff = (currentMsg.getTime() - prevMsg.getTime()) / (1000 * 60 * 60); // hours
+                        if (timeDiff > 0 && timeDiff < 168) { // Only count reasonable response times (less than 1 week)
+                            userInfo.totalResponseTime += timeDiff;
+                            userInfo.responseCount++;
+                        }
+                    }
+                }
+
+                // Calculate average response time for this user
+                userInfo.avgResponseTime = userInfo.responseCount > 0 
+                    ? (userInfo.totalResponseTime / userInfo.responseCount).toFixed(1) + 'h'
+                    : 'No responses';
+
+                // Update last activity if this ticket is more recent
+                if (new Date(ticket.updatedAt) > new Date(userInfo.lastActivity)) {
+                    userInfo.lastActivity = ticket.updatedAt;
+                }
+
+                userStats.set(userId, userInfo);
+            }
+        });
+
+        return userStats;
+    };
+
+    // Memoize user analytics to prevent unnecessary recalculations
+    const userAnalytics = React.useMemo(() => {
+        return getUserTicketAnalytics();
+    }, [allTickets, tickets]);
+
+    const handleViewUserTickets = (userId: string) => {
+        // Use allTickets for complete user ticket data
+        const ticketsToFilter = allTickets.length > 0 ? allTickets : tickets;
+        const userTickets = ticketsToFilter.filter(ticket => ticket.userId?._id === userId);
+        setUserTicketsData(userTickets);
+        setSelectedUserId(userId);
+        setShowUserTickets(true);
+    };
+
+    const handleCloseUserTickets = () => {
+        setShowUserTickets(false);
+        setSelectedUserId(null);
+        setUserTicketsData([]);
+    };
+
+    // Enhanced dashboard statistics with detailed analytics using all tickets
     const getDashboardStats = () => {
-        const allTickets = tickets;
-        const totalTickets = allTickets.length;
+        // Use allTickets for complete analytics, fall back to current tickets if allTickets is empty
+        const ticketsToAnalyze = allTickets.length > 0 ? allTickets : tickets;
+        const totalTickets = ticketsToAnalyze.length;
+        
+        console.log('Analyzing tickets:', {
+            allTicketsCount: allTickets.length,
+            currentTicketsCount: tickets.length,
+            usingTickets: ticketsToAnalyze.length
+        }); // Debug log
         
         // Filter by time range
         const timeRangeFilter = (date: string) => {
@@ -156,36 +287,49 @@ const RequestList: React.FC = () => {
             return ticketDate >= cutoff;
         };
 
-        const recentTickets = allTickets.filter(ticket => timeRangeFilter(ticket.createdAt));
+        const recentTickets = ticketsToAnalyze.filter(ticket => timeRangeFilter(ticket.createdAt));
         
-        const openTickets = allTickets.filter(ticket => ticket.status === 'open').length;
-        const closedTickets = allTickets.filter(ticket => ticket.status === 'closed').length;
-        const pendingTickets = allTickets.filter(ticket => ticket.status === 'pending' || ticket.status === 'in-progress').length;
+        const openTickets = ticketsToAnalyze.filter(ticket => ticket.status === 'open').length;
+        const closedTickets = ticketsToAnalyze.filter(ticket => ticket.status === 'closed').length;
+        const resolvedTickets = ticketsToAnalyze.filter(ticket => ticket.status === 'resolved').length;
+        const pendingTickets = ticketsToAnalyze.filter(ticket => 
+            ticket.status === 'pending' || 
+            ticket.status === 'in-progress' ||
+            (ticket.status !== 'open' && ticket.status !== 'closed' && ticket.status !== 'resolved')
+        ).length;
         
-        const highPriorityTickets = allTickets.filter(ticket => ticket.priority === 'high').length;
-        const mediumPriorityTickets = allTickets.filter(ticket => ticket.priority === 'medium').length;
-        const lowPriorityTickets = allTickets.filter(ticket => ticket.priority === 'low').length;
+        const highPriorityTickets = ticketsToAnalyze.filter(ticket => ticket.priority === 'high').length;
+        const mediumPriorityTickets = ticketsToAnalyze.filter(ticket => ticket.priority === 'medium').length;
+        const lowPriorityTickets = ticketsToAnalyze.filter(ticket => ticket.priority === 'low').length;
         
-        // Calculate timing metrics (enhanced with realistic calculations)
-        const calculateAvgResponseTime = () => {
-            const responseTimes = [1.5, 2.3, 3.1, 1.8, 2.7, 4.2, 1.2]; // Mock realistic times in hours
-            return (responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length).toFixed(1) + ' hours';
-        };
-
+        // Calculate timing metrics using real data
         const calculateAvgResolveTime = () => {
-            const resolveTimes = [0.8, 1.5, 2.1, 1.2, 0.9, 3.2, 1.8]; // Mock realistic times in days
-            return (resolveTimes.reduce((a, b) => a + b, 0) / resolveTimes.length).toFixed(1) + ' days';
+            const resolvedAndClosedTickets = ticketsToAnalyze.filter(ticket => 
+                ticket.status === 'resolved' || ticket.status === 'closed'
+            );
+            
+            if (resolvedAndClosedTickets.length === 0) return 'N/A';
+            
+            let totalResolveTime = 0;
+            let resolveCount = 0;
+            
+            resolvedAndClosedTickets.forEach(ticket => {
+                const createdDate = new Date(ticket.createdAt);
+                const updatedDate = new Date(ticket.updatedAt);
+                const resolveDays = (updatedDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+                
+                if (resolveDays > 0 && resolveDays < 365) { // Only count reasonable resolve times
+                    totalResolveTime += resolveDays;
+                    resolveCount++;
+                }
+            });
+            
+            return resolveCount > 0 ? (totalResolveTime / resolveCount).toFixed(1) + ' days' : 'N/A';
         };
         
-        const avgResponseTime = calculateAvgResponseTime();
-        const avgResolveTime = calculateAvgResolveTime();
-        
-        // Calculate resolution rate
-        const resolutionRate = totalTickets > 0 ? Math.round((closedTickets / totalTickets) * 100) : 0;
-        
-        // Get unique users and their ticket counts
+        // Get unique users and their ticket counts from all tickets
         const userTicketMap = new Map();
-        allTickets.forEach(ticket => {
+        ticketsToAnalyze.forEach(ticket => {
             if (ticket.userId?._id) {
                 const userId = ticket.userId._id;
                 const userInfo = {
@@ -195,12 +339,14 @@ const RequestList: React.FC = () => {
                     count: (userTicketMap.get(userId)?.count || 0) + 1,
                     open: userTicketMap.get(userId)?.open || 0,
                     closed: userTicketMap.get(userId)?.closed || 0,
+                    resolved: userTicketMap.get(userId)?.resolved || 0,
                     pending: userTicketMap.get(userId)?.pending || 0,
                     lastTicket: ticket.createdAt
                 };
                 
                 if (ticket.status === 'open') userInfo.open++;
                 else if (ticket.status === 'closed') userInfo.closed++;
+                else if (ticket.status === 'resolved') userInfo.resolved++;
                 else userInfo.pending++;
                 
                 userTicketMap.set(userId, userInfo);
@@ -208,43 +354,86 @@ const RequestList: React.FC = () => {
         });
 
         const uniqueUsers = userTicketMap.size;
-        // Fix: Create a mutable copy before sorting
         const topUsers = [...Array.from(userTicketMap.values())]
             .sort((a, b) => b.count - a.count)
             .slice(0, 5);
 
-        // Recent activity - Fix: Create a mutable copy before sorting
-        const recentActivity = [...allTickets]
+        // Recent activity from all tickets
+        const recentActivity = [...ticketsToAnalyze]
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             .slice(0, 10);
 
-        // Category breakdown
-        const categoryStats = allTickets.reduce((acc, ticket) => {
+        // Category breakdown from all tickets
+        const categoryStats = ticketsToAnalyze.reduce((acc, ticket) => {
             const category = ticket.category === "course" ? "bug" : ticket.category;
             acc[category] = (acc[category] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
 
-        return {
+        // Calculate messages count from all tickets
+        const totalMessages = ticketsToAnalyze.reduce((acc, ticket) => acc + (ticket.messages?.length || 0), 0);
+        const avgMessagesPerTicket = totalTickets > 0 ? (totalMessages / totalTickets).toFixed(1) : '0';
+
+        // Calculate overall response times from all tickets
+        const calculateResponseMetrics = () => {
+            let totalResponseTime = 0;
+            let responseCount = 0;
+            
+            ticketsToAnalyze.forEach(ticket => {
+                if (ticket.messages && ticket.messages.length > 1) {
+                    for (let i = 1; i < ticket.messages.length; i++) {
+                        const prevMsg = new Date(ticket.messages[i-1].timestamp);
+                        const currentMsg = new Date(ticket.messages[i].timestamp);
+                        const timeDiff = (currentMsg.getTime() - prevMsg.getTime()) / (1000 * 60 * 60); // hours
+                        if (timeDiff > 0 && timeDiff < 168) { // Only count reasonable response times
+                            totalResponseTime += timeDiff;
+                            responseCount++;
+                        }
+                    }
+                }
+            });
+            
+            return responseCount > 0 ? (totalResponseTime / responseCount).toFixed(1) + ' hours' : 'N/A';
+        };
+
+        const responseTimeMetric = calculateResponseMetrics();
+        
+        const stats = {
             totalTickets,
             openTickets,
             closedTickets,
+            resolvedTickets,
             pendingTickets,
             highPriorityTickets,
             mediumPriorityTickets,
             lowPriorityTickets,
-            avgResponseTime,
-            avgResolveTime,
-            resolutionRate,
+            avgResponseTime: responseTimeMetric,
+            avgResolveTime: calculateAvgResolveTime(),
+            resolutionRate: totalTickets > 0 ? Math.round(((closedTickets + resolvedTickets) / totalTickets) * 100) : 0,
             uniqueUsers,
             topUsers,
             recentActivity,
             categoryStats,
-            recentTickets: recentTickets.length
+            recentTickets: recentTickets.length,
+            totalMessages,
+            avgMessagesPerTicket
         };
+        
+        console.log('Dashboard stats:', stats); // Debug log
+        return stats;
     };
 
-    const stats = getDashboardStats();
+    // Memoize dashboard stats to prevent unnecessary recalculations
+    const stats = React.useMemo(() => {
+        return getDashboardStats();
+    }, [allTickets, tickets, selectedTimeRange]);
+
+    const currentTickets = getCurrentPageTickets();
+    const totalTickets = isSearching ? filteredTickets.length : pagination.total;
+    const currentPage = isSearching ? page : pagination.page;
+    const totalPages = isSearching 
+        ? Math.ceil(filteredTickets.length / (pagination.limit || 10))
+        : pagination.totalPages;
 
     return (
         <div>
@@ -262,21 +451,23 @@ const RequestList: React.FC = () => {
                             <p className="text-gray-600 dark:text-gray-400 mt-1">
                                 Comprehensive overview of support operations and performance metrics
                             </p>
+                            {analyticsLoading && (
+                                <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
+                                    Loading complete analytics data...
+                                </p>
+                            )}
+                            {!analyticsLoading && allTickets.length > 0 && (
+                                <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                                    Analytics based on {allTickets.length} total tickets
+                                </p>
+                            )}
                         </div>
                         <div className="flex flex-col lg:flex-row gap-4">
                             {/* Time Range Filter */}
-                            <select
-                                value={selectedTimeRange}
-                                onChange={(e) => setSelectedTimeRange(e.target.value)}
-                                className="px-4 py-2 border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                            >
-                                <option value="7days">Last 7 Days</option>
-                                <option value="30days">Last 30 Days</option>
-                                <option value="90days">Last 90 Days</option>
-                            </select>
+                           
                             <div className="text-right">
                                 <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                                    {stats.totalTickets}
+                                    {analyticsLoading ? '...' : stats.totalTickets}
                                 </div>
                                 <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                     Total Tickets
@@ -285,311 +476,280 @@ const RequestList: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Main Statistics Cards Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        {/* Open Tickets */}
-                        <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border border-red-200 dark:border-red-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <p className="text-red-600 dark:text-red-400 text-sm font-medium uppercase tracking-wide">
-                                        Open Tickets
-                                    </p>
-                                    <p className="text-3xl font-bold text-red-700 dark:text-red-300 mt-2">
-                                        {stats.openTickets}
-                                    </p>
-                                    <div className="flex items-center justify-between mt-3">
-                                        <div className={`text-xs px-2 py-1 rounded-full ${
-                                            stats.highPriorityTickets > 0 
-                                                ? 'bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-200' 
-                                                : 'bg-green-200 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                        }`}>
-                                            {stats.highPriorityTickets} High Priority
-                                        </div>
-                                        <Activity className="w-4 h-4 text-red-500" />
-                                    </div>
-                                    <div className="mt-2 bg-red-200 dark:bg-red-800 rounded-full h-1">
-                                        <div 
-                                            className="bg-red-600 h-1 rounded-full transition-all duration-300" 
-                                            style={{ width: `${(stats.openTickets / stats.totalTickets) * 100}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                                <div className="w-12 h-12 bg-red-200 dark:bg-red-800 rounded-lg flex items-center justify-center">
-                                    <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
-                                </div>
+                    {/* Show loading indicator for analytics */}
+                    {analyticsLoading ? (
+                        <div className="flex justify-center items-center py-12">
+                            <div className="text-center">
+                                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4"></div>
+                                <p className="text-gray-600 dark:text-gray-400">Loading analytics data...</p>
                             </div>
                         </div>
-
-                        {/* Pending/In-Progress Tickets */}
-                        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <p className="text-yellow-600 dark:text-yellow-400 text-sm font-medium uppercase tracking-wide">
-                                        In Progress
-                                    </p>
-                                    <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-300 mt-2">
-                                        {stats.pendingTickets}
-                                    </p>
-                                    <div className="flex items-center justify-between mt-3">
-                                        <div className="text-xs px-2 py-1 rounded-full bg-yellow-200 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                                            {stats.mediumPriorityTickets} Medium Priority
-                                        </div>
-                                        <Clock className="w-4 h-4 text-yellow-500" />
-                                    </div>
-                                    <div className="mt-2 bg-yellow-200 dark:bg-yellow-800 rounded-full h-1">
-                                        <div 
-                                            className="bg-yellow-600 h-1 rounded-full transition-all duration-300" 
-                                            style={{ width: `${(stats.pendingTickets / stats.totalTickets) * 100}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                                <div className="w-12 h-12 bg-yellow-200 dark:bg-yellow-800 rounded-lg flex items-center justify-center">
-                                    <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Resolved Tickets */}
-                        <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <p className="text-green-600 dark:text-green-400 text-sm font-medium uppercase tracking-wide">
-                                        Resolved
-                                    </p>
-                                    <p className="text-3xl font-bold text-green-700 dark:text-green-300 mt-2">
-                                        {stats.closedTickets}
-                                    </p>
-                                    <div className="flex items-center justify-between mt-3">
-                                        <div className="flex items-center gap-1">
-                                            <TrendingUp className="w-3 h-3 text-green-600 dark:text-green-400" />
-                                            <span className="text-xs text-green-600 dark:text-green-400 font-medium">
-                                                {stats.resolutionRate}% Rate
-                                            </span>
-                                        </div>
-                                        <CheckCircle className="w-4 h-4 text-green-500" />
-                                    </div>
-                                    <div className="mt-2 bg-green-200 dark:bg-green-800 rounded-full h-1">
-                                        <div 
-                                            className="bg-green-600 h-1 rounded-full transition-all duration-300" 
-                                            style={{ width: `${stats.resolutionRate}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                                <div className="w-12 h-12 bg-green-200 dark:bg-green-800 rounded-lg flex items-center justify-center">
-                                    <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Active Users */}
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <p className="text-blue-600 dark:text-blue-400 text-sm font-medium uppercase tracking-wide">
-                                        Active Users
-                                    </p>
-                                    <p className="text-3xl font-bold text-blue-700 dark:text-blue-300 mt-2">
-                                        {stats.uniqueUsers}
-                                    </p>
-                                    <div className="flex items-center justify-between mt-3">
-                                        <div className="text-xs px-2 py-1 rounded-full bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                            {stats.lowPriorityTickets} Low Priority
-                                        </div>
-                                        <Users className="w-4 h-4 text-blue-500" />
-                                    </div>
-                                    <div className="mt-2 bg-blue-200 dark:bg-blue-800 rounded-full h-1">
-                                        <div className="bg-blue-600 h-1 rounded-full transition-all duration-300" style={{ width: '85%' }}></div>
-                                    </div>
-                                </div>
-                                <div className="w-12 h-12 bg-blue-200 dark:bg-blue-800 rounded-lg flex items-center justify-center">
-                                    <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Enhanced Performance Metrics */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    Avg. Response Time
-                                </h3>
-                                <Timer className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                            </div>
-                            <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">
-                                {stats.avgResponseTime}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                                Time to first response
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-xs">
-                                    <span>Target: 2h</span>
-                                    <span>Current: {stats.avgResponseTime}</span>
-                                </div>
-                                <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div className="bg-indigo-600 h-2 rounded-full transition-all duration-500" style={{ width: '75%' }}></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    Avg. Resolve Time
-                                </h3>
-                                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                            </div>
-                            <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
-                                {stats.avgResolveTime}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                                Time to complete resolution
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-xs">
-                                    <span>Target: 1.5d</span>
-                                    <span>Current: {stats.avgResolveTime}</span>
-                                </div>
-                                <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div className="bg-green-600 h-2 rounded-full transition-all duration-500" style={{ width: '60%' }}></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    Customer Satisfaction
-                                </h3>
-                                <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                            </div>
-                            <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                                4.8/5
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                                Average customer rating
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-xs">
-                                    <span>Target: 4.5</span>
-                                    <span>Current: 4.8</span>
-                                </div>
-                                <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div className="bg-purple-600 h-2 rounded-full transition-all duration-500" style={{ width: '96%' }}></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Top Users and Recent Activity Section */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                        {/* Top Users by Ticket Count */}
-                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                                    <BarChart3 className="w-5 h-5 text-indigo-600" />
-                                    Top Users by Tickets
-                                </h3>
-                                <span className="text-sm text-gray-500 dark:text-gray-400">Last 30 days</span>
-                            </div>
-                            <div className="space-y-4">
-                                {stats.topUsers.map((user, index) => (
-                                    <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                                                {index + 1}
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900 dark:text-white text-sm">{user.name}</p>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{user.count}</div>
-                                            <div className="flex gap-1 text-xs">
-                                                <span className="text-red-500">{user.open}O</span>
-                                                <span className="text-yellow-500">{user.pending}P</span>
-                                                <span className="text-green-500">{user.closed}C</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                                {stats.topUsers.length === 0 && (
-                                    <p className="text-gray-500 dark:text-gray-400 text-center py-4">No user data available</p>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Recent Activity Feed */}
-                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                                    <Activity className="w-5 h-5 text-green-600" />
-                                    Recent Activity
-                                </h3>
-                                <button className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
-                                    View All
-                                </button>
-                            </div>
-                            <div className="space-y-3 max-h-80 overflow-y-auto">
-                                {stats.recentActivity.slice(0, 8).map((ticket, index) => (
-                                    <div key={ticket._id} className="flex items-start gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
-                                        <div className={`w-3 h-3 rounded-full mt-2 ${
-                                            ticket.status === 'open' ? 'bg-red-500' :
-                                            ticket.status === 'closed' ? 'bg-green-500' : 'bg-yellow-500'
-                                        }`}></div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                                {ticket.subject}
+                    ) : (
+                        <>
+                            {/* Main Statistics Cards Grid - only show when not loading */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                                {/* Open Tickets */}
+                                <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border border-red-200 dark:border-red-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <p className="text-red-600 dark:text-red-400 text-sm font-medium uppercase tracking-wide">
+                                                Open Tickets
                                             </p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                by {ticket.userId?.fullName || 'Unknown'} • {new Date(ticket.createdAt).toLocaleDateString()}
+                                            <p className="text-3xl font-bold text-red-700 dark:text-red-300 mt-2">
+                                                {stats.openTickets}
                                             </p>
-                                            <div className="flex gap-2 mt-1">
-                                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                                    ticket.priority === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
-                                                    ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                                                    'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                            <div className="flex items-center justify-between mt-3">
+                                                <div className={`text-xs px-2 py-1 rounded-full ${
+                                                    stats.highPriorityTickets > 0 
+                                                        ? 'bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-200' 
+                                                        : 'bg-green-200 text-green-800 dark:bg-green-900 dark:text-green-200'
                                                 }`}>
-                                                    {ticket.priority}
-                                                </span>
-                                                <span className="px-2 py-0.5 bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded text-xs font-medium">
-                                                    {ticket.category === "course" ? "bug" : ticket.category}
-                                                </span>
+                                                    {stats.highPriorityTickets} High Priority
+                                                </div>
+                                                <Activity className="w-4 h-4 text-red-500" />
+                                            </div>
+                                            <div className="mt-2 bg-red-200 dark:bg-red-800 rounded-full h-1">
+                                                <div 
+                                                    className="bg-red-600 h-1 rounded-full transition-all duration-300" 
+                                                    style={{ width: `${(stats.openTickets / stats.totalTickets) * 100}%` }}
+                                                ></div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                                {stats.recentActivity.length === 0 && (
-                                    <p className="text-gray-500 dark:text-gray-400 text-center py-4">No recent activity</p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Category Distribution */}
-                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm mb-8">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                            <BarChart3 className="w-5 h-5 text-purple-600" />
-                            Ticket Categories Distribution
-                        </h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {Object.entries(stats.categoryStats).map(([category, count]) => (
-                                <div key={category} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{count}</div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">{category}</div>
-                                    <div className="mt-2 bg-gray-200 dark:bg-gray-600 rounded-full h-1">
-                                        <div 
-                                            className="bg-purple-600 h-1 rounded-full transition-all duration-300" 
-                                            style={{ width: `${(count / stats.totalTickets) * 100}%` }}
-                                        ></div>
+                                        <div className="w-12 h-12 bg-red-200 dark:bg-red-800 rounded-lg flex items-center justify-center">
+                                            <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                                        </div>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+
+                                {/* Pending/In-Progress Tickets */}
+                                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <p className="text-yellow-600 dark:text-yellow-400 text-sm font-medium uppercase tracking-wide">
+                                                Pending
+                                            </p>
+                                            <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-300 mt-2">
+                                                {stats.pendingTickets}
+                                            </p>
+                                            <div className="flex items-center justify-between mt-3">
+                                                <div className="text-xs px-2 py-1 rounded-full bg-yellow-200 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                                    {stats.mediumPriorityTickets} Medium Priority
+                                                </div>
+                                                <Clock className="w-4 h-4 text-yellow-500" />
+                                            </div>
+                                            <div className="mt-2 bg-yellow-200 dark:bg-yellow-800 rounded-full h-1">
+                                                <div 
+                                                    className="bg-yellow-600 h-1 rounded-full transition-all duration-300" 
+                                                    style={{ width: `${(stats.pendingTickets / stats.totalTickets) * 100}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                        <div className="w-12 h-12 bg-yellow-200 dark:bg-yellow-800 rounded-lg flex items-center justify-center">
+                                            <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Resolved Tickets */}
+                                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <p className="text-green-600 dark:text-green-400 text-sm font-medium uppercase tracking-wide">
+                                                Resolved
+                                            </p>
+                                            <p className="text-3xl font-bold text-green-700 dark:text-green-300 mt-2">
+                                                {stats.resolvedTickets}
+                                            </p>
+                                            <div className="flex items-center justify-between mt-3">
+                                                <div className="flex items-center gap-1">
+                                                    <TrendingUp className="w-3 h-3 text-green-600 dark:text-green-400" />
+                                                    <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                                                        {stats.resolutionRate}% Rate
+                                                    </span>
+                                                </div>
+                                                <CheckCircle className="w-4 h-4 text-green-500" />
+                                            </div>
+                                            <div className="mt-2 bg-green-200 dark:bg-green-800 rounded-full h-1">
+                                                <div 
+                                                    className="bg-green-600 h-1 rounded-full transition-all duration-300" 
+                                                    style={{ width: `${stats.resolutionRate}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                        <div className="w-12 h-12 bg-green-200 dark:bg-green-800 rounded-lg flex items-center justify-center">
+                                            <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Closed Tickets */}
+                                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20 border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <p className="text-gray-600 dark:text-gray-400 text-sm font-medium uppercase tracking-wide">
+                                                Closed
+                                            </p>
+                                            <p className="text-3xl font-bold text-gray-700 dark:text-gray-300 mt-2">
+                                                {stats.closedTickets}
+                                            </p>
+                                            <div className="flex items-center justify-between mt-3">
+                                                <div className="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+                                                    Completed
+                                                </div>
+                                                <CheckCircle className="w-4 h-4 text-gray-500" />
+                                            </div>
+                                            <div className="mt-2 bg-gray-200 dark:bg-gray-800 rounded-full h-1">
+                                                <div 
+                                                    className="bg-gray-600 h-1 rounded-full transition-all duration-300" 
+                                                    style={{ width: `${(stats.closedTickets / stats.totalTickets) * 100}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                                            <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Active Users */}
+                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <p className="text-blue-600 dark:text-blue-400 text-sm font-medium uppercase tracking-wide">
+                                                Active Users
+                                            </p>
+                                            <p className="text-3xl font-bold text-blue-700 dark:text-blue-300 mt-2">
+                                                {stats.uniqueUsers}
+                                            </p>
+                                            <div className="flex items-center justify-between mt-3">
+                                                <div className="text-xs px-2 py-1 rounded-full bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                    {stats.avgMessagesPerTicket} Avg Messages
+                                                </div>
+                                                <Users className="w-4 h-4 text-blue-500" />
+                                            </div>
+                                            <div className="mt-2 bg-blue-200 dark:bg-blue-800 rounded-full h-1">
+                                                <div className="bg-blue-600 h-1 rounded-full transition-all duration-300" style={{ width: '85%' }}></div>
+                                            </div>
+                                        </div>
+                                        <div className="w-12 h-12 bg-blue-200 dark:bg-blue-800 rounded-lg flex items-center justify-center">
+                                            <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Enhanced Performance Metrics */}
+                         
+
+                            {/* Top Users and Recent Activity Section */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                                {/* Top Users by Ticket Count */}
+                                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                            <BarChart3 className="w-5 h-5 text-indigo-600" />
+                                            Top Users by Tickets
+                                        </h3>
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">Last 30 days</span>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {stats.topUsers.map((user, index) => (
+                                            <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                                        {index + 1}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-gray-900 dark:text-white text-sm">{user.name}</p>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{user.count}</div>
+                                                    <div className="flex gap-1 text-xs">
+                                                        <span className="text-red-500">{user.open}O</span>
+                                                        <span className="text-yellow-500">{user.pending}P</span>
+                                                        <span className="text-green-500">{user.closed}C</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {stats.topUsers.length === 0 && (
+                                            <p className="text-gray-500 dark:text-gray-400 text-center py-4">No user data available</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Recent Activity Feed */}
+                                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                            <Activity className="w-5 h-5 text-green-600" />
+                                            Recent Activity
+                                        </h3>
+                                        <button className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+                                            View All
+                                        </button>
+                                    </div>
+                                    <div className="space-y-3 max-h-80 overflow-y-auto">
+                                        {stats.recentActivity.slice(0, 8).map((ticket, index) => (
+                                            <div key={ticket._id} className="flex items-start gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
+                                                <div className={`w-3 h-3 rounded-full mt-2 ${
+                                                    ticket.status === 'open' ? 'bg-red-500' :
+                                                    ticket.status === 'closed' ? 'bg-green-500' : 'bg-yellow-500'
+                                                }`}></div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                                        {ticket.subject}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                        by {ticket.userId?.fullName || 'Unknown'} • {new Date(ticket.createdAt).toLocaleDateString()}
+                                                    </p>
+                                                    <div className="flex gap-2 mt-1">
+                                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                                            ticket.priority === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                                                            ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                                                            'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                                        }`}>
+                                                            {ticket.priority}
+                                                        </span>
+                                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded text-xs font-medium">
+                                                            {ticket.category === "course" ? "bug" : ticket.category}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {stats.recentActivity.length === 0 && (
+                                            <p className="text-gray-500 dark:text-gray-400 text-center py-4">No recent activity</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Category Distribution */}
+                            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm mb-8">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                                    <BarChart3 className="w-5 h-5 text-purple-600" />
+                                    Ticket Categories Distribution
+                                </h3>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {Object.entries(stats.categoryStats).map(([category, count]) => (
+                                        <div key={category} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                            <div className="text-2xl font-bold text-gray-900 dark:text-white">{count}</div>
+                                            <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">{category}</div>
+                                            <div className="mt-2 bg-gray-200 dark:bg-gray-600 rounded-full h-1">
+                                                <div 
+                                                    className="bg-purple-600 h-1 rounded-full transition-all duration-300" 
+                                                    style={{ width: `${(count / stats.totalTickets) * 100}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Search and Filter Section */}
@@ -659,7 +819,7 @@ const RequestList: React.FC = () => {
                                         Subject
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-                                        User
+                                        User & Analytics
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                                         Category
@@ -671,7 +831,7 @@ const RequestList: React.FC = () => {
                                         Status
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-                                        Attachments
+                                        Messages
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                                         Created At
@@ -682,90 +842,114 @@ const RequestList: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
-                                {currentTickets.map((ticket, idx) => (
-                                    <tr key={ticket._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                                        <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                                            {isSearching 
-                                                ? (page - 1) * (pagination.limit || 10) + idx + 1
-                                                : (pagination.page - 1) * (pagination.limit || 10) + idx + 1
-                                            }
-                                        </td>
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                                            {ticket.subject.length > 40
-                                                ? ticket.subject.slice(0, 40) + "..."
-                                                : ticket.subject}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                                            <div className="flex items-center gap-2">
-                                                <div>
-                                                    {ticket.userId?.fullName || "N/A"}
-                                                    <div className="text-xs text-gray-400">{ticket.userId?.email}</div>
+                                {currentTickets.map((ticket, idx) => {
+                                    const userStats = userAnalytics.get(ticket.userId?._id);
+                                    return (
+                                        <tr key={ticket._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                            <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                                {isSearching 
+                                                    ? (page - 1) * (pagination.limit || 10) + idx + 1
+                                                    : (pagination.page - 1) * (pagination.limit || 10) + idx + 1
+                                                }
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                                                {ticket.subject.length > 40
+                                                    ? ticket.subject.slice(0, 40) + "..."
+                                                    : ticket.subject}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex-1">
+                                                        <div className="font-medium">{ticket.userId?.fullName || "N/A"}</div>
+                                                        <div className="text-xs text-gray-400">{ticket.userId?.email}</div>
+                                                        {userStats && (
+                                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                                <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
+                                                                    {userStats.totalTickets} tickets
+                                                                </span>
+                                                                {userStats.avgResponseTime !== 'No responses' && (
+                                                                    <span className="text-xs px-1 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
+                                                                        Avg: {userStats.avgResponseTime}
+                                                                    </span>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => handleViewUserTickets(ticket.userId._id)}
+                                                                    className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 rounded-full hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors"
+                                                                >
+                                                                    View All
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {ticket.userId?._id && (
+                                                        <button
+                                                            onClick={() => handleViewUserProfile(ticket.userId._id)}
+                                                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 ml-2"
+                                                            title="View User Profile"
+                                                        >
+                                                            <User className="w-4 h-4" />
+                                                        </button>
+                                                    )}
                                                 </div>
-                                                {ticket.userId?._id && (
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 capitalize">
+                                                {ticket.category === "course" ? "bug" : ticket.category}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 capitalize">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                    ticket.priority === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                                                    ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                }`}>
+                                                    {ticket.priority}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                                                    ticket.status === "open" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" :
+                                                    ticket.status === "closed" ? "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200" :
+                                                    ticket.status === "resolved" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
+                                                    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                                }`}>
+                                                    {ticket.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                                <div className="flex items-center gap-2">
+                                                    <MessageCircle className="w-4 h-4 text-gray-400" />
+                                                    <span className="font-medium">{ticket.messages?.length || 0}</span>
+                                                    {ticket.attachments && ticket.attachments.length > 0 && (
+                                                        <div className="flex items-center gap-1 ml-2">
+                                                            <Paperclip className="w-3 h-3 text-gray-400" />
+                                                            <span className="text-xs">{ticket.attachments.length}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                                {new Date(ticket.createdAt).toLocaleString()}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                                <div className="flex gap-2">
                                                     <button
-                                                        onClick={() => handleViewUserProfile(ticket.userId._id)}
-                                                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                                                        title="View User Profile"
+                                                        onClick={() => navigate(`/support-tickets/view/${ticket._id}`)}
+                                                        className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                        title="View Ticket"
                                                     >
-                                                        <User className="w-4 h-4" />
+                                                        <Eye className="w-5 h-5" />
                                                     </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 capitalize">
-                                            {ticket.category == "course" ? "bug" : ticket.category}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 capitalize">
-                                            {ticket.priority}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm">
-                                            <span
-                                                className={`${
-                                                    ticket.status === "open"
-                                                        ? "text-green-500"
-                                                        : ticket.status === "closed"
-                                                        ? "text-gray-500"
-                                                        : "text-yellow-500"
-                                                } capitalize`}
-                                            >
-                                                {ticket.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                                            {ticket.attachments && ticket.attachments.length > 0 ? (
-                                                <div className="flex items-center gap-1">
-                                                    <Paperclip className="w-4 h-4 text-gray-400" />
-                                                    <span className="text-xs text-gray-500">
-                                                        {ticket.attachments.length}
-                                                    </span>
+                                                    <button
+                                                        onClick={() => navigate(`/support-tickets/edit/${ticket._id}`)}
+                                                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                                        title="Edit Ticket"
+                                                    >
+                                                        <Edit className="w-5 h-5" />
+                                                    </button>
                                                 </div>
-                                            ) : (
-                                                <span className="text-xs text-gray-400">-</span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                                            {new Date(ticket.createdAt).toLocaleString()}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => navigate(`/support-tickets/view/${ticket._id}`)}
-                                                    className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
-                                                    title="View Ticket"
-                                                >
-                                                    <Eye className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => navigate(`/support-tickets/edit/${ticket._id}`)}
-                                                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                                                    title="Edit Ticket"
-                                                >
-                                                    <Edit className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                         {currentTickets.length === 0 && (
@@ -832,6 +1016,139 @@ const RequestList: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* User Tickets Modal */}
+            {showUserTickets && selectedUserId && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+                    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+                            <div>
+                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                    All Tickets for {userTicketsData[0]?.userId?.fullName}
+                                </h2>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                    Total: {userTicketsData.length} tickets • {userTicketsData[0]?.userId?.email}
+                                </p>
+                                {userAnalytics.get(selectedUserId) && (
+                                    <p className="text-sm text-indigo-600 dark:text-indigo-400 mt-1">
+                                        Average Response Time: {userAnalytics.get(selectedUserId).avgResponseTime}
+                                    </p>
+                                )}
+                            </div>
+                            <button
+                                onClick={handleCloseUserTickets}
+                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        
+                        <div className="p-6">
+                            {/* User Ticket Analytics */}
+                            {userAnalytics.get(selectedUserId) && (
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-center">
+                                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                            {userAnalytics.get(selectedUserId).totalTickets}
+                                        </div>
+                                        <div className="text-xs text-gray-600 dark:text-gray-400">Total</div>
+                                    </div>
+                                    <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-center">
+                                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                                            {userAnalytics.get(selectedUserId).openTickets}
+                                        </div>
+                                        <div className="text-xs text-gray-600 dark:text-gray-400">Open</div>
+                                    </div>
+                                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center">
+                                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                                            {userAnalytics.get(selectedUserId).resolvedTickets}
+                                        </div>
+                                        <div className="text-xs text-gray-600 dark:text-gray-400">Resolved</div>
+                                    </div>
+                                    <div className="bg-gray-50 dark:bg-gray-900/20 p-4 rounded-lg text-center">
+                                        <div className="text-2xl font-bold text-gray-600 dark:text-gray-400">
+                                            {userAnalytics.get(selectedUserId).closedTickets}
+                                        </div>
+                                        <div className="text-xs text-gray-600 dark:text-gray-400">Closed</div>
+                                    </div>
+                                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg text-center">
+                                        <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                                            {userAnalytics.get(selectedUserId).pendingTickets}
+                                        </div>
+                                        <div className="text-xs text-gray-600 dark:text-gray-400">Pending</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Tickets List */}
+                            <div className="space-y-4">
+                                {userTicketsData.map((ticket) => (
+                                    <div key={ticket._id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-gray-900 dark:text-white text-lg mb-2">
+                                                    {ticket.subject}
+                                                </h3>
+                                                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">
+                                                    {ticket.description.length > 200 
+                                                        ? ticket.description.substring(0, 200) + '...' 
+                                                        : ticket.description}
+                                                </p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                        ticket.status === "open" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" :
+                                                        ticket.status === "closed" ? "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200" :
+                                                        ticket.status === "resolved" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
+                                                        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                                    }`}>
+                                                        {ticket.status}
+                                                    </span>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                        ticket.priority === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                                                        ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                                                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                    }`}>
+                                                        {ticket.priority}
+                                                    </span>
+                                                    <span className="px-2 py-1 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 rounded-full text-xs font-medium">
+                                                        {ticket.category === "course" ? "bug" : ticket.category}
+                                                    </span>
+                                                    <span className="px-2 py-1 bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 rounded-full text-xs font-medium flex items-center gap-1">
+                                                        <MessageCircle className="w-3 h-3" />
+                                                        {ticket.messages?.length || 0} messages
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2 ml-4">
+                                                <button
+                                                    onClick={() => navigate(`/support-tickets/view/${ticket._id}`)}
+                                                    className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded"
+                                                    title="View Ticket"
+                                                >
+                                                    <ExternalLink className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="text-xs text-gray-500 dark:text-gray-400 flex justify-between items-center">
+                                            <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
+                                            <span>Updated: {new Date(ticket.updatedAt).toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* No tickets message */}
+                                {userTicketsData.length === 0 && (
+                                    <div className="text-center py-4">
+                                        <p className="text-gray-500 dark:text-gray-400">
+                                            No tickets found for this user.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* User Profile Modal */}
             {showUserProfile && (
