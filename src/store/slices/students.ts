@@ -338,6 +338,29 @@ export const deleteEnrollment = createAsyncThunk<
   }
 );
 
+export const logoutAllSessions = createAsyncThunk<
+  { userId: string },
+  { userId: string },
+  { rejectValue: string }
+>("students/logoutAllSessions", async ({ userId }, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token") || "";
+    const response = await axiosInstance.post(
+      `/logout-all-sessions`,
+      { userId },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data?.data;
+  } catch (error: any) {
+    return rejectWithValue(error.response?.data?.message || error.message);
+  }
+});
+
 const initialState: StudentState = {
   students: [],
   studentDetails: null,
@@ -574,6 +597,18 @@ const studentSlice = createSlice({
         // Optionally update student enrollments if tracked in state
       })
       .addCase(deleteEnrollment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(logoutAllSessions.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(logoutAllSessions.fulfilled, (state, action) => {
+        state.loading = false;
+        // Optionally update student status if needed
+      })
+      .addCase(logoutAllSessions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
