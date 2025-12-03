@@ -681,6 +681,21 @@ function StudentDetail() {
                           <h4 className="font-semibold text-gray-900 mb-2 text-lg">
                             {enrollment.course?.title || "Untitled Course"}
                           </h4>
+
+                            <div className="mt-4 space-y-1 text-xs text-black">
+                        {enrollment.enrolledAt && (
+                          <div>
+                            <span className="font-medium text-black">Enrolled At:</span>{" "}
+                            {new Date(enrollment.enrolledAt).toLocaleString()}
+                          </div>
+                        )}
+                        {enrollment.accessExpiry && (
+                          <div>
+                            <span className="font-medium text-black">Access Expiry:</span>{" "}
+                            {new Date(enrollment.accessExpiry).toLocaleString()}
+                          </div>
+                        )}
+                      </div>
                           <p className="text-sm text-gray-600 mb-4 line-clamp-2">
                             {enrollment.course?.subtitle || "No subtitle available"}
                           </p>
@@ -725,6 +740,9 @@ function StudentDetail() {
                             Certified
                             </span>
                           )}
+
+                           {/* Add enrolledAt and accessExpiry */}
+                    
                           </div>
                         </div>
                         <button
