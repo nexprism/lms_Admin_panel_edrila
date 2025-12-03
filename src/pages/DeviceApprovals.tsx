@@ -77,13 +77,15 @@ export default function DeviceApprovals() {
   // Pagination state
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  // Add status filter state
+  const [statusFilter, setStatusFilter] = useState<string>("");
 
   // Add per-row loading state
   const [rowLoading, setRowLoading] = useState<{ [id: string]: boolean }>({});
 
   useEffect(() => {
-    dispatch(fetchDeviceApprovals({ page, limit }) as any);
-  }, [dispatch, page, limit]);
+    dispatch(fetchDeviceApprovals({ page, limit, status: statusFilter || undefined }) as any);
+  }, [dispatch, page, limit, statusFilter]);
 
   // Auto-clear success message
   useEffect(() => {
@@ -194,6 +196,7 @@ export default function DeviceApprovals() {
   const handleRefresh = async () => {
     setActionErrors({});
     setSuccessMessage(null);
+    setStatusFilter(""); // Reset filter on refresh
     dispatch(fetchDeviceApprovals({ page, limit }) as any);
   };
 
@@ -205,6 +208,12 @@ export default function DeviceApprovals() {
 
   const handleLimitChange = (newLimit: number) => {
     setLimit(newLimit);
+    setPage(1);
+  };
+
+  // Add reset filters function
+  const handleResetFilters = () => {
+    setStatusFilter("");
     setPage(1);
   };
 
@@ -363,6 +372,20 @@ export default function DeviceApprovals() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {/* Status Filter Dropdown */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm dark:text-gray-300">Status:</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+            >
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-sm dark:text-gray-300">Show:</span>
             <select
@@ -376,6 +399,13 @@ export default function DeviceApprovals() {
               <option value={50}>50</option>
             </select>
           </div>
+          <button
+            onClick={handleResetFilters}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset Filters
+          </button>
           <button
             onClick={handleRefresh}
             disabled={loading}

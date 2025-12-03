@@ -46,12 +46,15 @@ const initialState: DeviceApprovalsState = {
 export const fetchDeviceApprovals = createAsyncThunk(
   "deviceApprovals/fetchAll",
   async (
-    { page = 1, limit = 10 }: { page?: number; limit?: number } = {},
+    { page = 1, limit = 10, status, search }: { page?: number; limit?: number; status?: string; search?: string } = {},
     { rejectWithValue }
   ) => {
     try {
+      const params: any = { page, limit, sort: "desc" };
+      if (status) params.status = status;
+      if (search) params.search = search;
       const response = await axiosInstance.get("/device-approvals", {
-        params: { page, limit, sort: "desc" },
+        params,
       });
       const data = response.data?.data;
       return {

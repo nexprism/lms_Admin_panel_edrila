@@ -7,6 +7,7 @@ import {
   deleteStudent,
   banStudent,
   unbanStudent,
+  logoutAllSessions,
 } from "../../store/slices/students";
 import {
   Pencil,
@@ -24,6 +25,7 @@ import {
   Award,
   Ban,
   ShieldCheck,
+  LogOut,
 } from "lucide-react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -157,6 +159,9 @@ const StudentList: React.FC = () => {
   const [banReason, setBanReason] = useState("");
   const [banType, setBanType] = useState<"ban" | "shadowBan">("ban");
   const [banLoading, setBanLoading] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [studentToLogout, setStudentToLogout] = useState<Student | null>(null);
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
   const [searchInput, setSearchInput] = useState(searchQuery);
   const [localFilters, setLocalFilters] =
@@ -378,6 +383,43 @@ const StudentList: React.FC = () => {
       });
     } finally {
       setBanLoading(false);
+    }
+  };
+
+  // Logout handlers
+  const openLogoutModal = (student: Student) => {
+    setStudentToLogout(student);
+    setLogoutModalOpen(true);
+  };
+
+  const closeLogoutModal = () => {
+    setStudentToLogout(null);
+    setLogoutModalOpen(false);
+    setLogoutLoading(false);
+  };
+
+  const handleLogoutConfirm = async () => {
+    if (!studentToLogout) return;
+    setLogoutLoading(true);
+    try {
+      await dispatch(
+        logoutAllSessions({ userId: studentToLogout._id })
+      ).unwrap();
+      setPopup({
+        message: `All sessions for "${
+          studentToLogout.fullName || studentToLogout.name
+        }" have been logged out`,
+        type: "success",
+        isVisible: true,
+      });
+      closeLogoutModal();
+    } catch (error) {
+      setPopup({
+        message: "Failed to logout all sessions. Please try again.",
+        type: "error",
+        isVisible: true,
+      });
+      setLogoutLoading(false);
     }
   };
 
@@ -652,6 +694,19 @@ const StudentList: React.FC = () => {
                             <Award className="h-5 w-5" />
                           </button>
 
+                          {/* Logout All Sessions Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openLogoutModal(student);
+                            }}
+                            className="text-orange-500 hover:text-orange-700 transition-colors p-1"
+                            title="Logout All Sessions"
+                            disabled={logoutLoading}
+                          >
+                            <LogOut className="h-5 w-5" />
+                          </button>
+
                           {/* Ban/Unban Button */}
                           {student.isBanned == true ||
                           student.isShadowBanned == true ? (
@@ -834,6 +889,60 @@ const StudentList: React.FC = () => {
                   <Ban className="w-4 h-4 mr-2" />
                 )}
                 Ban
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {logoutModalOpen && studentToLogout && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center">
+                <LogOut className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Logout All Sessions
+              </h3>
+            </div>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">
+              Are you sure you want to log out all sessions for{" "}
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {studentToLogout.fullName || studentToLogout.name}
+              </span>
+              ?
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              This will force the student to log in again on all devices.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                onClick={closeLogoutModal}
+                disabled={logoutLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 rounded-md bg-orange-600 text-white hover:bg-orange-700 transition-colors flex items-center ${
+                  logoutLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                onClick={handleLogoutConfirm}
+                disabled={logoutLoading}
+              >
+                {logoutLoading ? (
+                  <>
+                    <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    Logging out...
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout All Sessions
+                  </>
+                )}
               </button>
             </div>
           </div>
