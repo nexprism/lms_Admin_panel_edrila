@@ -193,7 +193,8 @@ const EditCreateCertificateTemplate = () => {
 
   const getUrlFromFile = (file) => {
     if (!file) return "";
-    return URL.createObjectURL(file) || file;
+    if (typeof file === "string") return file;
+    return URL.createObjectURL(file);
   };
 
   const handleMouseDown = (e, elementKey) => {
@@ -637,6 +638,18 @@ const EditCreateCertificateTemplate = () => {
 
   const renderTextElement = (elementKey, element) => {
     if (!element.enable) return null;
+
+    // Don't show instructor_name, platform_name, or hint if they haven't been customized
+    if (
+      (elementKey === "instructor_name" &&
+        element.content === "[instructor_name]") ||
+      (elementKey === "platform_name" &&
+        element.content === "[platform_name]") ||
+      (elementKey === "hint" &&
+        element.content === "Verify at lms.rocket-soft.org")
+    ) {
+      return null;
+    }
 
     const content = element.content
       .replace("[student_name]", "John Doe")
@@ -1915,30 +1928,14 @@ const EditCreateCertificateTemplate = () => {
                   style={{
                     width: "800px",
                     height: "600px",
-                    // backgroundImage: templateInfo.backgroundImage
-                    //   ? `url('${
-                    //       typeof templateInfo.backgroundImage === "string"
-                    //         ? templateInfo.backgroundImage
-                    //         : getUrlFromFile(templateInfo.backgroundImage)
-                    //     }')`
-                    //   : "none",
-                    // backgroundSize: "cover",
-                    // backgroundPosition: "center",
-                    // backgroundRepeat: "no-repeat",
+                    backgroundImage: templateInfo.backgroundImage
+                      ? `url(${getUrlFromFile(templateInfo.backgroundImage)})`
+                      : "none",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
                   }}
                 >
-                  <img
-                    src={
-                      templateInfo.backgroundImage
-                        ? `${
-                            typeof templateInfo.backgroundImage === "string"
-                              ? templateInfo.backgroundImage
-                              : getUrlFromFile(templateInfo.backgroundImage)
-                          }`
-                        : "none"
-                    }
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
                   {/* Certificate Border */}
                   {/* <div className="absolute  border-4 border-gray-300 rounded-lg"></div> */}
 

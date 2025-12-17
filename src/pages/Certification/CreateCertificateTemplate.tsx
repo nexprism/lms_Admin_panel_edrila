@@ -377,7 +377,8 @@ const CreateCertificateTemplate = () => {
       draggable: true,
     },
     instructor_name: {
-      content: "[instructor_name]",
+      content: "",
+      // content: "[instructor_name]",
       font_size: "14",
       font_color: "#000",
       text_center: false,
@@ -386,7 +387,8 @@ const CreateCertificateTemplate = () => {
       draggable: true,
     },
     platform_name: {
-      content: "[platform_name]",
+      content: "",
+      // content: "[platform_name]",
       font_size: "14",
       font_color: "#000",
       text_center: false,
