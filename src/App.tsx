@@ -65,6 +65,10 @@ import EditBanner from "./pages/Banner/EditBanner";
 import LeaderboardSetting from "./pages/LeaderboardSetting";
 import NotificationDashboard from "./pages/Notifications/NotificationDashboard";
 import NotificationList from "./pages/Notifications/NotificationList";
+import NewsList from "./pages/News/NewsList";
+import AddNews from "./pages/News/AddNews";
+import EditNews from "./pages/News/EditNews";
+import ViewNews from "./pages/News/ViewNews";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -277,6 +281,12 @@ export default function App() {
               <Route path="/banner" element={<AllBanners />} />
               <Route path="/banner/add" element={<AddBanner />} />
               <Route path="/banner/edit/:id" element={<EditBanner />} />
+
+              {/* News */}
+              <Route path="/news" element={<NewsList />} />
+              <Route path="/news/add" element={<AddNews />} />
+              <Route path="/news/view/:id" element={<ViewNews />} />
+              <Route path="/news/edit/:id" element={<EditNews />} />
 
               {/* sales analytics */}
               <Route path="/sales/user" element={<User />} />

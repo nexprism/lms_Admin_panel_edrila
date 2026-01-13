@@ -77,6 +77,11 @@ const navItems: NavItem[] = [
     name: "Jobs",
     path: "/jobs",
   },
+  {
+    icon: <PageIcon />,
+    name: "News",
+    path: "/news",
+  },
    
   {
     icon: <PageIcon />,
