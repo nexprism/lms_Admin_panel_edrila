@@ -5,7 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import React from "react";
-import { lazy, Suspense, useState }from "react";
+import { lazy, Suspense, useState } from "react";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import AddFilter from "./components/filters/AddFilter";
@@ -69,6 +69,7 @@ import NewsList from "./pages/News/NewsList";
 import AddNews from "./pages/News/AddNews";
 import EditNews from "./pages/News/EditNews";
 import ViewNews from "./pages/News/ViewNews";
+import ManageQuestions from "./pages/PersonalityTest/ManageQuestions";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -180,7 +181,7 @@ export default function App() {
 
               <Route path="/event/add" element={<AddEvent />} />
               <Route path="/events" element={<EventList />} />
-<Route path="/events/edit/:id" element={<EditEvent />} />
+              <Route path="/events/edit/:id" element={<EditEvent />} />
 
               {/* Jobs */}
               <Route path="/jobs/add" element={<AddJob />} />
@@ -255,7 +256,7 @@ export default function App() {
               <Route
                 path="/certificates/issue"
                 element={<IssueCertification />}
-                
+
               />
 
               {/* Coupons */}
@@ -295,7 +296,7 @@ export default function App() {
 
               {/* query */}
               <Route path="/queries/all" element={<QueryList />} />
-             
+
 
               {/* User Profiles */}
 
@@ -319,6 +320,7 @@ export default function App() {
               <Route path="/line-chart" element={<LineChart />} />
               <Route path="/bar-chart" element={<BarChart />} />
               <Route path="/leaderboard-setting" element={<LeaderboardSetting />} />
+              <Route path="/personality-test" element={<ManageQuestions />} />
             </Route>
           </Route>
 
