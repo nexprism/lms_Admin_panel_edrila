@@ -62,7 +62,7 @@ export default function AddNews() {
     title: "",
     summary: "",
     author: "",
-    categories: [],
+    category: "",
     status: "active",
     content: "",
     isScheduled: false,
@@ -88,7 +88,15 @@ export default function AddNews() {
   const [tagInput, setTagInput] = useState<string>("");
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [newCategory, setNewCategory] = useState("");
+  
+  // Predefined categories for dropdown
+  const PREDEFINED_CATEGORIES = [
+    "STARTUP",
+    "FUNDING",
+    "CASE STUDY",
+    "TECHNOLOGY",
+    "OTHER"
+  ];
 
   const getMinDateTime = () => {
     const d = new Date();
@@ -222,23 +230,6 @@ export default function AddNews() {
         ).slice(0, 6)
       : [];
 
-  const handleAddCategory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newCategory.trim() && !formData.categories.includes(newCategory.trim())) {
-      setFormData((prev: any) => ({
-        ...prev,
-        categories: [...prev.categories, newCategory.trim()],
-      }));
-      setNewCategory("");
-    }
-  };
-
-  const handleRemoveCategory = (categoryToRemove: string) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      categories: prev.categories.filter((cat: string) => cat !== categoryToRemove),
-    }));
-  };
 
   const buildFormData = () => {
     const fd = new FormData();
@@ -255,9 +246,9 @@ export default function AddNews() {
     fd.append("author", JSON.stringify({ name: formData.author || "" }));
     fd.append("url", formData.url || fullTitle || "");
     
-    // Categories
-    if (formData.categories.length > 0) {
-      fd.append("categories", JSON.stringify(formData.categories));
+    // Categories - send as array with single category for backend compatibility
+    if (formData.category) {
+      fd.append("categories", JSON.stringify([formData.category]));
     }
     
     // Tags
@@ -449,42 +440,22 @@ export default function AddNews() {
 
             <div>
               <label className="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                <Tag className="w-4 h-4 mr-2 text-blue-500" /> Categories
+                <Tag className="w-4 h-4 mr-2 text-blue-500" /> Category
               </label>
-              <div className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleAddCategory(e)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  placeholder="Add category"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddCategory}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Add
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {formData.categories.map((cat: string, idx: number) => (
-                  <span
-                    key={idx}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm flex items-center gap-2 dark:bg-blue-900 dark:text-blue-200"
-                  >
-                    {cat}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveCategory(cat)}
-                      className="text-blue-600 hover:text-blue-800 dark:text-blue-300"
-                    >
-                      ×
-                    </button>
-                  </span>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                <option value="">Select a category...</option>
+                {PREDEFINED_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
                 ))}
-              </div>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Select a category from the dropdown</p>
             </div>
           </div>
 
