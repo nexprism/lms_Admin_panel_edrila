@@ -5,7 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import React from "react";
-import { lazy, Suspense, useState }from "react";
+import { lazy, Suspense, useState } from "react";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import AddFilter from "./components/filters/AddFilter";
@@ -65,6 +65,11 @@ import EditBanner from "./pages/Banner/EditBanner";
 import LeaderboardSetting from "./pages/LeaderboardSetting";
 import NotificationDashboard from "./pages/Notifications/NotificationDashboard";
 import NotificationList from "./pages/Notifications/NotificationList";
+import NewsList from "./pages/News/NewsList";
+import AddNews from "./pages/News/AddNews";
+import EditNews from "./pages/News/EditNews";
+import ViewNews from "./pages/News/ViewNews";
+import ManageQuestions from "./pages/PersonalityTest/ManageQuestions";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -176,7 +181,7 @@ export default function App() {
 
               <Route path="/event/add" element={<AddEvent />} />
               <Route path="/events" element={<EventList />} />
-<Route path="/events/edit/:id" element={<EditEvent />} />
+              <Route path="/events/edit/:id" element={<EditEvent />} />
 
               {/* Jobs */}
               <Route path="/jobs/add" element={<AddJob />} />
@@ -251,7 +256,7 @@ export default function App() {
               <Route
                 path="/certificates/issue"
                 element={<IssueCertification />}
-                
+
               />
 
               {/* Coupons */}
@@ -278,6 +283,12 @@ export default function App() {
               <Route path="/banner/add" element={<AddBanner />} />
               <Route path="/banner/edit/:id" element={<EditBanner />} />
 
+              {/* News */}
+              <Route path="/news" element={<NewsList />} />
+              <Route path="/news/add" element={<AddNews />} />
+              <Route path="/news/view/:id" element={<ViewNews />} />
+              <Route path="/news/edit/:id" element={<EditNews />} />
+
               {/* sales analytics */}
               <Route path="/sales/user" element={<User />} />
               <Route path="/sales/course" element={<Course />} />
@@ -285,7 +296,7 @@ export default function App() {
 
               {/* query */}
               <Route path="/queries/all" element={<QueryList />} />
-             
+
 
               {/* User Profiles */}
 
@@ -309,6 +320,7 @@ export default function App() {
               <Route path="/line-chart" element={<LineChart />} />
               <Route path="/bar-chart" element={<BarChart />} />
               <Route path="/leaderboard-setting" element={<LeaderboardSetting />} />
+              <Route path="/personality-test" element={<ManageQuestions />} />
             </Route>
           </Route>
 

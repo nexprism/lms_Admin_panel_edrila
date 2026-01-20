@@ -326,7 +326,7 @@ const CreateCertificateTemplate = () => {
       font_weight_bold: true,
       text_center: true,
       enable: true,
-      position: { x: 400, y: 80 }, // Fixed position for title
+      position: { x: 400, y: 150 }, // Fixed position for title
       draggable: false,
     },
     subtitle: {
@@ -335,7 +335,7 @@ const CreateCertificateTemplate = () => {
       font_color: "#8B0000",
       text_center: true,
       enable: true,
-      position: { x: 400, y: 130 },
+      position: { x: 400, y: 195 },
       draggable: true,
     },
     body: {
@@ -344,7 +344,7 @@ const CreateCertificateTemplate = () => {
       font_color: "#000",
       text_center: true,
       enable: true,
-      position: { x: 400, y: 200 },
+      position: { x: 400, y: 265 },
       draggable: true,
     },
     student_name: {
@@ -354,7 +354,7 @@ const CreateCertificateTemplate = () => {
       font_weight_bold: true,
       text_center: true,
       enable: true,
-      position: { x: 400, y: 250 },
+      position: { x: 400, y: 285 },
       draggable: true,
     },
     completion_text: {
@@ -363,21 +363,22 @@ const CreateCertificateTemplate = () => {
       font_color: "#000",
       text_center: true,
       enable: true,
-      position: { x: 400, y: 300 },
+      position: { x: 400, y: 350 },
       draggable: true,
     },
     date: {
-      content: "[date]",
+      content: "Masterclass on [date]",
       font_size: "14",
       font_color: "#000",
       display_date: "textual",
       text_center: true,
       enable: true,
-      position: { x: 400, y: 400 },
+      position: { x: 400, y: 375 },
       draggable: true,
     },
     instructor_name: {
-      content: "[instructor_name]",
+      content: "",
+      // content: "[instructor_name]",
       font_size: "14",
       font_color: "#000",
       text_center: false,
@@ -386,7 +387,8 @@ const CreateCertificateTemplate = () => {
       draggable: true,
     },
     platform_name: {
-      content: "[platform_name]",
+      content: "",
+      // content: "[platform_name]",
       font_size: "14",
       font_color: "#000",
       text_center: false,
@@ -767,6 +769,15 @@ const CreateCertificateTemplate = () => {
 
   const renderTextElement = (elementKey, element) => {
     if (!element.enable) return null;
+
+    // Don't show instructor_name, platform_name, or hint if they haven't been customized
+    if (
+      (elementKey === "instructor_name" && element.content === "[instructor_name]") ||
+      (elementKey === "platform_name" && element.content === "[platform_name]") ||
+      (elementKey === "hint" && element.content === "Verify at lms.rocket-soft.org")
+    ) {
+      return null;
+    }
 
     const content = element.content
       .replace("[student_name]", "John Doe")
@@ -2043,6 +2054,9 @@ const CreateCertificateTemplate = () => {
                   ref={containerRef}
                   className="relative bg-white border-2 border-gray-300 rounded-lg mx-auto overflow-hidden"
                   style={{
+                    // minWidth: "600px",
+                    // minHeight: "600px",
+                    // width:"auto",
                     width: "800px",
                     height: "600px",
                     backgroundImage: templateInfo.backgroundImage
