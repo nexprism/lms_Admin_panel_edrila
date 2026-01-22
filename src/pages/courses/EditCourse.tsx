@@ -268,6 +268,7 @@ const EditCourse = () => {
     enableWaitlist: false,
     // accessType: "lifetime",
     // accessPeriod: "",
+    coursePosition: "",
   });
 
   // Plans state
@@ -419,6 +420,7 @@ const EditCourse = () => {
         isSubscription: course.isSubscription || false,
         isPrivate: course.isPrivate || false,
         enableWaitlist: course.enableWaitlist || false,
+<<<<<<< HEAD
         // Mentor fields
         mentorName: course.mentorName || "",
         mentorTitle: course.mentorTitle || "",
@@ -443,6 +445,9 @@ const EditCourse = () => {
         certificateIssuerTitle: course.certificateIssuerTitle || "",
         certificateOrganization: course.certificateOrganization || "Lapaas LMS",
         certificateDescription: course.certificateDescription || "",
+=======
+        coursePosition: course.coursePosition ?? "",
+>>>>>>> 9dfb5611c1bb77fe2bf63605e8a9f25ffd434e25
         // accessType: course.accessType || "lifetime",
         // accessPeriod: course.accessPeriod || "",
       }));
@@ -886,6 +891,27 @@ const EditCourse = () => {
                         placeholder="Enter course subtitle"
                       />
                     </div>
+                  </div>
+                  <div className="mt-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Course Position
+                    </label>
+                    <input
+                      type="number"
+                      name="coursePosition"
+                      value={formData.coursePosition}
+                      onChange={handleInputChange}
+                      min={0}
+                      className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        formErrors.coursePosition
+                          ? "border-red-400"
+                          : "border-gray-300 dark:border-gray-600"
+                      }`}
+                      placeholder="Enter course position (numeric)"
+                    />
+                    {formErrors.coursePosition && (
+                      <p className="mt-1 text-xs text-red-600">{formErrors.coursePosition}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">

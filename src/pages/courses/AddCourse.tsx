@@ -648,6 +648,8 @@ const AddCourse = () => {
         isSubscription: false,
         isPrivate: false,
         enableWaitlist: false
+        ,
+        coursePosition: ""
       });
       setDescription("");
       setSeoContent("");
@@ -837,6 +839,27 @@ const AddCourse = () => {
                       <p className="mt-1 text-xs text-red-600">{formErrors.title}</p>
                     )}
                   </div>
+                <div className="mt-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                    Course Position
+                  </label>
+                  <input
+                    type="number"
+                    name="coursePosition"
+                    value={formData.coursePosition}
+                    onChange={handleInputChange}
+                    min={0}
+                    className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      formErrors.coursePosition
+                        ? "border-red-400"
+                        : "border-gray-300 dark:border-gray-600"
+                    }`}
+                    placeholder="Enter course position (numeric)"
+                  />
+                  {formErrors.coursePosition && (
+                    <p className="mt-1 text-xs text-red-600">{formErrors.coursePosition}</p>
+                  )}
+                </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       Course Subtitle
