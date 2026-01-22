@@ -392,7 +392,33 @@ const AddCourse = () => {
     courseForum: false,
     isSubscription: false,
     isPrivate: false,
-    enableWaitlist: false
+    enableWaitlist: false,
+    // Mentor fields
+    mentorName: "",
+    mentorTitle: "",
+    mentorDescription: "",
+    mentorImage: "",
+    mentorImageFile: null,
+    mentorAchievements: [],
+    mentorSocialLinks: {
+      linkedin: "",
+      twitter: "",
+      youtube: "",
+      website: ""
+    },
+    // Learning outcomes and target audience
+    learningOutcomes: [],
+    targetAudience: [],
+    // Certificate fields
+    certificateImage: "",
+    certificateImageFile: null,
+    certificateTitle: "Certificate of Completion",
+    certificateSubtitle: "Awarded for Excellence",
+    certificateRecipientName: "Student Name",
+    certificateIssuerName: "",
+    certificateIssuerTitle: "",
+    certificateOrganization: "Lapaas LMS",
+    certificateDescription: ""
   });
 
   // Plans state
@@ -539,8 +565,29 @@ const AddCourse = () => {
       const value = formData[key];
       if (key === 'salePrice' && (!value || value === '')) {
         return;
+      } else if (key === "learningOutcomes" || key === "targetAudience" || key === "mentorAchievements") {
+        // Handle arrays properly
+        if (Array.isArray(value) && value.length > 0) {
+          submitFormData.append(key, JSON.stringify(value.filter(item => item && item.trim() !== "")));
+        }
+      } else if (key === "mentorSocialLinks") {
+        // Handle mentor social links object
+        if (value && typeof value === "object") {
+          submitFormData.append(key, JSON.stringify(value));
+        }
+      } else if (key === "mentorImageFile") {
+        // Handle mentor image file upload
+        if (value) {
+          submitFormData.set("mentorImage", value);
+        }
+      } else if (key === "certificateImageFile") {
+        // Handle certificate image file upload
+        if (value) {
+          submitFormData.set("certificateImage", value);
+        }
+      } else if (value !== null && value !== undefined) {
+        submitFormData.append(key, String(value));
       }
-      submitFormData.append(key, String(value));
     });
     submitFormData.append("description", description);
     submitFormData.append("seoContent", seoContent);
@@ -550,6 +597,12 @@ const AddCourse = () => {
 
     if (thumbnailFile) submitFormData.append("thumbnail", thumbnailFile);
     if (coverImageFile) submitFormData.append("coverImage", coverImageFile);
+    if (formData.mentorImageFile) {
+      submitFormData.set("mentorImage", formData.mentorImageFile);
+    }
+    if (formData.certificateImageFile) {
+      submitFormData.set("certificateImage", formData.certificateImageFile);
+    }
 
     // --- FLATTEN PLANS IN PAYLOAD WITHOUT QUOTES ---
     plans.forEach((plan, idx) => {
@@ -649,6 +702,7 @@ const AddCourse = () => {
     { key: "tags", title: "Tags", icon: Tag, isRequired: true },
     { key: "settings", title: "Advanced Settings", icon: Users, isRequired: false },
     { key: "seo", title: "SEO Settings", icon: Target, isRequired: false },
+    { key: "mentor", title: "Mentor Information", icon: Users, isRequired: false },
   ];
 
   // Check if a section is complete (for sidebar indicators)
@@ -1370,6 +1424,186 @@ const AddCourse = () => {
                   {formErrors.seoContent && (
                     <p className="mt-2 text-xs text-red-600">{formErrors.seoContent}</p>
                   )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "mentor" && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Mentor Information</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Mentor Name
+                    </label>
+                    <input
+                      type="text"
+                      name="mentorName"
+                      value={formData.mentorName || ""}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter mentor name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Mentor Title
+                    </label>
+                    <input
+                      type="text"
+                      name="mentorTitle"
+                      value={formData.mentorTitle || ""}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g., Digital Marketing Expert"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                    Mentor Description
+                  </label>
+                  <QuillEditor
+                    value={formData.mentorDescription || ""}
+                    onChange={(value) => setFormData({ ...formData, mentorDescription: value })}
+                    placeholder="Enter mentor description"
+                    height="200px"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                    Mentor Image
+                  </label>
+                  <FileUpload
+                    label="Upload Mentor Image"
+                    accept="image/*"
+                    onFileChange={(file) => {
+                      setFormData({ ...formData, mentorImageFile: file });
+                    }}
+                    currentFile={formData.mentorImageFile || null}
+                    icon={Image}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                    Mentor Achievements
+                  </label>
+                  <div className="space-y-2">
+                    {(formData.mentorAchievements || []).map((achievement, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={achievement}
+                          onChange={(e) => {
+                            const updated = [...(formData.mentorAchievements || [])];
+                            updated[index] = e.target.value;
+                            setFormData({ ...formData, mentorAchievements: updated });
+                          }}
+                          className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                          placeholder="Enter achievement"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = (formData.mentorAchievements || []).filter((_, i) => i !== index);
+                            setFormData({ ...formData, mentorAchievements: updated });
+                          }}
+                          className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          mentorAchievements: [...(formData.mentorAchievements || []), ""]
+                        });
+                      }}
+                      className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Achievement
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                    Social Links
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">LinkedIn</label>
+                      <input
+                        type="url"
+                        value={formData.mentorSocialLinks?.linkedin || ""}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          mentorSocialLinks: {
+                            ...(formData.mentorSocialLinks || {}),
+                            linkedin: e.target.value
+                          }
+                        })}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://linkedin.com/in/..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">YouTube</label>
+                      <input
+                        type="url"
+                        value={formData.mentorSocialLinks?.youtube || ""}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          mentorSocialLinks: {
+                            ...(formData.mentorSocialLinks || {}),
+                            youtube: e.target.value
+                          }
+                        })}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://youtube.com/..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Twitter</label>
+                      <input
+                        type="url"
+                        value={formData.mentorSocialLinks?.twitter || ""}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          mentorSocialLinks: {
+                            ...(formData.mentorSocialLinks || {}),
+                            twitter: e.target.value
+                          }
+                        })}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://twitter.com/..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Website</label>
+                      <input
+                        type="url"
+                        value={formData.mentorSocialLinks?.website || ""}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          mentorSocialLinks: {
+                            ...(formData.mentorSocialLinks || {}),
+                            website: e.target.value
+                          }
+                        })}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://example.com"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
