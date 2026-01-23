@@ -476,6 +476,9 @@ const CourseList: React.FC = () => {
                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider dark:text-gray-300">
                           Price
                         </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider dark:text-gray-300">  
+                          Course Number
+                        </th>
                        
                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider dark:text-gray-300">
                           Status
@@ -526,6 +529,10 @@ const CourseList: React.FC = () => {
                             <span className="text-sm font-semibold text-gray-900 dark:text-white">
                               {course.currency} {course.price?.$numberDecimal}
                             </span>
+                          </td>
+
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            {course.coursePosition}
                           </td>
                          
                           <td className="px-6 py-4 whitespace-nowrap">

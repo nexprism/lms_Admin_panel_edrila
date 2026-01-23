@@ -268,6 +268,7 @@ const EditCourse = () => {
     enableWaitlist: false,
     // accessType: "lifetime",
     // accessPeriod: "",
+    coursePosition: "",
   });
 
   // Plans state
@@ -325,7 +326,7 @@ const EditCourse = () => {
     if (!formData.price) {
       errors.price = "Price is required";
     } else if (isNaN(formData.price) || formData.price < 0) {
-      errors.price- "Price must be a non-negative number";
+      errors.price = "Price must be a non-negative number";
     } else if (formData.price > 100000) {
       errors.price = "Price cannot exceed 100,000";
     }
@@ -419,6 +420,30 @@ const EditCourse = () => {
         isSubscription: course.isSubscription || false,
         isPrivate: course.isPrivate || false,
         enableWaitlist: course.enableWaitlist || false,
+        // Mentor fields
+        mentorName: course.mentorName || "",
+        mentorTitle: course.mentorTitle || "",
+        mentorDescription: course.mentorDescription || "",
+        mentorImage: course.mentorImage || "",
+        mentorAchievements: course.mentorAchievements || [],
+        mentorSocialLinks: course.mentorSocialLinks || {
+          linkedin: "",
+          twitter: "",
+          youtube: "",
+          website: ""
+        },
+        // Learning outcomes and target audience
+        learningOutcomes: course.learningOutcomes || [],
+        targetAudience: course.targetAudience || [],
+        // Certificate fields
+        certificateImage: course.certificateImage || "",
+        certificateTitle: course.certificateTitle || "Certificate of Completion",
+        certificateSubtitle: course.certificateSubtitle || "Awarded for Excellence",
+        certificateRecipientName: course.certificateRecipientName || "Student Name",
+        certificateIssuerName: course.certificateIssuerName || "",
+        certificateIssuerTitle: course.certificateIssuerTitle || "",
+        certificateOrganization: course.certificateOrganization || "Lapaas LMS",
+        certificateDescription: course.certificateDescription || "",
         // accessType: course.accessType || "lifetime",
         // accessPeriod: course.accessPeriod || "",
       }));
@@ -615,9 +640,29 @@ const EditCourse = () => {
       const value = formData[key];
       if (key === "isPublished") {
         submitFormData.set("isPublished", (!isDraft && !!formData.isPublished).toString());
+      } else if (key === "learningOutcomes" || key === "targetAudience" || key === "mentorAchievements") {
+        // Handle arrays properly
+        if (Array.isArray(value) && value.length > 0) {
+          submitFormData.append(key, JSON.stringify(value.filter(item => item && item.trim() !== "")));
+        }
+      } else if (key === "mentorSocialLinks") {
+        // Handle mentor social links object
+        if (value && typeof value === "object") {
+          submitFormData.append(key, JSON.stringify(value));
+        }
+      } else if (key === "mentorImageFile") {
+        // Handle mentor image file upload
+        if (value) {
+          submitFormData.set("mentorImage", value);
+        }
+      } else if (key === "certificateImageFile") {
+        // Handle certificate image file upload
+        if (value) {
+          submitFormData.set("certificateImage", value);
+        }
       } else if (Array.isArray(value)) {
         submitFormData.append(key, value.length > 0 ? String(value[0]) : "");
-      } else {
+      } else if (value !== null && value !== undefined) {
         submitFormData.append(key, String(value));
       }
     });
@@ -630,6 +675,16 @@ const EditCourse = () => {
     submitFormData.set("tags", JSON.stringify(selectedTags));
     submitFormData.set("level", formData.level || "beginner");
     submitFormData.set("demoVideo", demoVideoUrl);
+    
+    // Handle mentor image file separately if uploaded
+    if (formData.mentorImageFile) {
+      submitFormData.set("mentorImage", formData.mentorImageFile);
+    }
+    
+    // Handle certificate image file separately if uploaded
+    if (formData.certificateImageFile) {
+      submitFormData.set("certificateImage", formData.certificateImageFile);
+    }
 
     if (thumbnailFile) submitFormData.set("thumbnail", thumbnailFile);
     if (coverImageFile) submitFormData.set("coverImage", coverImageFile);
@@ -698,6 +753,8 @@ const EditCourse = () => {
     { key: "seo", title: "SEO Content", icon: Search, isRequired: false },
     { key: "modules", title: "Course Modules", icon: Settings, isRequired: false },
     { key: "faqs", title: "FAQs", icon: MessageCircle, isRequired: false },
+    { key: "mentor", title: "Mentor Information", icon: Users, isRequired: false },
+    { key: "certificate", title: "Certificate", icon: Award, isRequired: false },
     { key: "publication", title: "Publication Status", icon: Eye, isRequired: false },
   ];
 
@@ -831,6 +888,27 @@ const EditCourse = () => {
                       />
                     </div>
                   </div>
+                  <div className="mt-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Course Position
+                    </label>
+                    <input
+                      type="number"
+                      name="coursePosition"
+                      value={formData.coursePosition}
+                      onChange={handleInputChange}
+                      min={0}
+                      className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        formErrors.coursePosition
+                          ? "border-red-400"
+                          : "border-gray-300 dark:border-gray-600"
+                      }`}
+                      placeholder="Enter course position (numeric)"
+                    />
+                    {formErrors.coursePosition && (
+                      <p className="mt-1 text-xs text-red-600">{formErrors.coursePosition}</p>
+                    )}
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       Course Description *
@@ -923,6 +1001,100 @@ const EditCourse = () => {
                           }
                         }}
                       />
+                    </div>
+                  </div>
+                  
+                  {/* Learning Outcomes */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      What You'll Learn (Learning Outcomes)
+                    </label>
+                    <div className="space-y-2">
+                      {(formData.learningOutcomes || []).map((outcome, index) => (
+                        <div key={index} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={outcome}
+                            onChange={(e) => {
+                              const updated = [...(formData.learningOutcomes || [])];
+                              updated[index] = e.target.value;
+                              setFormData({ ...formData, learningOutcomes: updated });
+                            }}
+                            className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                            placeholder="Enter learning outcome"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = (formData.learningOutcomes || []).filter((_, i) => i !== index);
+                              setFormData({ ...formData, learningOutcomes: updated });
+                            }}
+                            className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            learningOutcomes: [...(formData.learningOutcomes || []), ""]
+                          });
+                        }}
+                        className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Learning Outcome
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Target Audience */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Who This Course Is For (Target Audience)
+                    </label>
+                    <div className="space-y-2">
+                      {(formData.targetAudience || []).map((audience, index) => (
+                        <div key={index} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={audience}
+                            onChange={(e) => {
+                              const updated = [...(formData.targetAudience || [])];
+                              updated[index] = e.target.value;
+                              setFormData({ ...formData, targetAudience: updated });
+                            }}
+                            className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                            placeholder="Enter target audience"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = (formData.targetAudience || []).filter((_, i) => i !== index);
+                              setFormData({ ...formData, targetAudience: updated });
+                            }}
+                            className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            targetAudience: [...(formData.targetAudience || []), ""]
+                          });
+                        }}
+                        className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Target Audience
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1417,6 +1589,404 @@ const EditCourse = () => {
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">FAQs</h3>
                   <Faqs courseId={courseId} />
+                </div>
+              )}
+
+              {activeTab === "mentor" && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Mentor Information</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                        Mentor Name
+                      </label>
+                      <input
+                        type="text"
+                        name="mentorName"
+                        value={formData.mentorName || ""}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter mentor name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                        Mentor Title
+                      </label>
+                      <input
+                        type="text"
+                        name="mentorTitle"
+                        value={formData.mentorTitle || ""}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                        placeholder="e.g., Digital Marketing Expert"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Mentor Description
+                    </label>
+                    <QuillEditor
+                      value={formData.mentorDescription || ""}
+                      onChange={(value) => setFormData({ ...formData, mentorDescription: value })}
+                      placeholder="Enter mentor description"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Mentor Image
+                    </label>
+                    <FileUpload
+                      label="Upload Mentor Image"
+                      accept="image/*"
+                      onFileChange={(file) => {
+                        // Handle file upload - you may need to upload it first
+                        setFormData({ ...formData, mentorImageFile: file });
+                      }}
+                      currentFile={formData.mentorImageFile || null}
+                      icon={Image}
+                    />
+                    {formData.mentorImage && (
+                      <div className="mt-4">
+                        <img
+                          src={`${baseUrl}/${formData.mentorImage}`}
+                          alt="Current mentor image"
+                          className="w-32 h-32 object-cover rounded-lg border dark:border-gray-600"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Mentor Achievements
+                    </label>
+                    <div className="space-y-2">
+                      {(formData.mentorAchievements || []).map((achievement, index) => (
+                        <div key={index} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={achievement}
+                            onChange={(e) => {
+                              const updated = [...(formData.mentorAchievements || [])];
+                              updated[index] = e.target.value;
+                              setFormData({ ...formData, mentorAchievements: updated });
+                            }}
+                            className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                            placeholder="Enter achievement"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = (formData.mentorAchievements || []).filter((_, i) => i !== index);
+                              setFormData({ ...formData, mentorAchievements: updated });
+                            }}
+                            className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            mentorAchievements: [...(formData.mentorAchievements || []), ""]
+                          });
+                        }}
+                        className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Achievement
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Social Links
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">LinkedIn</label>
+                        <input
+                          type="url"
+                          value={formData.mentorSocialLinks?.linkedin || ""}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            mentorSocialLinks: {
+                              ...(formData.mentorSocialLinks || {}),
+                              linkedin: e.target.value
+                            }
+                          })}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                          placeholder="https://linkedin.com/in/..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">YouTube</label>
+                        <input
+                          type="url"
+                          value={formData.mentorSocialLinks?.youtube || ""}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            mentorSocialLinks: {
+                              ...(formData.mentorSocialLinks || {}),
+                              youtube: e.target.value
+                            }
+                          })}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                          placeholder="https://youtube.com/..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Twitter</label>
+                        <input
+                          type="url"
+                          value={formData.mentorSocialLinks?.twitter || ""}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            mentorSocialLinks: {
+                              ...(formData.mentorSocialLinks || {}),
+                              twitter: e.target.value
+                            }
+                          })}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                          placeholder="https://twitter.com/..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Website</label>
+                        <input
+                          type="url"
+                          value={formData.mentorSocialLinks?.website || ""}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            mentorSocialLinks: {
+                              ...(formData.mentorSocialLinks || {}),
+                              website: e.target.value
+                            }
+                          })}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                          placeholder="https://example.com"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "certificate" && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Certificate Settings</h3>
+                  
+                  {/* Certificate Preview */}
+                  {!formData.certificateImage && (
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                        Certificate Preview
+                      </label>
+                      <div className="w-full max-w-4xl mx-auto bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg shadow-2xl p-8 border-4 border-amber-300">
+                        {/* Certificate Header */}
+                        <div className="bg-red-600 text-white py-4 px-6 rounded-t-lg mb-6">
+                          <h3 className="text-2xl font-bold">
+                            {(formData as any).certificateTitle || "Certificate of Completion"}
+                          </h3>
+                          <p className="text-red-200 text-sm mt-1">
+                            {(formData as any).certificateSubtitle || "Awarded for Excellence"}
+                          </p>
+                        </div>
+                        
+                        {/* Certificate Body */}
+                        <div className="py-8 px-6">
+                          <p className="text-gray-800 text-lg leading-relaxed mb-8">
+                            {(() => {
+                              const recipientName = (formData as any).certificateRecipientName || "Student Name";
+                              let description = (formData as any).certificateDescription || 
+                                `This certificate is awarded to **${recipientName}** for successfully completing the course.`;
+                              
+                              // Replace any instance of "Student Name" (with or without **) with the actual recipient name
+                              description = description.replace(/Student Name/g, recipientName);
+                              
+                              return description.split('**').map((part: string, index: number) => 
+                                index % 2 === 1 ? (
+                                  <strong key={index} className="text-amber-700 font-bold">
+                                    {part || recipientName}
+                                  </strong>
+                                ) : (
+                                  <span key={index}>{part}</span>
+                                )
+                              );
+                            })()}
+                          </p>
+                          
+                          {/* Certificate Footer */}
+                          <div className="mt-12 flex justify-between items-end border-t-2 border-amber-300 pt-6">
+                            <div className="text-left">
+                              <p className="font-bold text-gray-800">
+                                {(formData as any).certificateIssuerName || (formData as any).mentorName || "Instructor"}
+                              </p>
+                              {((formData as any).certificateIssuerTitle || (formData as any).mentorTitle) && (
+                                <p className="text-sm text-gray-600">
+                                  {(formData as any).certificateIssuerTitle || (formData as any).mentorTitle}
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-gray-800">
+                                {(formData as any).certificateOrganization || "Lapaas LMS"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        This preview shows how the certificate will look with your current settings. The recipient name shown is the placeholder value.
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Certificate Image (Optional - Upload custom certificate design)
+                    </label>
+                    <FileUpload
+                      label="Upload Certificate Image"
+                      accept="image/*"
+                      onFileChange={(file) => {
+                        setFormData({ ...formData, certificateImageFile: file });
+                      }}
+                      currentFile={formData.certificateImageFile || null}
+                      icon={Image}
+                    />
+                    {formData.certificateImage && (
+                      <div className="mt-4">
+                        <img
+                          src={`${baseUrl}/${formData.certificateImage}`}
+                          alt="Current certificate image"
+                          className="w-full max-w-md h-auto object-cover rounded-lg border dark:border-gray-600"
+                        />
+                      </div>
+                    )}
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      If you upload a custom certificate image, it will be used instead of the default template.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                        Certificate Title
+                      </label>
+                      <input
+                        type="text"
+                        name="certificateTitle"
+                        value={formData.certificateTitle || "Certificate of Completion"}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                        placeholder="Certificate of Completion"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                        Certificate Subtitle
+                      </label>
+                      <input
+                        type="text"
+                        name="certificateSubtitle"
+                        value={formData.certificateSubtitle || "Awarded for Excellence"}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                        placeholder="Awarded for Excellence"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Certificate Description
+                    </label>
+                    <textarea
+                      name="certificateDescription"
+                      value={formData.certificateDescription || ""}
+                      onChange={handleInputChange}
+                      rows={3}
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                      placeholder="This certificate is awarded to **Student Name** for successfully completing the course."
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Use **text** for bold text (e.g., **Student Name** will be bold)
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                        Default Recipient Name (Placeholder)
+                      </label>
+                      <input
+                        type="text"
+                        name="certificateRecipientName"
+                        value={formData.certificateRecipientName || "Student Name"}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                        placeholder="Student Name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                        Certificate Organization
+                      </label>
+                      <input
+                        type="text"
+                        name="certificateOrganization"
+                        value={formData.certificateOrganization || "Lapaas LMS"}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                        placeholder="Lapaas LMS"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                        Issuer Name
+                      </label>
+                      <input
+                        type="text"
+                        name="certificateIssuerName"
+                        value={formData.certificateIssuerName || formData.mentorName || ""}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                        placeholder="Instructor Name"
+                      />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Leave empty to use mentor name
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                        Issuer Title
+                      </label>
+                      <input
+                        type="text"
+                        name="certificateIssuerTitle"
+                        value={formData.certificateIssuerTitle || formData.mentorTitle || ""}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+                        placeholder="Instructor Title"
+                      />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Leave empty to use mentor title
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
