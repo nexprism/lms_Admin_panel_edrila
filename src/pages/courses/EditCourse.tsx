@@ -420,7 +420,6 @@ const EditCourse = () => {
         isSubscription: course.isSubscription || false,
         isPrivate: course.isPrivate || false,
         enableWaitlist: course.enableWaitlist || false,
-<<<<<<< HEAD
         // Mentor fields
         mentorName: course.mentorName || "",
         mentorTitle: course.mentorTitle || "",
@@ -445,9 +444,6 @@ const EditCourse = () => {
         certificateIssuerTitle: course.certificateIssuerTitle || "",
         certificateOrganization: course.certificateOrganization || "Lapaas LMS",
         certificateDescription: course.certificateDescription || "",
-=======
-        coursePosition: course.coursePosition ?? "",
->>>>>>> 9dfb5611c1bb77fe2bf63605e8a9f25ffd434e25
         // accessType: course.accessType || "lifetime",
         // accessPeriod: course.accessPeriod || "",
       }));
