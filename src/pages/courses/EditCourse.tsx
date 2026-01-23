@@ -29,10 +29,15 @@ import {
   CheckCircle,
   Settings,
   Menu,
+  Layout,
+  Layers,
+  Sparkles,
+  Target,
 } from "lucide-react";
 import ModuleSection from "./ModuleSection";
 import Faqs from "./components/Faqs";
 import QuillEditor from "../../components/QuillEditor";
+import Editor from "../../components/Editor";
 
 const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:5000/";
 
@@ -55,9 +60,8 @@ const SuccessPopup = ({
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
         <div className="text-center">
           <div
-            className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-              type === "success" ? "bg-green-100" : "bg-red-100"
-            }`}
+            className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${type === "success" ? "bg-green-100" : "bg-red-100"
+              }`}
           >
             {type === "success" ? (
               <CheckCircle className="w-8 h-8 text-green-600" />
@@ -66,20 +70,18 @@ const SuccessPopup = ({
             )}
           </div>
           <h3
-            className={`text-xl font-semibold mb-2 ${
-              type === "success" ? "text-green-800" : "text-red-800"
-            }`}
+            className={`text-xl font-semibold mb-2 ${type === "success" ? "text-green-800" : "text-red-800"
+              }`}
           >
             {type === "success" ? "Success!" : "Error!"}
           </h3>
           <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
           <button
             onClick={onClose}
-            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-              type === "success"
-                ? "bg-green-600 text-white hover:bg-green-700"
-                : "bg-red-600 text-white hover:bg-red-700"
-            }`}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${type === "success"
+              ? "bg-green-600 text-white hover:bg-green-700"
+              : "bg-red-600 text-white hover:bg-red-700"
+              }`}
           >
             Close
           </button>
@@ -132,9 +134,8 @@ const FileUpload = ({
         {label}
       </label>
       <div
-        className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
-          dragOver ? "border-blue-400 bg-blue-50 dark:bg-blue-900/30" : "border-gray-300 dark:border-gray-600"
-        }`}
+        className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${dragOver ? "border-blue-400 bg-blue-50 dark:bg-blue-900/30" : "border-gray-300 dark:border-gray-600"
+          }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -187,9 +188,8 @@ const YouTubeUrlInput = ({
         type="text"
         value={value}
         onChange={onChange}
-        className={`w-full border dark:text-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-          error ? "border-red-400" : "border-gray-300 dark:border-gray-600"
-        }`}
+        className={`w-full border dark:text-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${error ? "border-red-400" : "border-gray-300 dark:border-gray-600"
+          }`}
         placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=xyz)"
       />
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
@@ -269,6 +269,20 @@ const EditCourse = () => {
     // accessType: "lifetime",
     // accessPeriod: "",
     coursePosition: "",
+    // Enhanced Landing Page Sections
+    overviewSection: { show: false, title: "", subtitle: "", description: null, images: [] },
+    comparisonSection: {
+      show: false,
+      title: "",
+      leftTitle: "Traditional Program",
+      rightTitle: "Our Program",
+      content: null,
+      leftPoints: [""],
+      rightPoints: [""]
+    },
+    benefitsSection: { show: false, title: "", content: null, points: [""] },
+    frameworkSection: { show: false, title: "", subtitle: "", description: null, media: "" },
+    solutionSection: { show: false, title: "", content: null, points: [""] },
   });
 
   // Plans state
@@ -370,6 +384,20 @@ const EditCourse = () => {
     }
   }, [courseId, dispatch]);
 
+  const parseEditorData = (data: any) => {
+    if (!data) return undefined;
+    if (typeof data === 'string') {
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        return {
+          blocks: [{ type: "paragraph", data: { text: data } }],
+        };
+      }
+    }
+    return data;
+  };
+
   // Always process course data when it changes
   useEffect(() => {
     if (courseData) {
@@ -446,6 +474,34 @@ const EditCourse = () => {
         certificateDescription: course.certificateDescription || "",
         // accessType: course.accessType || "lifetime",
         // accessPeriod: course.accessPeriod || "",
+        // Enhanced Landing Page Sections
+        overviewSection: {
+          ...(course.overviewSection || { show: false, title: "", subtitle: "", description: "", images: [] }),
+          description: parseEditorData(course.overviewSection?.description)
+        },
+        comparisonSection: {
+          ...(course.comparisonSection || {
+            show: false,
+            title: "",
+            leftTitle: "Traditional Program",
+            rightTitle: "Our Program",
+            leftPoints: [""],
+            rightPoints: [""]
+          }),
+          content: parseEditorData(course.comparisonSection?.content)
+        },
+        benefitsSection: {
+          ...(course.benefitsSection || { show: false, title: "", points: [""] }),
+          content: parseEditorData(course.benefitsSection?.content)
+        },
+        frameworkSection: {
+          ...(course.frameworkSection || { show: false, title: "", subtitle: "", description: "", media: "" }),
+          description: parseEditorData(course.frameworkSection?.description)
+        },
+        solutionSection: {
+          ...(course.solutionSection || { show: false, title: "", points: [""] }),
+          content: parseEditorData(course.solutionSection?.content)
+        },
       }));
 
       setDescription(course.description || "");
@@ -468,7 +524,7 @@ const EditCourse = () => {
           duration: lesson.duration || "",
           order: lesson.order || 0,
           // Add textLessons and files if present
-          quiz: lesson.quiz || [ ],
+          quiz: lesson.quiz || [],
           videoLessons: lesson.videoLessons || [],
           assignment: lesson?.assignment || [],
           textLessons: lesson.textLessons || [],
@@ -662,6 +718,11 @@ const EditCourse = () => {
         }
       } else if (Array.isArray(value)) {
         submitFormData.append(key, value.length > 0 ? String(value[0]) : "");
+      } else if (key === "overviewSection" || key === "comparisonSection" || key === "benefitsSection" || key === "frameworkSection" || key === "solutionSection") {
+        // Handle entire section objects
+        if (value && typeof value === "object") {
+          submitFormData.append(key, JSON.stringify(value));
+        }
       } else if (value !== null && value !== undefined) {
         submitFormData.append(key, String(value));
       }
@@ -675,12 +736,12 @@ const EditCourse = () => {
     submitFormData.set("tags", JSON.stringify(selectedTags));
     submitFormData.set("level", formData.level || "beginner");
     submitFormData.set("demoVideo", demoVideoUrl);
-    
+
     // Handle mentor image file separately if uploaded
     if (formData.mentorImageFile) {
       submitFormData.set("mentorImage", formData.mentorImageFile);
     }
-    
+
     // Handle certificate image file separately if uploaded
     if (formData.certificateImageFile) {
       submitFormData.set("certificateImage", formData.certificateImageFile);
@@ -717,7 +778,7 @@ const EditCourse = () => {
       // Refetch course data after update to get latest price/salePrice
       const token = localStorage.getItem("token") || "";
       dispatch(fetchCourseById({ courseId, token }));
-    
+
     } catch (error) {
       setPopup({
         isVisible: true,
@@ -754,6 +815,7 @@ const EditCourse = () => {
     { key: "modules", title: "Course Modules", icon: Settings, isRequired: false },
     { key: "faqs", title: "FAQs", icon: MessageCircle, isRequired: false },
     { key: "mentor", title: "Mentor Information", icon: Users, isRequired: false },
+    { key: "landingPage", title: "Landing Page Sections", icon: Layout, isRequired: false },
     { key: "certificate", title: "Certificate", icon: Award, isRequired: false },
     { key: "publication", title: "Publication Status", icon: Eye, isRequired: false },
   ];
@@ -769,9 +831,8 @@ const EditCourse = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out ${
-            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } lg:translate-x-0 lg:static lg:w-64`}
+          className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            } lg:translate-x-0 lg:static lg:w-64`}
         >
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -793,11 +854,10 @@ const EditCourse = () => {
                   setActiveTab(tab.key);
                   setIsSidebarOpen(false); // Close sidebar on mobile after selection
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  activeTab === tab.key
-                    ? "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 shadow-sm"
-                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab.key
+                  ? "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 shadow-sm"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
               >
                 <tab.icon className="w-5 h-5" />
                 <span>{tab.title}</span>
@@ -860,11 +920,10 @@ const EditCourse = () => {
                         name="title"
                         value={formData.title}
                         onChange={handleInputChange}
-                        className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          formErrors.title
-                            ? "border-red-400"
-                            : "border-gray-300 dark:border-gray-600"
-                        }`}
+                        className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrors.title
+                          ? "border-red-400"
+                          : "border-gray-300 dark:border-gray-600"
+                          }`}
                         placeholder="Enter course title"
                         required
                       />
@@ -898,11 +957,10 @@ const EditCourse = () => {
                       value={formData.coursePosition}
                       onChange={handleInputChange}
                       min={0}
-                      className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        formErrors.coursePosition
-                          ? "border-red-400"
-                          : "border-gray-300 dark:border-gray-600"
-                      }`}
+                      className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrors.coursePosition
+                        ? "border-red-400"
+                        : "border-gray-300 dark:border-gray-600"
+                        }`}
                       placeholder="Enter course position (numeric)"
                     />
                     {formErrors.coursePosition && (
@@ -1003,7 +1061,7 @@ const EditCourse = () => {
                       />
                     </div>
                   </div>
-                  
+
                   {/* Learning Outcomes */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
@@ -1189,9 +1247,8 @@ const EditCourse = () => {
                             handleInputChange(e);
                           }
                         }}
-                        className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          formErrors.price ? "border-red-400" : "border-gray-300 dark:border-gray-600"
-                        }`}
+                        className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrors.price ? "border-red-400" : "border-gray-300 dark:border-gray-600"
+                          }`}
                         placeholder="Enter price"
                         required
                         step="0.01"
@@ -1222,9 +1279,8 @@ const EditCourse = () => {
                             handleInputChange(e);
                           }
                         }}
-                        className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          formErrors.salePrice ? "border-red-400" : "border-gray-300 dark:border-gray-600"
-                        }`}
+                        className={`w-full border rounded-lg px-4 py-3 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrors.salePrice ? "border-red-400" : "border-gray-300 dark:border-gray-600"
+                          }`}
                         placeholder="Enter Sale price"
                         required
                         step="0.01"
@@ -1461,11 +1517,10 @@ const EditCourse = () => {
                           key={tag}
                           type="button"
                           onClick={() => addTag(tag)}
-                          className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                            selectedTags.includes(tag)
-                              ? "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-600"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                          }`}
+                          className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedTags.includes(tag)
+                            ? "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-600"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                            }`}
                         >
                           {tag}
                         </button>
@@ -1538,11 +1593,10 @@ const EditCourse = () => {
                       value={formData.seoMetaDescription}
                       onChange={handleInputChange}
                       rows={3}
-                      className={`w-full border dark:text-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        formErrors.seoMetaDescription
-                          ? "border-red-400"
-                          : "border-gray-300 dark:border-gray-600"
-                      }`}
+                      className={`w-full border dark:text-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrors.seoMetaDescription
+                        ? "border-red-400"
+                        : "border-gray-300 dark:border-gray-600"
+                        }`}
                       placeholder="Enter meta description for search engines (max 160 characters)"
                       maxLength={160}
                     />
@@ -1576,7 +1630,7 @@ const EditCourse = () => {
               {activeTab === "modules" && (
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Course Modules</h3>
-                  {console?.log("modules 0987",modules)}
+                  {console?.log("modules 0987", modules)}
                   <ModuleSection
                     modules={modules}
                     onModulesChange={handleModulesChange}
@@ -1595,7 +1649,7 @@ const EditCourse = () => {
               {activeTab === "mentor" && (
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Mentor Information</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
@@ -1781,10 +1835,286 @@ const EditCourse = () => {
                 </div>
               )}
 
+              {activeTab === "landingPage" && (
+                <div className="space-y-12 pb-10">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 border-b pb-2">Landing Page Customization</h3>
+
+                  {/* Overview Section */}
+                  <div className="bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl border border-gray-200 dark:border-gray-800 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                        <Layout className="w-5 h-5 text-blue-600" />
+                        Overview Section
+                      </h4>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.overviewSection?.show}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            overviewSection: { ...formData.overviewSection, show: e.target.checked }
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">Visible</span>
+                      </label>
+                    </div>
+
+                    {formData.overviewSection?.show && (
+                      <div className="space-y-4">
+                        <input
+                          type="text"
+                          placeholder="Section Title (e.g., What is a Solopreneur?)"
+                          value={formData.overviewSection?.title}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            overviewSection: { ...formData.overviewSection, title: e.target.value }
+                          })}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-gray-200"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Subtitle"
+                          value={formData.overviewSection?.subtitle}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            overviewSection: { ...formData.overviewSection, subtitle: e.target.value }
+                          })}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-gray-200"
+                        />
+                        <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                          <Editor
+                            holder="overview-editor"
+                            data={formData.overviewSection?.description}
+                            onChange={(data) => setFormData({
+                              ...formData,
+                              overviewSection: { ...formData.overviewSection, description: data }
+                            })}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Comparison Section */}
+                  <div className="bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl border border-gray-200 dark:border-gray-800 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                        <Layers className="w-5 h-5 text-blue-600" />
+                        Comparison Section
+                      </h4>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.comparisonSection?.show}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            comparisonSection: { ...formData.comparisonSection, show: e.target.checked }
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">Visible</span>
+                      </label>
+                    </div>
+
+                    {formData.comparisonSection?.show && (
+                      <div className="space-y-6">
+                        <input
+                          type="text"
+                          placeholder="Section Title"
+                          value={formData.comparisonSection?.title}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            comparisonSection: { ...formData.comparisonSection, title: e.target.value }
+                          })}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-gray-200"
+                        />
+                        <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                          <Editor
+                            holder="comparison-editor"
+                            data={formData.comparisonSection?.content}
+                            onChange={(data) => setFormData({
+                              ...formData,
+                              comparisonSection: { ...formData.comparisonSection, content: data }
+                            })}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Benefits Section */}
+                  <div className="bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl border border-gray-200 dark:border-gray-800 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                        <CheckCircle className="w-5 h-5 text-blue-600" />
+                        Key Benefits Section
+                      </h4>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.benefitsSection?.show}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            benefitsSection: { ...formData.benefitsSection, show: e.target.checked }
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">Visible</span>
+                      </label>
+                    </div>
+
+                    {formData.benefitsSection?.show && (
+                      <div className="space-y-4">
+                        <input
+                          type="text"
+                          placeholder="Section Title"
+                          value={formData.benefitsSection?.title}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            benefitsSection: { ...formData.benefitsSection, title: e.target.value }
+                          })}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-gray-200"
+                        />
+                        <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                          <Editor
+                            holder="benefits-editor"
+                            data={formData.benefitsSection?.content}
+                            onChange={(data) => setFormData({
+                              ...formData,
+                              benefitsSection: { ...formData.benefitsSection, content: data }
+                            })}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Framework Section */}
+                  <div className="bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl border border-gray-200 dark:border-gray-800 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                        <Sparkles className="w-5 h-5 text-blue-600" />
+                        Learning Framework Section
+                      </h4>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.frameworkSection?.show}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            frameworkSection: { ...formData.frameworkSection, show: e.target.checked }
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">Visible</span>
+                      </label>
+                    </div>
+
+                    {formData.frameworkSection?.show && (
+                      <div className="space-y-4">
+                        <input
+                          type="text"
+                          placeholder="Section Title (e.g., Making $2000/month is Easy)"
+                          value={formData.frameworkSection?.title}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            frameworkSection: { ...formData.frameworkSection, title: e.target.value }
+                          })}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-gray-200"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Subtitle (e.g., Exact Frameworks that works)"
+                          value={formData.frameworkSection?.subtitle}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            frameworkSection: { ...formData.frameworkSection, subtitle: e.target.value }
+                          })}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-gray-200"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Media URL (Image or Video)"
+                          value={formData.frameworkSection?.media}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            frameworkSection: { ...formData.frameworkSection, media: e.target.value }
+                          })}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-gray-200"
+                        />
+                        <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                          <Editor
+                            holder="framework-editor"
+                            data={formData.frameworkSection?.description}
+                            onChange={(data) => setFormData({
+                              ...formData,
+                              frameworkSection: { ...formData.frameworkSection, description: data }
+                            })}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Solution Section */}
+                  <div className="bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl border border-gray-200 dark:border-gray-800 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                        <Target className="w-5 h-5 text-blue-600" />
+                        Solution Section (Pain Points)
+                      </h4>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.solutionSection?.show}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            solutionSection: { ...formData.solutionSection, show: e.target.checked }
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">Visible</span>
+                      </label>
+                    </div>
+
+                    {formData.solutionSection?.show && (
+                      <div className="space-y-4">
+                        <input
+                          type="text"
+                          placeholder="Section Title (e.g., Solve Your Biggest Problems)"
+                          value={formData.solutionSection?.title}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            solutionSection: { ...formData.solutionSection, title: e.target.value }
+                          })}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-gray-200"
+                        />
+                        <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                          <Editor
+                            holder="solution-editor"
+                            data={formData.solutionSection?.content}
+                            onChange={(data) => setFormData({
+                              ...formData,
+                              solutionSection: { ...formData.solutionSection, content: data }
+                            })}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {activeTab === "certificate" && (
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Certificate Settings</h3>
-                  
+
                   {/* Certificate Preview */}
                   {!formData.certificateImage && (
                     <div className="mb-6">
@@ -1801,19 +2131,19 @@ const EditCourse = () => {
                             {(formData as any).certificateSubtitle || "Awarded for Excellence"}
                           </p>
                         </div>
-                        
+
                         {/* Certificate Body */}
                         <div className="py-8 px-6">
                           <p className="text-gray-800 text-lg leading-relaxed mb-8">
                             {(() => {
                               const recipientName = (formData as any).certificateRecipientName || "Student Name";
-                              let description = (formData as any).certificateDescription || 
+                              let description = (formData as any).certificateDescription ||
                                 `This certificate is awarded to **${recipientName}** for successfully completing the course.`;
-                              
+
                               // Replace any instance of "Student Name" (with or without **) with the actual recipient name
                               description = description.replace(/Student Name/g, recipientName);
-                              
-                              return description.split('**').map((part: string, index: number) => 
+
+                              return description.split('**').map((part: string, index: number) =>
                                 index % 2 === 1 ? (
                                   <strong key={index} className="text-amber-700 font-bold">
                                     {part || recipientName}
@@ -1824,7 +2154,7 @@ const EditCourse = () => {
                               );
                             })()}
                           </p>
-                          
+
                           {/* Certificate Footer */}
                           <div className="mt-12 flex justify-between items-end border-t-2 border-amber-300 pt-6">
                             <div className="text-left">
@@ -1850,7 +2180,7 @@ const EditCourse = () => {
                       </p>
                     </div>
                   )}
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       Certificate Image (Optional - Upload custom certificate design)
