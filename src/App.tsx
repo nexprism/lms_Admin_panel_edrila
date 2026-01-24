@@ -70,6 +70,7 @@ import AddNews from "./pages/News/AddNews";
 import EditNews from "./pages/News/EditNews";
 import ViewNews from "./pages/News/ViewNews";
 import ManageQuestions from "./pages/PersonalityTest/ManageQuestions";
+import AITool from "./pages/AITool/AITool";
 
 // Lazy load pages
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
@@ -316,6 +317,7 @@ export default function App() {
               <Route path="/device-approvals" element={<DeviceApprovals />} />
               {/* Testimonials */}
               <Route path="/testimonials" element={<TestimonialsPage />} />
+              <Route path="/ai-tool" element={<AITool />} />
               {/* Charts */}
               <Route path="/line-chart" element={<LineChart />} />
               <Route path="/bar-chart" element={<BarChart />} />
