@@ -438,8 +438,8 @@ const AddCourse = () => {
       leftTitle: "Traditional Program",
       rightTitle: "Our Program",
       content: null,
-      leftPoints: [""],
-      rightPoints: [""]
+      leftPoints: [],
+      rightPoints: []
     },
     benefitsSection: { show: false, title: "", content: null, points: [""] },
     frameworkSection: { show: false, title: "", subtitle: "", description: null, media: "" },
@@ -616,7 +616,30 @@ const AddCourse = () => {
       } else if (["overviewSection", "comparisonSection", "benefitsSection", "frameworkSection", "solutionSection"].includes(key)) {
         // Handle landing page sections
         if (value && typeof value === "object") {
-          submitFormData.append(key, JSON.stringify(value));
+          // Clean up comparisonSection: filter out empty strings from points arrays
+          if (key === "comparisonSection") {
+            const cleanedSection = {
+              ...value,
+              leftPoints: Array.isArray(value.leftPoints) 
+                ? value.leftPoints.filter((point: any) => point != null && String(point).trim() !== '')
+                : [],
+              rightPoints: Array.isArray(value.rightPoints)
+                ? value.rightPoints.filter((point: any) => point != null && String(point).trim() !== '')
+                : []
+            };
+            submitFormData.append(key, JSON.stringify(cleanedSection));
+          } else if (key === "benefitsSection" || key === "solutionSection") {
+            // Clean up benefitsSection and solutionSection: filter out empty strings from points array
+            const cleanedSection = {
+              ...value,
+              points: Array.isArray(value.points)
+                ? value.points.filter((point: any) => point != null && String(point).trim() !== '')
+                : []
+            };
+            submitFormData.append(key, JSON.stringify(cleanedSection));
+          } else {
+            submitFormData.append(key, JSON.stringify(value));
+          }
         }
       } else if (value !== null && value !== undefined) {
         submitFormData.append(key, String(value));
@@ -716,8 +739,8 @@ const AddCourse = () => {
           leftTitle: "Traditional Program",
           rightTitle: "Our Program",
           content: null,
-          leftPoints: [""],
-          rightPoints: [""]
+          leftPoints: [],
+          rightPoints: []
         },
         benefitsSection: { show: false, title: "", content: null, points: [""] },
         frameworkSection: { show: false, title: "", subtitle: "", description: null, media: "" },
@@ -1755,6 +1778,7 @@ const AddCourse = () => {
                             ...formData,
                             overviewSection: { ...formData.overviewSection, description: data }
                           })}
+                          uploadEndpoint="/courses/images"
                         />
                       </div>
                     </div>
@@ -1814,13 +1838,13 @@ const AddCourse = () => {
                             Left Column Points
                           </label>
                           <div className="space-y-2">
-                            {(formData.comparisonSection.leftPoints || [""]).map((point, index) => (
+                            {(formData.comparisonSection.leftPoints && formData.comparisonSection.leftPoints.length > 0 ? formData.comparisonSection.leftPoints : []).map((point, index) => (
                               <div key={index} className="flex gap-2">
                                 <input
                                   type="text"
                                   value={point}
                                   onChange={(e) => {
-                                    const updated = [...(formData.comparisonSection.leftPoints || [""])];
+                                    const updated = [...(formData.comparisonSection.leftPoints || [])];
                                     updated[index] = e.target.value;
                                     setFormData({
                                       ...formData,
@@ -1833,7 +1857,7 @@ const AddCourse = () => {
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const updated = (formData.comparisonSection.leftPoints || [""]).filter((_, i) => i !== index);
+                                    const updated = (formData.comparisonSection.leftPoints || []).filter((_, i) => i !== index);
                                     setFormData({
                                       ...formData,
                                       comparisonSection: { ...formData.comparisonSection, leftPoints: updated }
@@ -1852,7 +1876,7 @@ const AddCourse = () => {
                                   ...formData,
                                   comparisonSection: {
                                     ...formData.comparisonSection,
-                                    leftPoints: [...(formData.comparisonSection.leftPoints || [""]), ""]
+                                    leftPoints: [...(formData.comparisonSection.leftPoints || []), ""]
                                   }
                                 });
                               }}
@@ -1881,13 +1905,13 @@ const AddCourse = () => {
                             Right Column Points
                           </label>
                           <div className="space-y-2">
-                            {(formData.comparisonSection.rightPoints || [""]).map((point, index) => (
+                            {(formData.comparisonSection.rightPoints && formData.comparisonSection.rightPoints.length > 0 ? formData.comparisonSection.rightPoints : []).map((point, index) => (
                               <div key={index} className="flex gap-2">
                                 <input
                                   type="text"
                                   value={point}
                                   onChange={(e) => {
-                                    const updated = [...(formData.comparisonSection.rightPoints || [""])];
+                                    const updated = [...(formData.comparisonSection.rightPoints || [])];
                                     updated[index] = e.target.value;
                                     setFormData({
                                       ...formData,
@@ -1900,7 +1924,7 @@ const AddCourse = () => {
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const updated = (formData.comparisonSection.rightPoints || [""]).filter((_, i) => i !== index);
+                                    const updated = (formData.comparisonSection.rightPoints || []).filter((_, i) => i !== index);
                                     setFormData({
                                       ...formData,
                                       comparisonSection: { ...formData.comparisonSection, rightPoints: updated }
@@ -1919,7 +1943,7 @@ const AddCourse = () => {
                                   ...formData,
                                   comparisonSection: {
                                     ...formData.comparisonSection,
-                                    rightPoints: [...(formData.comparisonSection.rightPoints || [""]), ""]
+                                    rightPoints: [...(formData.comparisonSection.rightPoints || []), ""]
                                   }
                                 });
                               }}
@@ -1936,12 +1960,14 @@ const AddCourse = () => {
                           Additional Content (Optional)
                         </label>
                         <Editor
+                          key="comparison-editor-unique"
                           holder="comparison-editor"
                           data={formData.comparisonSection.content}
                           onChange={(data) => setFormData({
                             ...formData,
                             comparisonSection: { ...formData.comparisonSection, content: data }
                           })}
+                          uploadEndpoint="/courses/images"
                         />
                       </div>
                     </div>
@@ -1990,6 +2016,7 @@ const AddCourse = () => {
                             ...formData,
                             benefitsSection: { ...formData.benefitsSection, content: data }
                           })}
+                          uploadEndpoint="/courses/images"
                         />
                       </div>
                       <div>
@@ -2112,6 +2139,7 @@ const AddCourse = () => {
                             ...formData,
                             frameworkSection: { ...formData.frameworkSection, description: data }
                           })}
+                          uploadEndpoint="/courses/images"
                         />
                       </div>
                     </div>
@@ -2153,13 +2181,18 @@ const AddCourse = () => {
                         className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-gray-200"
                       />
                       <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 px-4 pt-4">
+                          Main Content
+                        </label>
                         <Editor
+                          key="solution-editor-unique"
                           holder="solution-editor"
                           data={formData.solutionSection.content}
                           onChange={(data) => setFormData({
                             ...formData,
                             solutionSection: { ...formData.solutionSection, content: data }
                           })}
+                          uploadEndpoint="/courses/images"
                         />
                       </div>
                       <div>

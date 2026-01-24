@@ -721,7 +721,30 @@ const EditCourse = () => {
       } else if (key === "overviewSection" || key === "comparisonSection" || key === "benefitsSection" || key === "frameworkSection" || key === "solutionSection") {
         // Handle entire section objects
         if (value && typeof value === "object") {
-          submitFormData.append(key, JSON.stringify(value));
+          // Clean up comparisonSection: filter out empty strings from points arrays
+          if (key === "comparisonSection") {
+            const cleanedSection = {
+              ...value,
+              leftPoints: Array.isArray(value.leftPoints) 
+                ? value.leftPoints.filter((point: any) => point != null && String(point).trim() !== '')
+                : [],
+              rightPoints: Array.isArray(value.rightPoints)
+                ? value.rightPoints.filter((point: any) => point != null && String(point).trim() !== '')
+                : []
+            };
+            submitFormData.append(key, JSON.stringify(cleanedSection));
+          } else if (key === "benefitsSection" || key === "solutionSection") {
+            // Clean up benefitsSection and solutionSection: filter out empty strings from points array
+            const cleanedSection = {
+              ...value,
+              points: Array.isArray(value.points)
+                ? value.points.filter((point: any) => point != null && String(point).trim() !== '')
+                : []
+            };
+            submitFormData.append(key, JSON.stringify(cleanedSection));
+          } else {
+            submitFormData.append(key, JSON.stringify(value));
+          }
         }
       } else if (value !== null && value !== undefined) {
         submitFormData.append(key, String(value));
@@ -1885,12 +1908,14 @@ const EditCourse = () => {
                         />
                         <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
                           <Editor
+                            key="overview-editor-unique"
                             holder="overview-editor"
                             data={formData.overviewSection?.description}
                             onChange={(data) => setFormData({
                               ...formData,
                               overviewSection: { ...formData.overviewSection, description: data }
                             })}
+                            uploadEndpoint="/courses/images"
                           />
                         </div>
                       </div>
@@ -1933,12 +1958,14 @@ const EditCourse = () => {
                         />
                         <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
                           <Editor
+                            key="comparison-editor-unique"
                             holder="comparison-editor"
                             data={formData.comparisonSection?.content}
                             onChange={(data) => setFormData({
                               ...formData,
                               comparisonSection: { ...formData.comparisonSection, content: data }
                             })}
+                            uploadEndpoint="/courses/images"
                           />
                         </div>
                       </div>
@@ -1981,12 +2008,14 @@ const EditCourse = () => {
                         />
                         <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
                           <Editor
+                            key="benefits-editor-unique"
                             holder="benefits-editor"
                             data={formData.benefitsSection?.content}
                             onChange={(data) => setFormData({
                               ...formData,
                               benefitsSection: { ...formData.benefitsSection, content: data }
                             })}
+                            uploadEndpoint="/courses/images"
                           />
                         </div>
                       </div>
@@ -2049,12 +2078,14 @@ const EditCourse = () => {
                         />
                         <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
                           <Editor
+                            key="framework-editor-unique"
                             holder="framework-editor"
                             data={formData.frameworkSection?.description}
                             onChange={(data) => setFormData({
                               ...formData,
                               frameworkSection: { ...formData.frameworkSection, description: data }
                             })}
+                            uploadEndpoint="/courses/images"
                           />
                         </div>
                       </div>
@@ -2097,12 +2128,14 @@ const EditCourse = () => {
                         />
                         <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
                           <Editor
+                            key="solution-editor-unique"
                             holder="solution-editor"
                             data={formData.solutionSection?.content}
                             onChange={(data) => setFormData({
                               ...formData,
                               solutionSection: { ...formData.solutionSection, content: data }
                             })}
+                            uploadEndpoint="/courses/images"
                           />
                         </div>
                       </div>

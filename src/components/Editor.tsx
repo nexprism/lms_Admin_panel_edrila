@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 // Editor.js and its tools often have ESM/CJS compatibility issues
 import _EditorJS from "@editorjs/editorjs";
 import _Header from "@editorjs/header";
@@ -36,7 +36,7 @@ const Delimiter = getTool(_Delimiter);
 const Underline = getTool(_Underline);
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_BASE_URL || "http://localhost:5000";
+  (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 
 import ComparisonTool from "./ComparisonTool";
 import SimpleVideo from "./SimpleVideo";
@@ -49,15 +49,20 @@ interface EditorProps {
   data?: any;
   onChange?: (data: any) => void;
   holder?: string;
+  uploadEndpoint?: string; // Custom upload endpoint (default: /images for news)
 }
 
 const Editor: React.FC<EditorProps> = ({
   data,
   onChange,
   holder = "editorjs",
+  uploadEndpoint = "/images",
 }) => {
   const editorRef = useRef<EditorJS | null>(null);
   const isInitializedRef = useRef(false);
+  const holderRef = useRef<string>(holder);
+  // Generate a stable unique ID for this editor instance
+  const actualHolderId = useMemo(() => `${holder}-${Math.random().toString(36).substr(2, 9)}`, []);
 
   // Use a ref for onChange to avoid re-initializing editor when it changes
   const onChangeRef = useRef(onChange);
@@ -69,15 +74,34 @@ const Editor: React.FC<EditorProps> = ({
     let isMounted = true;
 
     const initEditor = async () => {
-      if (isInitializedRef.current || !isMounted) return;
+      // Check if editor already exists for this holder
+      const holderElement = document.getElementById(actualHolderId);
+      
+      // Prevent double initialization
+      if (isInitializedRef.current || !isMounted) {
+        return;
+      }
+      
+      // Check if editor already exists in DOM
+      if (holderElement) {
+        const existingEditor = holderElement.querySelector('.codex-editor');
+        if (existingEditor) {
+          console.warn(`Editor already exists for holder: ${actualHolderId}`);
+          return;
+        }
+      }
+
+      // Mark as initializing to prevent concurrent initialization
+      isInitializedRef.current = true;
+      holderRef.current = holder;
 
       try {
         const editor = new EditorJS({
-          holder: holder,
+          holder: actualHolderId,
           data: data && typeof data === 'object' ? data : undefined,
           onReady: () => {
             if (isMounted) {
-              isInitializedRef.current = true;
+              // Editor is ready
             }
           },
           onChange: async (api) => {
@@ -102,16 +126,40 @@ const Editor: React.FC<EditorProps> = ({
                     const formData = new FormData();
                     formData.append("image", file);
                     const token = localStorage.getItem("accessToken");
-                    const res = await fetch(`${API_BASE_URL}/images`, {
+                    const refreshToken = localStorage.getItem("refreshToken");
+                    
+                    const headers: HeadersInit = {};
+                    if (token) {
+                      headers["Authorization"] = `Bearer ${token}`;
+                      headers["x-access-token"] = token;
+                    }
+                    if (refreshToken) {
+                      headers["x-refresh-token"] = refreshToken;
+                    }
+                    
+                    const res = await fetch(`${API_BASE_URL}${uploadEndpoint}`, {
                       method: "POST",
-                      headers: token ? { "Authorization": `Bearer ${token}` } : {},
+                      headers: headers,
                       body: formData,
                     });
+                    
+                    if (!res.ok) {
+                      const errorData = await res.json().catch(() => ({}));
+                      console.error("Image upload failed:", errorData);
+                      return { success: 0 };
+                    }
+                    
                     const responseData = await res.json();
-                    if (responseData.success) {
+                    if (responseData.success === 1 && responseData.file?.url) {
+                      // Handle relative URLs by prepending API base URL if needed
+                      let imageUrl = responseData.file.url;
+                      if (imageUrl.startsWith('/') && !imageUrl.startsWith('//')) {
+                        // Relative path - prepend API base URL
+                        imageUrl = `${API_BASE_URL}${imageUrl}`;
+                      }
                       return {
                         success: 1,
-                        file: { url: responseData.data.url }
+                        file: { url: imageUrl }
                       };
                     }
                     return { success: 0 };
@@ -127,7 +175,12 @@ const Editor: React.FC<EditorProps> = ({
             underline: Underline,
             // Custom tools
             comparison: ComparisonTool,
-            video: SimpleVideo,
+            video: {
+              class: SimpleVideo,
+              config: {
+                uploadEndpoint: uploadEndpoint === '/images' ? '/news/content-video' : '/courses/videos',
+              },
+            },
             audio: SimpleAudio,
             twitter: TwitterEmbed,
             youtube: YoutubeEmbed,
@@ -138,31 +191,53 @@ const Editor: React.FC<EditorProps> = ({
         editorRef.current = editor;
       } catch (err) {
         console.error("Editor initialization error:", err);
+        // Reset flag on error so it can retry
+        if (isMounted) {
+          isInitializedRef.current = false;
+        }
       }
     };
 
-    initEditor();
+    // Only initialize if holder matches and not already initialized
+    if (holderRef.current === holder && !isInitializedRef.current) {
+      initEditor();
+    } else if (holderRef.current !== holder) {
+      // Holder changed, reset and reinitialize
+      isInitializedRef.current = false;
+      holderRef.current = holder;
+      initEditor();
+    }
 
     return () => {
       isMounted = false;
       if (editorRef.current && typeof editorRef.current.destroy === 'function') {
         editorRef.current.isReady.then(() => {
           if (editorRef.current) {
-            editorRef.current.destroy();
+            try {
+              editorRef.current.destroy();
+            } catch (e) {
+              console.warn("Error destroying editor:", e);
+            }
             editorRef.current = null;
-            isInitializedRef.current = false;
           }
-        }).catch(e => console.warn("Editor cleanup error:", e));
+          isInitializedRef.current = false;
+        }).catch(e => {
+          console.warn("Editor cleanup error:", e);
+          isInitializedRef.current = false;
+        });
+      } else {
+        isInitializedRef.current = false;
       }
     };
   }, [holder]);
 
   return (
     <div className="editor-container" style={{ minHeight: '300px' }}>
-      <div id={holder} className="prose max-w-none dark:prose-invert" />
+      <div id={actualHolderId} className="prose max-w-none dark:prose-invert" />
     </div>
   );
 };
 
 export default Editor;
+
 
