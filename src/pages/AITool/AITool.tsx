@@ -16,7 +16,7 @@ interface ChatRoom {
 }
 
 interface AISettings {
-  temperature: number;
+ creativity: number;
   systemPrompt: string;
   about: string;
   avoidWords: string;
@@ -297,7 +297,7 @@ const AITool: React.FC = () => {
       // Only send fields that are defined (partial update support)
       const settingsToUpdate: Partial<AISettings> = {};
       
-      if (settings.temperature !== undefined) settingsToUpdate.temperature = settings.temperature;
+      if (settings.creativity !== undefined) settingsToUpdate.creativity = settings.creativity;
       if (settings.systemPrompt !== undefined) settingsToUpdate.systemPrompt = settings.systemPrompt;
       if (settings.about !== undefined) settingsToUpdate.about = settings.about;
       if (settings.avoidWords !== undefined) settingsToUpdate.avoidWords = settings.avoidWords;
@@ -623,14 +623,14 @@ const AITool: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium mb-2">Temperature (0-10)</label>
+              <label className="block text-sm font-medium mb-2">Creativity (0-10)</label>
               <input
                 type="number"
                 min="0"
                 max="10"
                 step="0.1"
-                value={settings.temperature}
-                onChange={(e) => setSettings({ ...settings, temperature: Number(e.target.value) })}
+                value={settings.creativity}
+                onChange={(e) => setSettings({ ...settings, creativity: Number(e.target.value) })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
               />
               <p className="text-xs text-gray-500 mt-1">Backend converts this to 0.0-1.0 scale</p>
