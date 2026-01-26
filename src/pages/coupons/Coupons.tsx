@@ -651,6 +651,13 @@ const Coupons: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">
                           <button
+                            onClick={() => navigate(`/coupons/edit/${coupon._id}`)}
+                            className="text-indigo-500 hover:text-indigo-700 transition-colors p-1"
+                            title="Edit coupon"
+                          >
+                            <Pencil className="h-5 w-5" />
+                          </button>
+                          <button
                             onClick={() => openUsageModal(coupon)}
                             className="text-blue-500 hover:text-blue-700 transition-colors p-1"
                             title="View usage details"

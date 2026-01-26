@@ -261,6 +261,7 @@ export default function App() {
               />
 
               {/* Coupons */}
+              <Route path="/coupons" element={<Navigate to="/coupons/all" replace />} />
               <Route path="/coupons/all" element={<Coupons />} />
               <Route path="/coupons/add" element={<CreateCoupon />} />
               <Route path="/coupons/edit/:couponId" element={<EditCoupon />} />

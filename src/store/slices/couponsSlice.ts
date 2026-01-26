@@ -125,9 +125,21 @@ export const fetchCouponById = createAsyncThunk(
   "coupons/fetchCouponById",
   async (id: string, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.get(`/coupons/${id}`);
+      console.log("API Call: GET /coupons/" + id);
+      // Add cache-busting headers to prevent 304 Not Modified responses
+      const res = await axiosInstance.get(`/coupons/${id}`, {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+        },
+        params: {
+          _t: Date.now() // Add timestamp to query string to bust cache
+        }
+      });
+      console.log("API Response:", res.data);
       return res.data;
     } catch (err: any) {
+      console.error("API Error:", err);
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
@@ -224,11 +236,16 @@ const couponsSlice = createSlice({
       })
       .addCase(fetchCouponById.fulfilled, (state, action) => { 
         state.loading = false; 
-        state.singleCoupon = action.payload; 
+        console.log("Reducer - Full payload:", action.payload);
+        // Extract coupon from response data structure: { success: true, data: { coupon }, ... }
+        const coupon = action.payload?.data?.coupon || action.payload?.coupon || action.payload;
+        console.log("Reducer - Extracted coupon:", coupon);
+        state.singleCoupon = coupon; 
       })
       .addCase(fetchCouponById.rejected, (state, action) => { 
         state.loading = false; 
         state.error = action.payload as string; 
+        console.error("Reducer - Fetch error:", action.payload);
       })
 
       // UPDATE
