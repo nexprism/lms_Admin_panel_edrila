@@ -16,7 +16,7 @@ interface ChatRoom {
 }
 
 interface AISettings {
- creativity: number;
+  creativity: number;
   systemPrompt: string;
   about: string;
   avoidWords: string;
@@ -185,8 +185,8 @@ const AITool: React.FC = () => {
                     setMessages((prev) => {
                       const newMessages = [...prev];
                       // Remove the empty assistant message
-                      if (newMessages[newMessages.length - 1]?.role === 'assistant' && 
-                          newMessages[newMessages.length - 1]?.content === '') {
+                      if (newMessages[newMessages.length - 1]?.role === 'assistant' &&
+                        newMessages[newMessages.length - 1]?.content === '') {
                         newMessages.pop();
                       }
                       // Add error message
@@ -209,9 +209,13 @@ const AITool: React.FC = () => {
                     assistantMessage += data.content;
                     setMessages((prev) => {
                       const newMessages = [...prev];
-                      const lastMsg = newMessages[newMessages.length - 1];
-                      if (lastMsg.role === 'assistant') {
-                        lastMsg.content = assistantMessage;
+                      const lastMsgIndex = newMessages.length - 1;
+                      if (lastMsgIndex >= 0 && newMessages[lastMsgIndex].role === 'assistant') {
+                        // Create a new object for the last message to avoid mutation
+                        newMessages[lastMsgIndex] = {
+                          ...newMessages[lastMsgIndex],
+                          content: assistantMessage
+                        };
                       }
                       return newMessages;
                     });
@@ -245,9 +249,13 @@ const AITool: React.FC = () => {
                 assistantMessage += data.content;
                 setMessages((prev) => {
                   const newMessages = [...prev];
-                  const lastMsg = newMessages[newMessages.length - 1];
-                  if (lastMsg.role === 'assistant') {
-                    lastMsg.content = assistantMessage;
+                  const lastMsgIndex = newMessages.length - 1;
+                  if (lastMsgIndex >= 0 && newMessages[lastMsgIndex].role === 'assistant') {
+                    // Create a new object for the last message
+                    newMessages[lastMsgIndex] = {
+                      ...newMessages[lastMsgIndex],
+                      content: assistantMessage
+                    };
                   }
                   return newMessages;
                 });
@@ -266,8 +274,8 @@ const AITool: React.FC = () => {
       setMessages((prev) => {
         const newMessages = [...prev];
         // Remove the empty assistant message on error
-        if (newMessages[newMessages.length - 1]?.role === 'assistant' && 
-            newMessages[newMessages.length - 1]?.content === '') {
+        if (newMessages[newMessages.length - 1]?.role === 'assistant' &&
+          newMessages[newMessages.length - 1]?.content === '') {
           return newMessages.slice(0, -1);
         }
         return newMessages;
@@ -296,7 +304,7 @@ const AITool: React.FC = () => {
     try {
       // Only send fields that are defined (partial update support)
       const settingsToUpdate: Partial<AISettings> = {};
-      
+
       if (settings.creativity !== undefined) settingsToUpdate.creativity = settings.creativity;
       if (settings.systemPrompt !== undefined) settingsToUpdate.systemPrompt = settings.systemPrompt;
       if (settings.about !== undefined) settingsToUpdate.about = settings.about;
@@ -444,33 +452,30 @@ const AITool: React.FC = () => {
       <div className="flex space-x-4 border-b border-gray-200 dark:border-gray-700">
         <button
           onClick={() => setActiveTab('chat')}
-          className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === 'chat'
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-          }`}
+          className={`px-4 py-2 font-medium transition-colors ${activeTab === 'chat'
+            ? 'border-b-2 border-blue-600 text-blue-600'
+            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+            }`}
         >
           <Bot className="inline-block w-4 h-4 mr-2" />
           Chat
         </button>
         <button
           onClick={() => setActiveTab('settings')}
-          className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === 'settings'
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-          }`}
+          className={`px-4 py-2 font-medium transition-colors ${activeTab === 'settings'
+            ? 'border-b-2 border-blue-600 text-blue-600'
+            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+            }`}
         >
           <Settings className="inline-block w-4 h-4 mr-2" />
           Settings
         </button>
         <button
           onClick={() => setActiveTab('knowledge')}
-          className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === 'knowledge'
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-          }`}
+          className={`px-4 py-2 font-medium transition-colors ${activeTab === 'knowledge'
+            ? 'border-b-2 border-blue-600 text-blue-600'
+            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+            }`}
         >
           <BookOpen className="inline-block w-4 h-4 mr-2" />
           Knowledge Base
@@ -494,11 +499,10 @@ const AITool: React.FC = () => {
                 <button
                   key={room._id}
                   onClick={() => selectRoom(room._id)}
-                  className={`w-full text-left p-3 rounded-lg transition-colors ${
-                    selectedRoomId === room._id
-                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
-                      : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
-                  }`}
+                  className={`w-full text-left p-3 rounded-lg transition-colors ${selectedRoomId === room._id
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
+                    : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
                 >
                   <div className="font-medium truncate">{room.title}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -529,11 +533,10 @@ const AITool: React.FC = () => {
                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-lg p-4 ${
-                        msg.role === 'user'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
-                      }`}
+                      className={`max-w-[80%] rounded-lg p-4 ${msg.role === 'user'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                        }`}
                     >
                       {msg.role === 'assistant' ? (
                         <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-800 dark:prose-p:text-gray-200 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-pre:bg-gray-800 dark:prose-pre:bg-gray-900 prose-pre:text-gray-100">
